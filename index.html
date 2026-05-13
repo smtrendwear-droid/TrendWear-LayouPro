@@ -8,6 +8,122 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;700;900&display=swap" rel="stylesheet">
+    
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, serverTimestamp, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDorV0iFvETAYzmbDENcmPH5n4lA1M1JOQ",
+            authDomain: "layoutpro-3b1ca.firebaseapp.com",
+            projectId: "layoutpro-3b1ca",
+            storageBucket: "layoutpro-3b1ca.firebasestorage.app",
+            messagingSenderId: "902663626254",
+            appId: "1:902663626254:web:2d70c1b85e840dc788e65f",
+            measurementId: "G-Q0269SSXSF"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        window.auth = auth;
+        window.db = db;
+        
+        window.handleLogin = async function() {
+            const email = document.getElementById('loginEmail').value;
+            const pass = document.getElementById('loginPass').value;
+            const error = document.getElementById('loginError');
+            const btn = document.getElementById('btnLogin');
+
+            btn.innerHTML = 'Conectando...';
+            btn.disabled = true;
+
+            try {
+                await signInWithEmailAndPassword(auth, email, pass);
+                document.getElementById('loginOverlay').style.display = 'none';
+                window.showToast("Autenticação Aprovada. Bem-vindo!");
+            } catch (e) {
+                error.classList.remove('hidden');
+                btn.innerHTML = 'Entrar no Sistema';
+                btn.disabled = false;
+            }
+        };
+
+        window.logout = function() {
+            signOut(auth).then(() => {
+                document.getElementById('loginOverlay').style.display = 'flex';
+                window.showToast("Sessão encerrada.");
+            });
+        };
+
+        window.salvarOrcamentoNoBanco = async function(dadosOrcamento) {
+            try {
+                await addDoc(collection(db, "orcamentos"), {
+                    ...dadosOrcamento,
+                    vendedor: {
+                        nome: document.getElementById('vendNome').value || 'TrendWear',
+                        email: auth.currentUser ? auth.currentUser.email : 'desconhecido'
+                    },
+                    dataRegistro: serverTimestamp()
+                });
+                window.showToast("Orçamento sincronizado na nuvem!");
+            } catch (e) {
+                console.error("Erro ao salvar no banco:", e);
+                window.showToast("Erro ao salvar na nuvem.");
+            }
+        };
+
+        window.abrirPainelOrcamentos = async function() {
+            document.getElementById('dashboardOverlay').classList.add('show');
+            const container = document.getElementById('dashboardList');
+            container.innerHTML = '<div class="text-center text-blue-500 font-bold py-10 flex flex-col items-center"><div class="loader-circle mb-4"></div>Carregando histórico...</div>';
+            
+            try {
+                const q = query(collection(db, "orcamentos"), orderBy("dataRegistro", "desc"));
+                const querySnapshot = await getDocs(q);
+                
+                if (querySnapshot.empty) {
+                    container.innerHTML = '<div class="text-center text-[var(--text-muted)] font-bold py-10">Nenhum orçamento encontrado.</div>';
+                    return;
+                }
+
+                container.innerHTML = '';
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    const dataFormatada = data.dataRegistro ? new Date(data.dataRegistro.toDate()).toLocaleDateString('pt-BR') : 'Hoje';
+                    
+                    container.innerHTML += `
+                        <div class="bg-[var(--bg-card)] border border-[var(--border-color)] p-5 rounded-xl shadow-md mb-4 flex justify-between items-center transition hover:border-blue-500">
+                            <div>
+                                <div class="text-blue-500 font-black text-[10px] uppercase tracking-widest mb-1">${dataFormatada} • ${data.vendedor.nome}</div>
+                                <div class="text-lg font-black text-[var(--text-main)] uppercase tracking-tighter">${data.cliente}</div>
+                                <div class="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest mt-1">${data.cidade} • CNPJ: ${data.cnpj || 'N/A'}</div>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-2xl font-black text-[var(--text-main)] tracking-tighter">R$ ${data.valorTotal.toFixed(2).replace('.', ',')}</div>
+                                <div class="text-[9px] font-bold text-emerald-500 uppercase tracking-widest bg-emerald-500/10 px-2 py-1 rounded inline-block mt-2">${data.formaPagamento.replace('_', ' ')}</div>
+                            </div>
+                        </div>
+                    `;
+                });
+            } catch (e) {
+                console.error("Erro ao buscar orçamentos:", e);
+                container.innerHTML = '<div class="text-center text-red-500 font-bold py-10">Erro ao carregar dados do banco.</div>';
+            }
+        };
+
+        window.fecharPainelOrcamentos = function() {
+            document.getElementById('dashboardOverlay').classList.remove('show');
+        };
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                document.getElementById('loginOverlay').style.display = 'none';
+            }
+        });
+    </script>
     <style>
         /* VARIÁVEIS DE TEMA E TRANSIÇÕES */
         :root {
@@ -74,6 +190,31 @@
 </head>
 <body class="dark-mode">
 
+<div id="loginOverlay" class="fixed inset-0 bg-slate-900 z-[10000] flex items-center justify-center">
+    <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-md text-center">
+        <h2 class="text-3xl font-black italic text-blue-600 mb-6 uppercase tracking-tighter">TrendWear Access</h2>
+        <div class="space-y-4">
+            <input type="email" id="loginEmail" placeholder="E-mail do Vendedor" class="calc-input !text-black !border-slate-300">
+            <input type="password" id="loginPass" placeholder="Senha" class="calc-input !text-black !border-slate-300" onkeypress="if(event.key === 'Enter') handleLogin()">
+            <button id="btnLogin" onclick="handleLogin()" class="w-full bg-blue-600 text-white py-4 rounded-xl font-black uppercase tracking-widest hover:bg-blue-500 transition shadow-lg active:scale-95">Entrar no Sistema</button>
+        </div>
+        <p id="loginError" class="text-red-500 text-xs mt-4 font-bold uppercase hidden">Credenciais Inválidas</p>
+    </div>
+</div>
+
+<div id="dashboardOverlay" class="modal-overlay">
+    <div class="settings-content max-w-4xl">
+        <div class="p-6 border-b border-[var(--border-color)] bg-[var(--bg-modal)] flex justify-between items-center shrink-0">
+            <h2 class="font-black italic uppercase tracking-widest text-lg text-emerald-500">📊 Histórico de Orçamentos B2B</h2>
+            <button onclick="fecharPainelOrcamentos()" class="text-[var(--text-muted)] hover:text-red-500 font-bold text-2xl transition hover:scale-110 active:scale-90">✕</button>
+        </div>
+        <div class="flex-1 overflow-y-auto p-8 bg-[var(--bg-main)]">
+            <div id="dashboardList" class="space-y-2">
+                </div>
+        </div>
+    </div>
+</div>
+
 <div id="toastMsg" class="fixed bottom-10 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white px-6 py-3 rounded-full font-black text-[10px] uppercase tracking-widest shadow-2xl transition-all duration-300 opacity-0 translate-y-10 z-[9999] pointer-events-none">Aviso</div>
 
 <div id="loadingOverlay">
@@ -84,11 +225,14 @@
 
 <div id="homeScreen">
     <div class="absolute top-8 right-8 flex gap-4">
+        <button onclick="logout()" class="text-red-500 hover:text-white transition-all transform hover:scale-110 duration-300 bg-red-500/10 p-3 rounded-full border border-red-500/30" title="Sair da Conta">
+            <span class="text-xs font-black uppercase">Sair</span>
+        </button>
         <button onclick="toggleTheme()" class="text-slate-500 hover:text-blue-500 transition-all transform hover:scale-110 duration-300 bg-slate-800 p-3 rounded-full shadow-lg" title="Alternar Tema">
             <span id="themeIconHome" class="text-xl">☀️</span>
         </button>
         <button onclick="openSettings()" class="text-slate-500 hover:text-white transition-all transform hover:rotate-90 hover:scale-110 duration-300 bg-slate-800 p-3 rounded-full shadow-lg" title="Configurações">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
         </button>
     </div>
     <h1 class="text-[5.5rem] leading-none font-black italic tracking-tighter mb-4 text-[var(--text-main)] drop-shadow-2xl animate-slide-up"><span class="text-blue-500">TrendWear</span> LayoutPro</h1>
@@ -98,6 +242,9 @@
         <button onclick="document.getElementById('loadProjectInput').click()" class="bg-[var(--bg-card)] text-[var(--text-main)] border border-[var(--border-color)] px-14 py-5 rounded-full font-black uppercase tracking-widest transition-all duration-300 shadow-xl transform hover:scale-105 active:scale-95 hover:border-blue-500">Abrir Projeto</button>
         <input type="file" id="loadProjectInput" class="hidden" accept=".twp" onchange="loadProjectFile(event)">
     </div>
+    <button onclick="abrirPainelOrcamentos()" class="animate-slide-up text-[10px] font-black uppercase tracking-widest text-emerald-500 border border-emerald-500/30 bg-emerald-500/10 px-8 py-3 rounded-full hover:bg-emerald-500 hover:text-white transition-all mt-6">
+        📊 Painel de Orçamentos
+    </button>
 </div>
 
 <div id="settingsModal" class="modal-overlay">
@@ -146,9 +293,6 @@
                 <button onclick="exportConfig()" class="bg-[var(--bg-card)] border border-[var(--border-color)] px-5 py-3 rounded-lg font-bold text-[10px] uppercase text-[var(--text-main)] transition hover:border-blue-500 active:scale-95">⬇️ Exportar .TWC</button>
                 <button onclick="document.getElementById('importConfigInput').click()" class="bg-[var(--bg-card)] border border-[var(--border-color)] px-5 py-3 rounded-lg font-bold text-[10px] uppercase text-[var(--text-main)] transition hover:border-blue-500 active:scale-95">⬆️ Importar .TWC</button>
                 <input type="file" id="importConfigInput" class="hidden" accept=".twc" onchange="importConfig(event)">
-                <button onclick="verificarAtualizacao()" class="ml-4 bg-teal-900/30 text-teal-500 border border-teal-500/50 px-5 py-3 rounded-lg font-bold text-[10px] uppercase flex items-center gap-2 transition hover:bg-teal-600 hover:text-white active:scale-95">
-                    <span id="updateIcon">🔄</span> Update Web
-                </button>
             </div>
             <div class="flex gap-4">
                 <button onclick="closeSettings()" class="bg-red-500/10 text-red-500 border border-red-500/50 px-8 py-3 rounded-lg font-bold text-xs uppercase transition hover:bg-red-500 hover:text-white active:scale-95">Cancelar</button>
@@ -317,7 +461,7 @@
         </div>
 
         <div class="flex-1 flex flex-col items-center justify-center p-10 relative">
-            <div id="editorToolbar" class="animate-slide-up bg-[var(--bg-card)] text-[var(--text-main)] border border-[var(--border-color)] rounded-xl shadow-2xl flex items-center gap-3 px-5 py-2 absolute top-6 z-[100]">
+            <div id="editorToolbar" class="animate-slide-up bg-[var(--bg-card)] text-[var(--text-main)] border border-[var(--border-color)] rounded-xl shadow-2xl flex items-center gap-3 px-5 py-2 absolute top-6 z-[100]" style="display: none;">
                 <button id="lockBtn" onclick="toggleLock()" class="border border-[var(--border-color)] bg-[var(--bg-input)] px-3 py-1.5 rounded-lg text-[10px] font-bold hover:border-blue-500 transition">🔓 Solto</button>
                 <div class="w-px h-6 bg-[var(--border-color)] mx-1"></div>
                 
@@ -422,7 +566,7 @@
         if(!id) return ''; 
         const match = id.match(/[-\w]{25,}/); 
         const cleanId = match ? match[0] : id;
-        return `https://lh3.googleusercontent.com/d/${cleanId}`; 
+        return `https://lh3.googleusercontent.com/d/$${cleanId}`; 
     }
 
     // AVISO POPUP RÁPIDO
@@ -691,6 +835,7 @@
         renderCatalogSettings(); renderPricingMatrix(); document.getElementById('settingsModal').classList.add('show');
     }
     function closeSettings() { document.getElementById('settingsModal').classList.remove('show'); }
+
     function renderFabricPills() { const c = document.getElementById('fabricPillsList'); c.innerHTML = ''; CONFIG.listaTecidos.forEach(f => { c.innerHTML += `<div class="bg-[var(--bg-input)] text-[var(--text-main)] text-[10px] font-black px-4 py-2 rounded-lg flex items-center gap-2 border border-[var(--border-color)]">${f} <button onclick="deleteFabric('${f}')" class="text-red-500 ml-2 transition hover:scale-125">✕</button></div>`; }); }
     function addFabric() { const v = document.getElementById('newFabricInput').value.trim().toUpperCase(); if(v && !CONFIG.listaTecidos.includes(v)) { CONFIG.listaTecidos.push(v); Object.keys(CONFIG.catalogo).forEach(m => { CONFIG.precos[`${m}_${v}`] = 0; }); document.getElementById('newFabricInput').value = ''; renderFabricPills(); renderPricingMatrix(); } }
     function deleteFabric(f) { if(CONFIG.listaTecidos.length > 1 && confirm(`Remover o tecido ${f}?`)) { CONFIG.listaTecidos = CONFIG.listaTecidos.filter(t => t !== f); Object.keys(CONFIG.catalogo).forEach(m => { delete CONFIG.precos[`${m}_${f}`]; }); renderFabricPills(); renderPricingMatrix(); } }
@@ -711,8 +856,10 @@
             </div>`;
         });
     }
+
     function addCatalogRow() { const newKey = 'prod_' + Date.now(); CONFIG.catalogo[newKey] = { nome: 'Novo Modelo', fId: '', cId: '' }; CONFIG.listaTecidos.forEach(f => { CONFIG.precos[`${newKey}_${f}`] = 0; }); renderCatalogSettings(); renderPricingMatrix(); }
     function deleteCatalogRow(key) { if(Object.keys(CONFIG.catalogo).length > 1 && confirm('Excluir modelo?')) { delete CONFIG.catalogo[key]; CONFIG.listaTecidos.forEach(f => { delete CONFIG.precos[`${key}_${f}`]; }); renderCatalogSettings(); renderPricingMatrix(); } }
+    
     function renderPricingMatrix() {
         const table = document.getElementById('pricingMatrixTable');
         let html = `<thead><tr><th class="p-3 text-[10px] text-[var(--text-muted)] italic font-medium sticky left-0 z-20 w-48 text-left bg-[var(--bg-card)]">Modelo Configurado</th>`;
@@ -725,6 +872,7 @@
             html += `</tr>`;
         }); html += `</tbody>`; table.innerHTML = html;
     }
+
     function saveSettings() {
         Object.keys(CONFIG.catalogo).forEach(k => { if(document.getElementById(`cat_nome_${k}`)) { CONFIG.catalogo[k].nome = document.getElementById(`cat_nome_${k}`).value; CONFIG.catalogo[k].fId = document.getElementById(`cat_fId_${k}`).value; CONFIG.catalogo[k].cId = document.getElementById(`cat_cId_${k}`).value; } });
         Object.keys(CONFIG.catalogo).forEach(m => { CONFIG.listaTecidos.forEach(f => { const input = document.getElementById(`matriz_${m}_${f}`); if(input) CONFIG.precos[`${m}_${f}`] = parseFloat(input.value) || 0; }); });
@@ -733,11 +881,11 @@
         CONFIG.bordado.matriz = parseFloat(document.getElementById('cfg_bor_m').value); CONFIG.bordado.pequena = parseFloat(document.getElementById('cfg_bor_p').value); CONFIG.bordado.grande = parseFloat(document.getElementById('cfg_bor_g').value);
         localStorage.setItem('trendwear_master_config', JSON.stringify(CONFIG)); rebuildDynamicDropdowns(); 
         if (currentTabId) { const tab = tabs.find(t => t.id === currentTabId); if (!CONFIG.catalogo[tab.model]) tab.model = Object.keys(CONFIG.catalogo)[0]; if (!CONFIG.listaTecidos.includes(tab.fabric)) tab.fabric = CONFIG.listaTecidos[0]; document.getElementById('modelSelect').value = tab.model; document.getElementById('calcFabric').value = tab.fabric; syncModel(); syncArtes(); }
-        closeSettings(); showModal("Salvo", "Configurações salvas localmente com sucesso.", () => {});
+        closeSettings(); showToast("Configurações salvas!");
     }
 
     function exportConfig() { const b = new Blob([JSON.stringify(CONFIG)], { type: "application/json" }); const u = URL.createObjectURL(b); const l = document.createElement('a'); l.href = u; l.download = `TW_v8_Config.twc`; l.click(); }
-    function importConfig(e) { const f = e.target.files[0]; if(!f) return; const r = new FileReader(); r.onload = (ev) => { try { const i = JSON.parse(ev.target.result); if(i.catalogo){ CONFIG = i; localStorage.setItem('trendwear_master_config', JSON.stringify(CONFIG)); openSettings(); rebuildDynamicDropdowns(); if(currentTabId) syncModel(); showModal("Sucesso", "Configuração importada.", () => {}); } } catch(err){ showModal("Erro", "Arquivo inválido.", () => {}); } }; r.readAsText(f); e.target.value = ''; }
+    function importConfig(e) { const f = e.target.files[0]; if(!f) return; const r = new FileReader(); r.onload = (ev) => { try { const i = JSON.parse(ev.target.result); if(i.catalogo){ CONFIG = i; localStorage.setItem('trendwear_master_config', JSON.stringify(CONFIG)); openSettings(); rebuildDynamicDropdowns(); if(currentTabId) syncModel(); showToast("Sucesso: Configuração importada."); } } catch(err){ showToast("Erro: Arquivo inválido."); } }; r.readAsText(f); e.target.value = ''; }
 
     function initTabs() { if(tabs.length === 0) addNewTab(); else renderTabs(); }
     function addNewTab() { saveCurrentTabState(); const newId = 'tab_' + Date.now(); tabs.push({ id: newId, name: `Canva ${tabs.length + 1}`, model: Object.keys(CONFIG.catalogo)[0], fabric: CONFIG.listaTecidos[0], color: '#ffffff', canvasBg: '#ffffff', brightness: 0, qty: 10, discount: 0, nodes: [], history: [] }); switchTab(newId); }
@@ -811,7 +959,7 @@
     }
     function removeCartItem(id) { cart = cart.filter(i => i.id !== id); renderCart(); }
     function saveProjectFile() { saveCurrentTabState(); const d = { version: '8.2', client: { vendNome: document.getElementById('vendNome').value, cliNome: document.getElementById('cliNome').value, cliTel: document.getElementById('cliTel').value, orcData: document.getElementById('orcData').value, condPagto: document.getElementById('condPagto').value, cliCnpj: document.getElementById('cliCnpj').value, cliEnd: document.getElementById('cliEnd').value, cliCidade: document.getElementById('cliCidade').value, cliEmail: document.getElementById('cliEmail').value, orcValidade: document.getElementById('orcValidade').value, orcPrazo: document.getElementById('orcPrazo').value }, cart: cart, tabs: tabs }; const b = new Blob([JSON.stringify(d)], { type: "application/json" }); const u = URL.createObjectURL(b); const l = document.createElement('a'); l.href = u; l.download = `Projeto_${document.getElementById('cliNome').value || 'TrendWear'}.twp`; l.click(); }
-    function loadProjectFile(e) { const f = e.target.files[0]; if(!f) return; const r = new FileReader(); r.onload = (ev) => { try { const d = JSON.parse(ev.target.result); if(d.tabs) { tabs = d.tabs; cart = d.cart || []; if(d.client) { document.getElementById('vendNome').value = d.client.vendNome || ''; document.getElementById('cliNome').value = d.client.cliNome || ''; document.getElementById('cliTel').value = d.client.cliTel || ''; document.getElementById('orcData').value = d.client.orcData || ''; document.getElementById('condPagto').value = d.client.condPagto || '50_50'; document.getElementById('cliCnpj').value = d.client.cliCnpj || ''; document.getElementById('cliEnd').value = d.client.cliEnd || ''; document.getElementById('cliCidade').value = d.client.cliCidade || ''; document.getElementById('cliEmail').value = d.client.cliEmail || ''; document.getElementById('orcValidade').value = d.client.orcValidade || '10 dias'; document.getElementById('orcPrazo').value = d.client.orcPrazo || '15 dias úteis'; } renderCart(); switchTab(tabs[0].id); startApp(); } } catch(err){ showModal("Erro", "Arquivo corrompido.", ()=>{}); } }; r.readAsText(f); e.target.value = ''; }
+    function loadProjectFile(e) { const f = e.target.files[0]; if(!f) return; const r = new FileReader(); r.onload = (ev) => { try { const d = JSON.parse(ev.target.result); if(d.tabs) { tabs = d.tabs; cart = d.cart || []; if(d.client) { document.getElementById('vendNome').value = d.client.vendNome || ''; document.getElementById('cliNome').value = d.client.cliNome || ''; document.getElementById('cliTel').value = d.client.cliTel || ''; document.getElementById('orcData').value = d.client.orcData || ''; document.getElementById('condPagto').value = d.client.condPagto || '50_50'; document.getElementById('cliCnpj').value = d.client.cliCnpj || ''; document.getElementById('cliEnd').value = d.client.cliEnd || ''; document.getElementById('cliCidade').value = d.client.cliCidade || ''; document.getElementById('cliEmail').value = d.client.cliEmail || ''; document.getElementById('orcValidade').value = d.client.orcValidade || '10 dias'; document.getElementById('orcPrazo').value = d.client.orcPrazo || '15 dias úteis'; } renderCart(); switchTab(tabs[0].id); startApp(); } } catch(err){ showToast("Erro: Arquivo corrompido."); } }; r.readAsText(f); e.target.value = ''; }
 
     function setupEvents(n) {
         n.on('dragmove', () => { const w = n.width()*n.scaleX(); const cX = n.x()+(n.offsetX()===0?w/2:0); if(n.attrs.lockedCenter||Math.abs(cX-250)<15){n.x(250-(n.offsetX()===0?w/2:0)); vLine.show();} else vLine.hide(); guideLayer.batchDraw(); });
@@ -937,7 +1085,7 @@
                 const oldOp = selectedNode.opacity();
                 selectedNode.opacity(0.3); designLayer.draw();
                 setTimeout(() => { selectedNode.opacity(oldOp); designLayer.draw(); }, 150);
-                showToast("Arte Copiada!");
+                window.showToast("Arte Copiada!");
             }
         }
 
@@ -966,7 +1114,7 @@
                 syncArtes();
                 saveHistory();
                 updateVisibility();
-                showToast("Arte Colada em: " + currentView.toUpperCase());
+                window.showToast("Arte Colada em: " + currentView.toUpperCase());
             }
         }
 
@@ -1012,21 +1160,34 @@
         if(cart.length === 0) { showModal("Aviso", "Adicione modelos ao orçamento para gerar o PDF.", ()=>{}); return; }
         const btn = document.getElementById('btnGeneratePDF'); const old = btn.innerHTML; btn.innerHTML = `Compilando PDF...`; btn.disabled = true; 
         const { jsPDF } = window.jspdf; const doc = new jsPDF();
+        
         doc.setFillColor(15, 15, 15); doc.ellipse(100, -10, 150, 40, 'F'); doc.setFillColor(60, 60, 60); doc.ellipse(150, -5, 120, 30, 'F'); 
         doc.setTextColor(15, 15, 15); doc.setFont("helvetica", "bold"); doc.setFontSize(36); doc.text("PROPOSTA B2B", 20, 50); 
         doc.setFontSize(9); doc.setTextColor(80); 
+        
         const dateInput = document.getElementById('orcData').value; const dataFormatada = dateInput ? dateInput.split('-').reverse().join('/') : new Date().toLocaleDateString('pt-BR'); 
         doc.text(`Data: ${dataFormatada}`, 140, 45); doc.text(`Validade: ${document.getElementById('orcValidade').value || '10 dias'}`, 140, 50); 
         doc.setFontSize(9); doc.setTextColor(0); 
-        const fields = [ { l: "Cliente / Razão:", v: document.getElementById('cliNome').value }, { l: "CNPJ / CPF:", v: document.getElementById('cliCnpj').value }, { l: "Endereço:", v: `${document.getElementById('cliEnd').value} ${document.getElementById('cliCidade').value ? '- ' + document.getElementById('cliCidade').value : ''}` }, { l: "Contato:", v: `${document.getElementById('cliTel').value} ${document.getElementById('cliEmail').value ? '| ' + document.getElementById('cliEmail').value : ''}` }, { l: "Consultor Comercial:", v: document.getElementById('vendNome').value } ]; 
+        
+        const fields = [ 
+            { l: "Cliente / Razão:", v: document.getElementById('cliNome').value }, 
+            { l: "CNPJ / CPF:", v: document.getElementById('cliCnpj').value }, 
+            { l: "Endereço:", v: `${document.getElementById('cliEnd').value} ${document.getElementById('cliCidade').value ? '- ' + document.getElementById('cliCidade').value : ''}` }, 
+            { l: "Contato:", v: `${document.getElementById('cliTel').value} ${document.getElementById('cliEmail').value ? '| ' + document.getElementById('cliEmail').value : ''}` }, 
+            { l: "Consultor Comercial:", v: document.getElementById('vendNome').value } 
+        ]; 
+        
         let curY = 65; fields.forEach(f => { doc.setFont("helvetica", "bold"); doc.text(f.l, 20, curY); doc.setFont("helvetica", "normal"); doc.text(f.v || "______________________________________________________", 55, curY); curY += 7; });
         let sumTotal = 0; let tableData = cart.map(i => { sumTotal += i.totalNum; return [ `${i.model}\n(${i.tabName})`, i.fabric, i.qty, i.unitStr, i.totalStr ]; }); 
         const isPix = document.getElementById('condPagto').value === 'PIX'; const finalGlobal = isPix ? sumTotal * 0.95 : sumTotal; 
+        
         doc.autoTable({ startY: curY + 5, head: [['MODELO', 'TECIDO', 'QTD', 'UNITÁRIO', 'SUBTOTAL']], body: tableData, theme: 'grid', headStyles: { fillColor: [20, 20, 20] }, styles: { fontSize: 8, cellPadding: 3, halign: 'center' }, columnStyles: { 0: { halign: 'left' } } }); 
         const finalY = doc.lastAutoTable.finalY + 10; 
+        
         doc.setFont("helvetica", "bold"); doc.text("Condições Comerciais:", 20, finalY); doc.setFont("helvetica", "normal"); doc.text(`Pagamento: ${document.getElementById('condPagto').options[document.getElementById('condPagto').selectedIndex].text}`, 20, finalY + 6); doc.text(`Prazo Confecção: ${document.getElementById('orcPrazo').value || '--'}`, 20, finalY + 12); 
         doc.setFillColor(240); doc.rect(130, finalY - 5, 60, 15, 'F'); doc.setFont("helvetica", "bold"); doc.setFontSize(12); doc.text(`TOTAL: R$ ${finalGlobal.toFixed(2).replace('.',',')}`, 135, finalY + 5); 
         doc.setFontSize(8); doc.setTextColor(120); doc.setFont("helvetica", "normal"); doc.text("Gerado por TrendWear LayoutPro", 20, 280); doc.setFontSize(14); doc.setFont("helvetica", "bold"); doc.setTextColor(20); doc.text("TrendWear", 165, 280);
+        
         for(let i=0; i<cart.length; i++) { 
             doc.addPage(); const bgAnexo = cart[i].canvasBg || '#ffffff';
             doc.setFillColor(bgAnexo); doc.rect(0, 0, 210, 297, 'F');
@@ -1037,6 +1198,23 @@
             doc.text("Aprovação do Cliente (Assinatura)", 105, 265, { align: "center" }); 
         } 
         doc.save(`TrendWear_Proposta_${document.getElementById('cliNome').value || 'B2B'}.pdf`); btn.innerHTML = old; btn.disabled = false; toggleCart();
+
+        if (window.salvarOrcamentoNoBanco) {
+            window.salvarOrcamentoNoBanco({
+                cliente: document.getElementById('cliNome').value || 'Não Informado',
+                cnpj: document.getElementById('cliCnpj').value || '',
+                cidade: document.getElementById('cliCidade').value || '',
+                valorTotal: finalGlobal,
+                formaPagamento: document.getElementById('condPagto').value,
+                itens: cart.map(i => ({ modelo: i.model, tecido: i.fabric, qtd: i.qty, subtotal: i.totalNum }))
+            });
+        }
+    }
+
+    // NOVA FUNÇÃO DE IMAGEM APONTANDO PARA O REPOSITÓRIO GITHUB
+    function getDirectLink(id) { 
+        if(!id) return ''; 
+        return "https://raw.githubusercontent.com/smtrendwear-droid/TrendWear-LayoutPro/main/mockups/" + id; 
     }
 
     function preload() { 
