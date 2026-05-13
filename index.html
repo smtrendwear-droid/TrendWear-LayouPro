@@ -1,0 +1,1062 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>TrendWear LayoutPro - Master Edition v8.2</title>
+    <script src="https://unpkg.com/konva@9.2.0/konva.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;700;900&display=swap" rel="stylesheet">
+    <style>
+        /* VARIÁVEIS DE TEMA E TRANSIÇÕES */
+        :root {
+            --bg-main: #f1f5f9; --bg-sidebar: #0f172a; --bg-card: #1e293b; --bg-modal: #0f172a;
+            --text-main: #ffffff; --text-muted: #94a3b8; --border-color: #334155; --bg-input: #0f172a;
+        }
+
+        body.light-mode {
+            --bg-main: #e2e8f0; --bg-sidebar: #ffffff; --bg-card: #f8fafc; --bg-modal: #ffffff;
+            --text-main: #0f172a; --text-muted: #64748b; --border-color: #cbd5e1; --bg-input: #ffffff;
+        }
+
+        body { font-family: 'Montserrat', sans-serif; overflow: hidden; background: var(--bg-main); transition: background 0.4s ease; color: var(--text-main); }
+        
+        .sidebar-dark { background-color: var(--bg-sidebar); color: var(--text-main); height: 100vh; z-index: 50; overflow-y: auto; transition: background 0.4s ease, border 0.4s ease; border-right: 1px solid var(--border-color); }
+        .canvas-container { background: #fff; border-radius: 24px; position: relative; box-shadow: 0 30px 60px rgba(0,0,0,0.1); border: 12px solid #cbd5e1; overflow: hidden; transition: all 0.3s ease; }
+        
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 10px; }
+
+        .animate-fade-in { animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+        .animate-slide-up { animation: slideUp 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(30px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+
+        #loadingOverlay { position: fixed; inset: 0; background: #0f172a; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; transition: opacity 0.6s ease-out, visibility 0.6s; }
+        .loader-circle { width: 60px; height: 60px; border: 4px solid #1e293b; border-top: 4px solid #3b82f6; border-radius: 50%; animation: spin 1s cubic-bezier(0.5, 0, 0.5, 1) infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        .view-switcher { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); display: flex; background: white; padding: 5px; border-radius: 50px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); z-index: 100; gap: 5px; border: 1px solid #e2e8f0; }
+        .view-btn { padding: 10px 28px; border-radius: 50px; font-size: 11px; font-weight: 800; transition: all 0.3s ease; color: #64748b; cursor: pointer; }
+        .view-active { background: #3b82f6; color: white; transform: scale(1.02); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        
+        .layer-card { background: var(--bg-card); border: 1px solid var(--border-color); color: var(--text-main); border-radius: 8px; margin-bottom: 8px; transition: all 0.2s ease; }
+        .calc-input { background: var(--bg-input) !important; border: 1px solid var(--border-color) !important; color: var(--text-main) !important; border-radius: 8px !important; padding: 10px 12px !important; font-size: 11px !important; width: 100%; outline: none; transition: border 0.3s ease, background 0.3s ease, color 0.3s ease; }
+        .calc-input:focus { border-color: #3b82f6 !important; }
+        .price-display { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px; box-shadow: inset 0 2px 10px rgba(0,0,0,0.05); }
+        .inline-editor { position: fixed; z-index: 10001; border: 3px solid #3b82f6; background: white; color: black; outline: none; padding: 12px; text-align: center; border-radius: 8px; min-width: 150px; font-weight: bold; }
+        
+        #homeScreen { position: fixed; inset: 0; background: var(--bg-sidebar); z-index: 500; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s ease-out, visibility 0.5s; }
+        #cartDrawer { position: fixed; inset-y: 0; right: 0; width: 450px; background: var(--bg-sidebar); box-shadow: -20px 0 50px rgba(0,0,0,0.5); z-index: 200; transform: translateX(100%); transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1); display: flex; flex-direction: column; border-left: 1px solid var(--border-color); height: 100vh; }
+        #cartDrawer.open { transform: translateX(0); }
+        
+        .tab-btn { padding: 10px 14px; background: var(--bg-card); color: var(--text-muted); border: 1px solid var(--border-color); border-bottom: none; font-weight: 800; font-size: 10px; text-transform: uppercase; border-radius: 10px 10px 0 0; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; margin-right: 4px; }
+        .tab-btn.active { background: #3b82f6; color: #ffffff; border-color: #3b82f6; box-shadow: 0 -4px 10px rgba(0,0,0,0.1); }
+
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); z-index: 9000; display: none; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s ease; }
+        .modal-overlay.show { display: flex; opacity: 1; }
+        .settings-content { background: var(--bg-modal); border: 1px solid var(--border-color); border-radius: 20px; width: 95%; max-width: 1200px; height: 95vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); transform: scale(0.95); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); color: var(--text-main); }
+        .modal-overlay.show .settings-content { transform: scale(1); }
+        .settings-section { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; transition: all 0.3s ease; }
+        
+        .set-label { font-size: 10px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px; display: block; }
+        
+        .matrix-table { width: 100%; border-collapse: separate; border-spacing: 0; }
+        .matrix-table th { color: #3b82f6; font-size: 10px; text-transform: uppercase; padding: 12px 8px; text-align: center; position: sticky; top: 0; background: var(--bg-card); z-index: 10; border-bottom: 2px solid var(--border-color); }
+        .matrix-table td { padding: 8px; border-bottom: 1px solid var(--border-color); }
+        .matrix-table td:first-child { min-width: 150px; color: var(--text-main); font-weight: 900; font-size: 11px; position: sticky; left: 0; background: var(--bg-card); z-index: 5; border-right: 2px solid var(--border-color); }
+
+        .mode-btn { flex: 1; padding: 8px; font-size: 10px; font-weight: 900; text-transform: uppercase; border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-muted); transition: all 0.3s; }
+        .mode-btn.active { background: #3b82f6; border-color: #3b82f6; color: white; }
+    </style>
+</head>
+<body class="dark-mode">
+
+<div id="toastMsg" class="fixed bottom-10 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white px-6 py-3 rounded-full font-black text-[10px] uppercase tracking-widest shadow-2xl transition-all duration-300 opacity-0 translate-y-10 z-[9999] pointer-events-none">Aviso</div>
+
+<div id="loadingOverlay">
+    <div class="loader-circle"></div>
+    <div class="text-white font-black text-2xl mt-6 uppercase tracking-[0.4em] italic animate-pulse">TrendWear</div>
+    <div class="text-slate-500 text-xs font-bold mt-2 tracking-widest">Iniciando Motor Gráfico...</div>
+</div>
+
+<div id="homeScreen">
+    <div class="absolute top-8 right-8 flex gap-4">
+        <button onclick="toggleTheme()" class="text-slate-500 hover:text-blue-500 transition-all transform hover:scale-110 duration-300 bg-slate-800 p-3 rounded-full shadow-lg" title="Alternar Tema">
+            <span id="themeIconHome" class="text-xl">☀️</span>
+        </button>
+        <button onclick="openSettings()" class="text-slate-500 hover:text-white transition-all transform hover:rotate-90 hover:scale-110 duration-300 bg-slate-800 p-3 rounded-full shadow-lg" title="Configurações">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+        </button>
+    </div>
+    <h1 class="text-[5.5rem] leading-none font-black italic tracking-tighter mb-4 text-[var(--text-main)] drop-shadow-2xl animate-slide-up"><span class="text-blue-500">TrendWear</span> LayoutPro</h1>
+    <p class="text-slate-500 font-bold tracking-[0.3em] uppercase mb-12 text-sm animate-slide-up">SaaS Architecture • v8.2 Master</p>
+    <div class="flex gap-6 animate-slide-up">
+        <button onclick="startApp()" class="bg-blue-600 text-white px-14 py-5 rounded-full font-black uppercase tracking-widest transition-all duration-300 shadow-xl transform hover:scale-105 active:scale-95 hover:bg-blue-500">Criar Novo</button>
+        <button onclick="document.getElementById('loadProjectInput').click()" class="bg-[var(--bg-card)] text-[var(--text-main)] border border-[var(--border-color)] px-14 py-5 rounded-full font-black uppercase tracking-widest transition-all duration-300 shadow-xl transform hover:scale-105 active:scale-95 hover:border-blue-500">Abrir Projeto</button>
+        <input type="file" id="loadProjectInput" class="hidden" accept=".twp" onchange="loadProjectFile(event)">
+    </div>
+</div>
+
+<div id="settingsModal" class="modal-overlay">
+    <div class="settings-content">
+        <div class="p-6 border-b border-[var(--border-color)] bg-[var(--bg-modal)] flex justify-between items-center shrink-0">
+            <h2 class="font-black italic uppercase tracking-widest text-lg text-[var(--text-main)]">⚙️ Administração Central</h2>
+            <button onclick="closeSettings()" class="text-[var(--text-muted)] hover:text-red-500 font-bold text-2xl transition hover:scale-110 active:scale-90">✕</button>
+        </div>
+        
+        <div class="flex-1 overflow-y-auto p-8 space-y-8 bg-[var(--bg-main)]">
+            <div class="settings-section shadow-xl">
+                <h3 class="text-blue-500 font-black text-[10px] uppercase tracking-[0.2em] mb-4 border-b border-[var(--border-color)] pb-3 italic">Matriz de Preços Cruzada (Modelo x Tecido)</h3>
+                <div class="overflow-x-auto overflow-y-auto max-h-[300px] rounded-xl border border-[var(--border-color)]">
+                    <table class="matrix-table" id="pricingMatrixTable"></table>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-12 gap-8">
+                <div class="col-span-4 settings-section flex flex-col shadow-lg">
+                    <h3 class="set-label !text-blue-500 mb-6">1. Materiais & Fios</h3>
+                    <div class="flex gap-2 mb-6">
+                        <input type="text" id="newFabricInput" placeholder="Ex: Suedine" class="calc-input !py-3">
+                        <button onclick="addFabric()" class="bg-blue-600 text-white font-black text-[10px] px-5 rounded uppercase transition hover:bg-blue-500 active:scale-95">Add</button>
+                    </div>
+                    <div id="fabricPillsList" class="flex flex-wrap gap-2 overflow-y-auto max-h-[150px] pr-2"></div>
+                </div>
+                
+                <div class="col-span-8 settings-section flex flex-col shadow-lg">
+                    <h3 class="set-label !text-blue-500 mb-6 flex justify-between items-center">
+                        2. Catálogo Visual (Mockups)
+                        <button onclick="addCatalogRow()" class="bg-blue-600/20 text-blue-500 border border-blue-500/50 text-[9px] font-black px-4 py-2 rounded uppercase transition hover:bg-blue-600 hover:text-white active:scale-95">+ Modelo</button>
+                    </h3>
+                    <div id="catalogList" class="flex-1 overflow-y-auto pr-2 space-y-4 max-h-[250px]"></div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-3 gap-8">
+                <div class="settings-section shadow-lg"><h3 class="set-label !text-purple-500 mb-6 border-b border-[var(--border-color)] pb-2">Tabela DTF (R$)</h3><div class="grid grid-cols-1 gap-4" id="configArtes"></div></div>
+                <div class="settings-section shadow-lg"><h3 class="set-label !text-yellow-500 mb-6 border-b border-[var(--border-color)] pb-2">Tabela Silk (R$)</h3><div class="space-y-4" id="configSilk"></div></div>
+                <div class="settings-section shadow-lg"><h3 class="set-label !text-emerald-500 mb-6 border-b border-[var(--border-color)] pb-2">Tabela Bordado (R$)</h3><div class="space-y-4" id="configBordado"></div></div>
+            </div>
+        </div>
+        
+        <div class="p-6 border-t border-[var(--border-color)] bg-[var(--bg-modal)] flex justify-between items-center shrink-0">
+            <div class="flex gap-3">
+                <button onclick="exportConfig()" class="bg-[var(--bg-card)] border border-[var(--border-color)] px-5 py-3 rounded-lg font-bold text-[10px] uppercase text-[var(--text-main)] transition hover:border-blue-500 active:scale-95">⬇️ Exportar .TWC</button>
+                <button onclick="document.getElementById('importConfigInput').click()" class="bg-[var(--bg-card)] border border-[var(--border-color)] px-5 py-3 rounded-lg font-bold text-[10px] uppercase text-[var(--text-main)] transition hover:border-blue-500 active:scale-95">⬆️ Importar .TWC</button>
+                <input type="file" id="importConfigInput" class="hidden" accept=".twc" onchange="importConfig(event)">
+                <button onclick="verificarAtualizacao()" class="ml-4 bg-teal-900/30 text-teal-500 border border-teal-500/50 px-5 py-3 rounded-lg font-bold text-[10px] uppercase flex items-center gap-2 transition hover:bg-teal-600 hover:text-white active:scale-95">
+                    <span id="updateIcon">🔄</span> Update Web
+                </button>
+            </div>
+            <div class="flex gap-4">
+                <button onclick="closeSettings()" class="bg-red-500/10 text-red-500 border border-red-500/50 px-8 py-3 rounded-lg font-bold text-xs uppercase transition hover:bg-red-500 hover:text-white active:scale-95">Cancelar</button>
+                <button onclick="saveSettings()" class="bg-blue-600 text-white px-12 py-3 rounded-lg font-black uppercase text-xs shadow-lg transition hover:bg-blue-500 active:scale-95">💾 Salvar Configurações</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="customModal" class="modal-overlay z-[10000]">
+    <div class="bg-[var(--bg-modal)] border border-[var(--border-color)] p-10 rounded-2xl shadow-2xl max-w-sm w-full text-center">
+        <h3 id="modalTitle" class="text-blue-500 font-black text-xl mb-4 uppercase italic">Aviso</h3>
+        <p id="modalText" class="text-[var(--text-main)] text-sm mb-10 font-medium whitespace-pre-line leading-relaxed"></p>
+        <div class="flex gap-4">
+            <button onclick="closeModal()" class="flex-1 bg-[var(--bg-card)] border border-[var(--border-color)] text-[var(--text-main)] py-4 rounded-xl font-black uppercase text-[10px] transition hover:bg-red-500 hover:text-white active:scale-95">Cancelar</button>
+            <button id="modalConfirmBtn" class="flex-1 bg-blue-600 text-white py-4 rounded-xl font-black uppercase text-[10px] transition shadow-lg active:scale-95">Confirmar</button>
+        </div>
+    </div>
+</div>
+
+<div id="chromaModal" class="modal-overlay z-[10001]">
+    <div class="bg-[var(--bg-modal)] border border-[var(--border-color)] p-6 rounded-2xl shadow-2xl max-w-lg w-full">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-blue-500 font-black text-lg uppercase italic">Remover Fundo</h3>
+            <span class="bg-pink-500/20 text-pink-500 border border-pink-500/50 text-[9px] px-3 py-1 rounded font-black uppercase tracking-widest">Rosa = Será Apagado</span>
+        </div>
+        
+        <div class="flex flex-col gap-6">
+            <p id="chromaHint" class="text-[var(--text-muted)] text-[9px] font-bold uppercase tracking-widest bg-[var(--bg-input)] border border-[var(--border-color)] p-2 rounded text-center">Pode clicar em várias partes! (CTRL+Z desfaz clique)</p>
+            
+            <div class="relative bg-slate-800 rounded-xl overflow-hidden border border-[var(--border-color)] flex items-center justify-center p-4" style="background-image: repeating-conic-gradient(#1e293b 0% 25%, #0f172a 0% 50%) 50% / 20px 20px;">
+                <canvas id="chromaPreviewCanvas" class="max-w-full h-auto cursor-crosshair shadow-lg"></canvas>
+            </div>
+
+            <div class="space-y-4">
+                <div class="flex flex-col gap-2">
+                    <label class="set-label !mb-0">Modo do Próximo Clique</label>
+                    <div class="flex gap-2">
+                        <button id="modeGlobal" onclick="setChromaMode('global')" class="mode-btn active">Tudo (Global)</button>
+                        <button id="modeLocal" onclick="setChromaMode('local')" class="mode-btn">Conectado (Local)</button>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="flex justify-between items-center mb-2">
+                        <label class="set-label !mb-0">Tolerância Geral (Refino Visual)</label>
+                        <span id="toleranceValue" class="text-xs font-bold text-blue-500">30</span>
+                    </div>
+                    <input type="range" id="chromaTolerance" min="0" max="200" value="30" class="w-full">
+                </div>
+            </div>
+
+            <div class="flex gap-3 mt-2">
+                <button onclick="closeChromaModal()" class="flex-1 bg-[var(--bg-card)] border border-[var(--border-color)] text-[var(--text-main)] py-4 rounded-lg font-black uppercase text-[10px] hover:bg-red-500 transition active:scale-95">Cancelar</button>
+                <button onclick="applyChromaKey()" class="flex-[2] bg-blue-600 text-white py-4 rounded-lg font-black uppercase text-[10px] tracking-widest shadow-lg hover:bg-blue-500 transition active:scale-95">✅ Confirmar Recorte</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="cartDrawer">
+    <div class="p-6 border-b border-[var(--border-color)] bg-[var(--bg-sidebar)] flex justify-between items-center shrink-0">
+        <h2 class="text-[var(--text-main)] font-black italic uppercase tracking-widest text-sm flex items-center gap-3"><span class="text-blue-500">🛒</span> Resumo B2B</h2>
+        <button onclick="toggleCart()" class="text-[var(--text-muted)] hover:text-red-500 font-bold text-2xl transition hover:rotate-90">✕</button>
+    </div>
+    <div class="flex-1 overflow-y-auto p-6 bg-[var(--bg-main)]">
+        <div class="p-5 bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl mb-6 shadow-xl">
+             <h3 class="text-[9px] font-black text-blue-500 uppercase tracking-widest mb-4 italic">📋 Dados B2B & Contrato</h3>
+             <div class="grid grid-cols-2 gap-3 mb-4">
+                <input type="text" id="vendNome" placeholder="Seu Nome (Vendedor)" class="calc-input col-span-2 !mb-0">
+                <input type="text" id="cliNome" placeholder="Nome do Cliente" class="calc-input !mb-0">
+                <input type="text" id="cliCnpj" placeholder="CNPJ/CPF" class="calc-input !mb-0">
+                <input type="text" id="cliEnd" placeholder="Endereço" class="calc-input col-span-2 !mb-0">
+                <input type="text" id="cliCidade" placeholder="Cidade-UF" class="calc-input !mb-0">
+                <input type="text" id="cliTel" placeholder="WhatsApp" class="calc-input !mb-0">
+                <input type="text" id="cliEmail" placeholder="E-mail" class="calc-input col-span-2 !mb-0">
+            </div>
+            <div class="grid grid-cols-2 gap-3 pt-4 border-t border-[var(--border-color)]">
+                <input type="date" id="orcData" class="calc-input !mb-0">
+                <input type="text" id="orcValidade" value="10 dias" class="calc-input !mb-0" title="Validade">
+                <input type="text" id="orcPrazo" value="15 dias úteis" class="calc-input !mb-0" title="Prazo">
+                <select id="condPagto" onchange="updateTotalCartOnly()" class="calc-input !mb-0">
+                    <option value="50_50">50% Entrada / 50% Término</option>
+                    <option value="6x">6X Sem Juros Cartão</option>
+                    <option value="PIX">Pagamento PIX (5% OFF)</option>
+                </select>
+            </div>
+        </div>
+        <div id="cartItemsContainer" class="space-y-4"></div>
+    </div>
+    <div class="p-8 border-t border-[var(--border-color)] bg-[var(--bg-sidebar)] shrink-0">
+        <div class="flex justify-between items-end mb-6 text-[var(--text-main)]">
+            <span class="text-xs font-black text-[var(--text-muted)] uppercase tracking-widest">Total Geral</span>
+            <span id="cartTotalDisplay" class="text-4xl font-black text-blue-500 tracking-tighter">R$ 0,00</span>
+        </div>
+        <div class="flex gap-3">
+            <button onclick="emptyCart()" class="w-1/3 bg-red-500/10 text-red-500 border border-red-500/30 py-4 rounded-xl text-[10px] font-black uppercase transition hover:bg-red-500 hover:text-white active:scale-95">Limpar</button>
+            <button id="btnGeneratePDF" onclick="generateFinalPDF()" class="w-2/3 bg-blue-600 text-white py-4 rounded-xl text-[11px] font-black uppercase tracking-widest shadow-lg transition hover:bg-blue-500 active:scale-95">Gerar PDF</button>
+        </div>
+    </div>
+</div>
+
+<div class="flex h-screen">
+    <aside class="w-[320px] sidebar-dark p-6 flex flex-col gap-5 relative z-20">
+        <div class="flex justify-between items-center mb-2">
+            <h1 class="text-2xl font-black italic uppercase tracking-tighter text-blue-500">TrendWear</h1>
+        </div>
+        
+        <section class="bg-[var(--bg-card)] p-5 rounded-xl border border-[var(--border-color)]">
+            <label class="set-label">Estrutura (Modelo)</label>
+            <select id="modelSelect" onchange="syncModel()" class="calc-input mb-4 font-bold text-blue-400"></select>
+            <div class="flex items-center justify-between mb-4 bg-[var(--bg-input)] p-2 rounded-lg border border-[var(--border-color)]">
+                <input type="color" id="shirtColor" value="#ffffff" oninput="updateShirtColor()" class="w-8 h-8 p-0 border-none cursor-pointer bg-transparent rounded-full overflow-hidden">
+                <input type="range" id="brightnessSlider" min="-1" max="1" step="0.05" value="0" oninput="updateShirtColor()" class="w-32">
+            </div>
+            <label class="set-label !text-[8px]">Ajuste de Zoom</label>
+            <input type="range" id="zoomSlider" min="0.5" max="4" step="0.1" value="1" oninput="applyZoom()" class="w-full">
+            
+            <label class="set-label !text-[8px] mt-4 border-t border-[var(--border-color)] pt-3">Cor de Fundo do Canva</label>
+            <div class="flex items-center justify-between bg-[var(--bg-input)] p-2 rounded-lg border border-[var(--border-color)]">
+                <input type="color" id="canvasBgColor" value="#ffffff" oninput="updateCanvasBackground()" class="w-8 h-8 p-0 border-none cursor-pointer bg-transparent rounded-full overflow-hidden">
+                <button onclick="resetCanvasBg()" class="text-[9px] font-black text-red-500 bg-red-500/10 px-3 py-1 rounded hover:bg-red-500 hover:text-white transition active:scale-95">RESET</button>
+            </div>
+        </section>
+
+        <section class="bg-[var(--bg-card)] p-5 rounded-xl border border-[var(--border-color)] flex flex-col gap-3">
+            <button onclick="document.getElementById('imageInput').click()" class="w-full bg-blue-600 text-white p-3 rounded-lg text-[10px] font-black uppercase tracking-widest transition hover:bg-blue-500 active:scale-95">Carregar Logo</button>
+            <input type="file" id="imageInput" class="hidden" accept="image/png, image/jpeg, image/jpg">
+            <div class="flex gap-2 mt-2">
+                <input type="text" id="newTextInput" placeholder="Digitar Frase..." class="calc-input !mb-0 flex-1">
+                <button onclick="createNewText()" class="bg-[var(--bg-input)] text-[var(--text-main)] border border-[var(--border-color)] px-4 rounded-lg text-[10px] font-black uppercase hover:border-blue-500 transition active:scale-95">Add</button>
+            </div>
+        </section>
+
+        <div class="flex flex-col flex-1 min-h-0">
+            <label class="set-label !mb-3">Camadas Ativas (Hierarquia)</label>
+            <div id="layersList" class="flex-1 overflow-y-auto space-y-2 pr-1"></div>
+        </div>
+        
+        <div class="mt-auto space-y-3 pt-4 border-t border-[var(--border-color)]">
+            <button id="btnDownloadPreview" onclick="exportLayout()" class="w-full bg-[var(--bg-card)] border border-[var(--border-color)] py-3 rounded-lg font-black text-[9px] uppercase tracking-widest transition hover:border-blue-500 active:scale-95 text-[var(--text-main)]">⬇️ Baixar PNG Solo</button>
+            <div class="grid grid-cols-2 gap-3">
+                <button onclick="saveProjectFile()" class="w-full bg-blue-600 py-3 rounded-lg font-black text-[9px] uppercase tracking-widest text-white shadow-lg active:scale-95 hover:bg-blue-500">💾 Salvar .TWP</button>
+                <button onclick="document.getElementById('loadProjectInput_Editor').click()" class="w-full bg-[var(--bg-card)] py-3 rounded-lg font-black text-[9px] uppercase tracking-widest border border-[var(--border-color)] text-[var(--text-main)] transition hover:border-blue-500 active:scale-95">📂 Abrir</button>
+            </div>
+            <button onclick="closeProject()" class="w-full bg-red-500/10 py-2 rounded-lg font-black text-[9px] uppercase tracking-widest text-red-500 border border-red-500/30 transition hover:bg-red-500 hover:text-white active:scale-95">Encerrar Sessão</button>
+            <input type="file" id="loadProjectInput_Editor" class="hidden" accept=".twp" onchange="loadProjectFile(event)">
+        </div>
+    </aside>
+
+    <main class="flex-1 flex flex-col relative overflow-hidden">
+        <div class="bg-[var(--bg-card)] border-b border-[var(--border-color)] px-6 pt-4 pb-0 flex items-end justify-between shadow-sm z-10 relative">
+            <div class="flex items-end overflow-x-auto pb-[-1px] space-x-1" id="tabsContainer"></div>
+            <div class="flex items-center gap-3 pb-3 pl-4">
+                <button onclick="toggleTheme()" class="text-[var(--text-muted)] hover:text-blue-500 text-lg transition" title="Alternar Tema"><span id="themeIconApp">☀️</span></button>
+                <div class="w-px h-6 bg-[var(--border-color)] mx-2"></div>
+                
+                <button onclick="renameTab()" class="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest bg-[var(--bg-input)] border border-[var(--border-color)] px-4 py-2 rounded-lg transition hover:text-blue-500 hover:border-blue-500 active:scale-95">✎ Nome</button>
+                
+                <button onclick="addNewTab()" class="text-[10px] font-black text-blue-500 uppercase tracking-widest bg-blue-500/10 border border-blue-500/30 px-4 py-2 rounded-lg transition hover:bg-blue-500 hover:text-white active:scale-95">+ Nova Aba</button>
+                <button onclick="clearCanvas()" class="text-[10px] font-black text-red-500 uppercase tracking-widest bg-red-500/10 border border-red-500/30 px-4 py-2 rounded-lg transition hover:bg-red-500 hover:text-white">Limpar</button>
+                <button onclick="toggleCart()" class="bg-blue-600 text-white py-2.5 px-6 rounded-xl flex items-center gap-3 transition-all hover:bg-blue-500 active:scale-95 ml-4 shadow-lg">
+                    <span class="text-lg">🛒</span><span class="text-[10px] font-black uppercase tracking-[0.2em]" id="cartCountBadge">Orc. (0)</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="flex-1 flex flex-col items-center justify-center p-10 relative">
+            <div id="editorToolbar" class="animate-slide-up bg-[var(--bg-card)] text-[var(--text-main)] border border-[var(--border-color)] rounded-xl shadow-2xl flex items-center gap-3 px-5 py-2 absolute top-6 z-[100]">
+                <button id="lockBtn" onclick="toggleLock()" class="border border-[var(--border-color)] bg-[var(--bg-input)] px-3 py-1.5 rounded-lg text-[10px] font-bold hover:border-blue-500 transition">🔓 Solto</button>
+                <div class="w-px h-6 bg-[var(--border-color)] mx-1"></div>
+                
+                <select id="fontSelect" onchange="updateProp('font', this.value)" class="text-[11px] font-bold bg-transparent border-none text-[var(--text-main)] outline-none cursor-pointer uppercase tracking-widest">
+                    <option value="Montserrat" class="text-black">Montserrat</option>
+                    <option value="Bebas Neue" class="text-black">Bebas Neue</option>
+                    <option value="Anton" class="text-black">Anton</option>
+                </select>
+                
+                <div class="relative w-7 h-7 rounded-full overflow-hidden border-2 border-[var(--border-color)] hover:border-blue-500 transition cursor-pointer ml-2">
+                    <input type="color" id="textColor" oninput="updateProp('color')" class="absolute -top-2 -left-2 w-12 h-12 cursor-pointer">
+                </div>
+                
+                <button onclick="updateProp('align', 'center')" class="w-8 h-8 rounded border border-[var(--border-color)] bg-[var(--bg-input)] font-bold hover:border-blue-500 transition flex items-center justify-center text-sm" title="Centralizar Texto">≡</button>
+                <button onclick="updateProp('bold')" class="w-8 h-8 rounded border border-[var(--border-color)] bg-[var(--bg-input)] font-black hover:border-blue-500 transition flex items-center justify-center text-sm" title="Negrito">B</button>
+                
+                <div class="w-px h-6 bg-[var(--border-color)] mx-1"></div>
+                <button onclick="deleteElement()" class="text-red-500 font-black text-[10px] uppercase tracking-widest transition hover:bg-red-500 hover:text-white border border-red-500/30 bg-red-500/10 px-4 py-1.5 rounded-lg">Excluir</button>
+            </div>
+            
+            <div class="relative mt-8 animate-fade-in">
+                <div id="canvas-parent" class="canvas-container shadow-2xl" style="background-color: #ffffff;"></div>
+                
+                <button onclick="resetZoomAndPan()" class="absolute top-4 right-4 bg-white/90 backdrop-blur text-blue-600 p-2 rounded-xl shadow-lg border border-slate-200 hover:bg-blue-50 hover:scale-110 transition-all z-[100] flex items-center justify-center" title="Centralizar Visualização">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4h4v2H6v2H4V4zm16 0h-4v2h2v2h2V4zM4 20h4v-2H6v-2H4v4zm16 0h-4v-2h2v-2h2v4zM9 9h6v6H9V9z"></path>
+                    </svg>
+                </button>
+
+                <div class="view-switcher">
+                    <button id="btnFrente" onclick="switchView('frente')" class="view-btn view-active">FRENTE</button>
+                    <button id="btnCostas" onclick="switchView('costas')" class="view-btn">COSTAS</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <aside class="w-[320px] sidebar-dark p-6 border-l border-slate-800 flex flex-col gap-5 relative z-20">
+        <h2 class="text-xs font-black text-blue-500 uppercase tracking-[0.2em] mb-2 border-b border-[var(--border-color)] pb-3">Calculadora da Aba</h2>
+        
+        <div class="flex flex-col flex-1 min-h-0">
+            <label class="set-label !mb-2 text-[var(--text-muted)]">Artes / Estampas (Face Atual)</label>
+            <div id="artList" class="flex-1 overflow-y-auto space-y-3 pr-1"></div>
+        </div>
+
+        <section class="pt-4 border-t border-[var(--border-color)]">
+            <label class="set-label !mb-2">Tecido Selecionado</label>
+            <select id="calcFabric" onchange="updateBudget()" class="calc-input mb-4 font-bold !text-blue-500"></select>
+            
+            <div class="grid grid-cols-2 gap-3">
+                <div class="flex flex-col"><label class="set-label !mb-2">QTD (Peças)</label><input type="number" id="calcQty" value="10" min="1" oninput="updateBudget()" class="calc-input text-center font-black"></div>
+                <div class="flex flex-col"><label class="set-label !mb-2">Desconto R$</label><input type="number" id="manualDiscount" value="0" step="0.01" oninput="updateBudget()" class="calc-input text-center font-black text-green-500" placeholder="0,00"></div>
+            </div>
+        </section>
+
+        <div class="price-display mt-2 relative">
+            <div class="flex justify-between items-center text-[10px] text-[var(--text-muted)] font-bold mb-2 uppercase tracking-widest"><span>Unitário:</span><span id="unitPriceDisplay" class="text-[var(--text-main)]">R$ 0,00</span></div>
+            <div class="border-t border-[var(--border-color)] mt-3 pt-3 flex flex-col gap-1">
+                <span class="font-black text-blue-500 text-[9px] uppercase tracking-[0.3em]">Total do Lote</span>
+                <span id="totalFinal" class="text-4xl font-black text-[var(--text-main)] tracking-tighter">R$ 0,00</span>
+            </div>
+        </div>
+        
+        <button id="btnAddCart" onclick="addToCart()" class="w-full bg-blue-600 text-white py-5 rounded-xl font-black text-[11px] uppercase tracking-widest shadow-lg transition-all hover:bg-blue-500 active:scale-95 flex items-center justify-center mt-2">
+            Add ao Orçamento
+        </button>
+    </aside>
+</div>
+
+<script>
+    const VERSAO_ATUAL = 8.2;
+    const LINK_JSON_VERSAO = "https://raw.githubusercontent.com/smtrendwear-droid/layoutatt/main/attguide";
+
+    let CONFIG = {
+        listaTecidos: ['PV', 'DRYFIT', 'ALGODAO', 'PIQUET'],
+        precos: { 'basica_PV': 35.9, 'basica_DRYFIT': 29.9, 'basica_ALGODAO': 39.9, 'basica_PIQUET': 45.9, 'longa_PV': 45.9, 'longa_DRYFIT': 39.9, 'longa_ALGODAO': 49.9, 'longa_PIQUET': 55.9, 'polo_PV': 59.9, 'polo_DRYFIT': 63.9, 'polo_ALGODAO': 65.9, 'polo_PIQUET': 69.9 },
+        artes: { 'PEQUENA': 2.5, 'PQ-MEDIA': 4.0, 'MEDIA': 5.0, 'MEDIA-GRANDE': 7.5, 'GRANDE': 10.0, 'A4': 5.5, 'A3': 7.5 },
+        silk: { pequena: 5.0, grande: 10.0 }, bordado: { matriz: 15.0, pequena: 8.0, grande: 15.0 },
+        catalogo: { 'basica': { nome: 'Camiseta Comum', fId: '1qgKtgauH6B1GmAcfow0k4qNFAXd_gxIk', cId: '1xnyFnUdR0VBDVUq6k0LGAM6vnEkobpSY' }, 'longa': { nome: 'Manga Longa', fId: '1UiKPkqlx8w80xZ-xVJr67z-pFZe6apRO', cId: '1JVUXO3MWizwEqk-UaIuDTcUSpQA8gKNJ' }, 'polo': { nome: 'Camiseta Polo', fId: '1kNPCuWtV_QqnqCzrFL0HxOeXtBAHluiX', cId: '160-WyQJYdZbYOIzFzqgXLDWqcaRTIY4K' } }
+    };
+
+    const savedConfig = localStorage.getItem('trendwear_master_config');
+    if (savedConfig) { CONFIG = JSON.parse(savedConfig); }
+
+    let cart = []; let tabs = []; let currentTabId = null;
+    let currentView = 'frente'; let shirtImageNode = null; let selectedNode = null;
+    
+    // VARIÁVEL PARA O COPY/PASTE
+    let clipboardNodeData = null;
+
+    // VARIÁVEIS DA VARINHA MÁGICA
+    let chromaOriginalImage = null; 
+    let selectedChromaNode = null; 
+    let chromaMode = 'global'; 
+    let chromaClicks = []; 
+    let chromaPreviewRatio = 1;
+    let chromaPreviewOriginalData = null; 
+
+    const spinnerSVG = `<svg class="svg-spin w-4 h-4 mr-2 text-current" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>`;
+
+    function getDirectLink(id) { 
+        if(!id) return ''; 
+        const match = id.match(/[-\w]{25,}/); 
+        const cleanId = match ? match[0] : id;
+        return `https://lh3.googleusercontent.com/d/${cleanId}`; 
+    }
+
+    // AVISO POPUP RÁPIDO
+    window.showToast = (msg) => {
+        const t = document.getElementById('toastMsg');
+        t.innerText = msg;
+        t.style.opacity = '1';
+        t.style.transform = 'translate(-50%, 0)';
+        setTimeout(() => {
+            t.style.opacity = '0';
+            t.style.transform = 'translate(-50%, 20px)';
+        }, 2000);
+    };
+
+    let isLightMode = false;
+    function toggleTheme() {
+        isLightMode = !isLightMode;
+        if(isLightMode) { document.body.classList.add('light-mode'); document.body.classList.remove('dark-mode'); document.getElementById('themeIconHome').innerText = '🌙'; document.getElementById('themeIconApp').innerText = '🌙'; }
+        else { document.body.classList.remove('light-mode'); document.body.classList.add('dark-mode'); document.getElementById('themeIconHome').innerText = '☀️'; document.getElementById('themeIconApp').innerText = '☀️'; }
+        localStorage.setItem('trendwear_theme', isLightMode ? 'light' : 'dark');
+        if(shirtImageNode) updateShirtColor();
+        designLayer.find('.editable').filter(n => n.attrs.type === 'text').forEach(n => { if(n.fill() === '#fff' || n.fill() === '#000') { n.fill(isLightMode ? '#000' : '#fff'); } }); designLayer.draw();
+    }
+
+    const stage = new Konva.Stage({ container: 'canvas-parent', width: 500, height: 600 });
+    const productLayer = new Konva.Layer(); const designLayer = new Konva.Layer(); const guideLayer = new Konva.Layer();
+    stage.add(productLayer, designLayer, guideLayer);
+    const tr = new Konva.Transformer({ padding: 5, rotateEnabled: true, anchorFill: '#3b82f6', borderStroke: '#3b82f6', enabledAnchors: ['top-left', 'top-right', 'bottom-left', 'bottom-right'], keepRatio: true }); 
+    designLayer.add(tr);
+    const vLine = new Konva.Line({ points: [250, 0, 250, 600], stroke: '#3b82f6', strokeWidth: 1.5, dash: [6, 4], visible: false }); 
+    guideLayer.add(vLine);
+
+    // ==========================================
+    // ZOOM PELO MOUSE SCROLL & PANNING DA TELA
+    // ==========================================
+    stage.on('wheel', (e) => {
+        e.evt.preventDefault();
+        const oldScale = stage.scaleX();
+        const pointer = stage.getPointerPosition();
+        const mousePointTo = { x: (pointer.x - stage.x()) / oldScale, y: (pointer.y - stage.y()) / oldScale };
+        const scaleBy = 1.05; 
+        const newScale = e.evt.deltaY > 0 ? oldScale / scaleBy : oldScale * scaleBy;
+        if(newScale < 0.5 || newScale > 4) return;
+        stage.scale({ x: newScale, y: newScale });
+        stage.position({ x: pointer.x - mousePointTo.x * newScale, y: pointer.y - mousePointTo.y * newScale });
+        stage.batchDraw();
+        const slider = document.getElementById('zoomSlider');
+        if(slider) slider.value = newScale;
+    });
+
+    let isPanningCanvas = false;
+    let lastPanPos = { x: 0, y: 0 };
+
+    stage.on('mousedown', (e) => {
+        if (e.evt.button === 1) { // Click scroll (meio)
+            e.evt.preventDefault();
+            isPanningCanvas = true;
+            lastPanPos = { x: e.evt.clientX, y: e.evt.clientY };
+            document.getElementById('canvas-parent').style.cursor = 'grabbing';
+        }
+    });
+
+    window.addEventListener('mousemove', (e) => {
+        if (!isPanningCanvas) return;
+        e.preventDefault();
+        const dx = e.clientX - lastPanPos.x;
+        const dy = e.clientY - lastPanPos.y;
+        lastPanPos = { x: e.clientX, y: e.clientY };
+        stage.position({ x: stage.x() + dx, y: stage.y() + dy });
+        stage.batchDraw();
+    });
+
+    window.addEventListener('mouseup', (e) => {
+        if (e.button === 1 && isPanningCanvas) {
+            isPanningCanvas = false;
+            document.getElementById('canvas-parent').style.cursor = 'default';
+        }
+    });
+
+    window.resetZoomAndPan = () => {
+        stage.scale({ x: 1, y: 1 });
+        stage.position({ x: 0, y: 0 });
+        stage.batchDraw();
+        const slider = document.getElementById('zoomSlider');
+        if(slider) slider.value = 1;
+        showToast("Visualização Centralizada");
+    };
+
+    // ==========================================
+    // NOVO MOTOR CHROMA KEY ACUMULATIVO (ROSA)
+    // ==========================================
+    function setChromaMode(m) {
+        chromaMode = m;
+        document.getElementById('modeGlobal').className = m==='global'?'mode-btn active':'mode-btn';
+        document.getElementById('modeLocal').className = m==='local'?'mode-btn active':'mode-btn';
+    }
+
+    function openChromaKey(nodeId) {
+        const node = stage.findOne('#' + nodeId);
+        if (!node || node.attrs.type !== 'image') return;
+        selectedChromaNode = node;
+        chromaOriginalImage = node.image();
+        
+        chromaClicks = [];
+        document.getElementById('chromaTolerance').value = 30;
+        document.getElementById('toleranceValue').innerText = "30";
+
+        const modal = document.getElementById('chromaModal');
+        const canvas = document.getElementById('chromaPreviewCanvas');
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        
+        chromaPreviewRatio = Math.min(400 / chromaOriginalImage.width, 300 / chromaOriginalImage.height);
+        canvas.width = Math.max(1, Math.floor(chromaOriginalImage.width * chromaPreviewRatio));
+        canvas.height = Math.max(1, Math.floor(chromaOriginalImage.height * chromaPreviewRatio));
+        
+        ctx.drawImage(chromaOriginalImage, 0, 0, canvas.width, canvas.height);
+        chromaPreviewOriginalData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        modal.classList.add('show');
+    }
+
+    document.getElementById('chromaPreviewCanvas').onclick = (e) => {
+        const canvas = document.getElementById('chromaPreviewCanvas');
+        const rect = canvas.getBoundingClientRect();
+        const x = Math.floor(e.clientX - rect.left);
+        const y = Math.floor(e.clientY - rect.top);
+        
+        const idx = (y * canvas.width + x) * 4;
+        if (idx < 0 || idx >= chromaPreviewOriginalData.data.length) return;
+        
+        const r = chromaPreviewOriginalData.data[idx];
+        const g = chromaPreviewOriginalData.data[idx+1];
+        const b = chromaPreviewOriginalData.data[idx+2];
+
+        chromaClicks.push({ x, y, rgb: {r, g, b}, mode: chromaMode });
+        updateChromaPreview();
+    };
+
+    document.getElementById('chromaTolerance').oninput = (e) => {
+        document.getElementById('toleranceValue').innerText = e.target.value;
+        if (chromaClicks.length > 0) updateChromaPreview();
+    };
+
+    function updateChromaPreview() {
+        const canvas = document.getElementById('chromaPreviewCanvas');
+        const ctx = canvas.getContext('2d');
+        const tol = parseInt(document.getElementById('chromaTolerance').value);
+        const w = canvas.width; const h = canvas.height;
+        const mask = new Uint8Array(w * h); 
+        const workingData = chromaPreviewOriginalData.data;
+
+        for (const click of chromaClicks) {
+            if (click.mode === 'global') {
+                for (let i = 0; i < w * h; i++) {
+                    if (mask[i]) continue;
+                    const r = workingData[i*4], g = workingData[i*4+1], b = workingData[i*4+2];
+                    const diff = Math.sqrt(Math.pow(r-click.rgb.r,2)+Math.pow(g-click.rgb.g,2)+Math.pow(b-click.rgb.b,2));
+                    if (diff <= tol) mask[i] = 1;
+                }
+            } else {
+                const visited = new Uint8Array(w * h);
+                const queue = [click.x, click.y];
+                while(queue.length > 0) {
+                    const cy = queue.pop(), cx = queue.pop();
+                    if (cx < 0 || cx >= w || cy < 0 || cy >= h) continue;
+                    const i = cy * w + cx;
+                    if (visited[i]) continue;
+                    visited[i] = 1;
+                    const r = workingData[i*4], g = workingData[i*4+1], b = workingData[i*4+2];
+                    const diff = Math.sqrt(Math.pow(r-click.rgb.r,2)+Math.pow(g-click.rgb.g,2)+Math.pow(b-click.rgb.b,2));
+                    if (diff <= tol) { mask[i] = 1; queue.push(cx+1, cy, cx-1, cy, cx, cy+1, cx, cy-1); }
+                }
+            }
+        }
+
+        const imgData = ctx.createImageData(w, h);
+        imgData.data.set(workingData);
+        for (let i = 0; i < w * h; i++) {
+            if (mask[i]) {
+                // Blend de Magenta (Rosa) pra dar feedback sem esconder o fundo
+                imgData.data[i*4] = (255 * 0.7) + (workingData[i*4] * 0.3);
+                imgData.data[i*4+1] = (workingData[i*4+1] * 0.3);
+                imgData.data[i*4+2] = (255 * 0.7) + (workingData[i*4+2] * 0.3);
+            }
+        }
+        ctx.putImageData(imgData, 0, 0);
+    }
+
+    function closeChromaModal() { document.getElementById('chromaModal').classList.remove('show'); }
+
+    function applyChromaKey() {
+        if(chromaClicks.length === 0) { closeChromaModal(); return; }
+
+        const tol = parseInt(document.getElementById('chromaTolerance').value);
+        const tempC = document.createElement('canvas'); tempC.width = chromaOriginalImage.width; tempC.height = chromaOriginalImage.height;
+        const tempCtx = tempC.getContext('2d'); tempCtx.drawImage(chromaOriginalImage, 0, 0);
+        
+        const imgData = tempCtx.getImageData(0, 0, tempC.width, tempC.height); const data = imgData.data;
+        const w = tempC.width; const h = tempC.height; const mask = new Uint8Array(w * h);
+
+        for (const click of chromaClicks) {
+            const origX = Math.round(click.x / chromaPreviewRatio);
+            const origY = Math.round(click.y / chromaPreviewRatio);
+
+            if (click.mode === 'global') {
+                for (let i = 0; i < w * h; i++) {
+                    if (mask[i]) continue;
+                    const r = data[i*4], g = data[i*4+1], b = data[i*4+2];
+                    const diff = Math.sqrt(Math.pow(r-click.rgb.r,2)+Math.pow(g-click.rgb.g,2)+Math.pow(b-click.rgb.b,2));
+                    if (diff <= tol) mask[i] = 1;
+                }
+            } else {
+                const visited = new Uint8Array(w * h);
+                const queue = [origX, origY];
+                while(queue.length > 0) {
+                    const cy = queue.pop(), cx = queue.pop();
+                    if (cx < 0 || cx >= w || cy < 0 || cy >= h) continue;
+                    const i = cy * w + cx;
+                    if (visited[i]) continue;
+                    visited[i] = 1;
+                    const r = data[i*4], g = data[i*4+1], b = data[i*4+2];
+                    const diff = Math.sqrt(Math.pow(r-click.rgb.r,2)+Math.pow(g-click.rgb.g,2)+Math.pow(b-click.rgb.b,2));
+                    if (diff <= tol) { mask[i] = 1; queue.push(cx+1, cy, cx-1, cy, cx, cy+1, cx, cy-1); }
+                }
+            }
+        }
+        
+        for (let i = 0; i < w * h; i++) { if (mask[i]) data[i*4+3] = 0; }
+        tempCtx.putImageData(imgData, 0, 0);
+        const newImg = new Image(); newImg.src = tempC.toDataURL();
+        newImg.onload = () => {
+            selectedChromaNode.image(newImg); selectedChromaNode.setAttr('src', tempC.toDataURL());
+            designLayer.draw(); saveHistory(); closeChromaModal();
+        };
+    }
+
+    function rebuildDynamicDropdowns() {
+        const modSel = document.getElementById('modelSelect'); if(modSel) { modSel.innerHTML = ''; Object.keys(CONFIG.catalogo).forEach(key => { modSel.innerHTML += `<option value="${key}">${CONFIG.catalogo[key].nome}</option>`; }); }
+        const fabSel = document.getElementById('calcFabric'); if(fabSel) { fabSel.innerHTML = ''; CONFIG.listaTecidos.forEach(fab => { fabSel.innerHTML += `<option value="${fab}">${fab}</option>`; }); }
+    }
+
+    function startApp() { if (tabs.length === 0) initTabs(); document.getElementById('homeScreen').style.opacity = '0'; setTimeout(() => { document.getElementById('homeScreen').style.visibility = 'hidden'; }, 500); }
+
+    function showModal(title, text, confirmCallback, isDestructive = false) { 
+        document.getElementById('modalTitle').innerText = title; document.getElementById('modalText').innerText = text; 
+        const btn = document.getElementById('modalConfirmBtn'); btn.onclick = () => { confirmCallback(); closeModal(); }; 
+        btn.className = isDestructive ? "flex-1 bg-red-600 text-white py-4 rounded-xl font-black uppercase text-[10px] tracking-widest shadow-lg hover:bg-red-500 transition active:scale-95" : "flex-1 bg-blue-600 text-white py-4 rounded-xl font-black uppercase text-[10px] tracking-widest shadow-lg hover:bg-blue-500 transition active:scale-95"; 
+        document.getElementById('customModal').classList.add('show'); 
+    }
+    function closeModal() { document.getElementById('customModal').classList.remove('show'); }
+
+    async function verificarAtualizacao() {
+        const icon = document.getElementById('updateIcon'); icon.classList.add('svg-spin');
+        try {
+            const response = await fetch(LINK_JSON_VERSAO); const data = await response.json(); icon.classList.remove('svg-spin');
+            if (data.versao > VERSAO_ATUAL) { showModal("🎉 Atualização Disponível!", `Versão ${data.versao} liberada.\n\nNovidades:\n${data.novidades}\n\nDeseja baixar o novo LayoutPro?`, () => { window.open(data.link_download, '_blank'); }); } 
+            else { showModal("Sistema OK", `Você está rodando a última versão (v${VERSAO_ATUAL}).`, () => {}); }
+        } catch (e) { icon.classList.remove('svg-spin'); showModal("Aviso", "Não conectou ao servidor.", () => {}); }
+    }
+
+    function openSettings() {
+        renderFabricPills();
+        const ca = document.getElementById('configArtes'); ca.innerHTML = '';
+        Object.keys(CONFIG.artes).forEach(k => { ca.innerHTML += `<div><label class="set-label !mb-1">${k}</label><input type="number" step="0.1" id="cfg_art_${k}" value="${CONFIG.artes[k]}" class="calc-input !py-2 text-[var(--text-main)]"></div>`; });
+        document.getElementById('configSilk').innerHTML = `<div><label class="set-label !mb-1">Pequeno</label><input type="number" id="cfg_silk_p" value="${CONFIG.silk.pequena}" class="calc-input !py-2 text-[var(--text-main)]"></div><div><label class="set-label !mb-1">Grande</label><input type="number" id="cfg_silk_g" value="${CONFIG.silk.grande}" class="calc-input !py-2 text-[var(--text-main)]"></div>`;
+        document.getElementById('configBordado').innerHTML = `<div><label class="set-label !mb-1 !text-emerald-500">Matriz Fixa</label><input type="number" id="cfg_bor_m" value="${CONFIG.bordado.matriz}" class="calc-input !py-2 !border-emerald-500/50 text-[var(--text-main)]"></div><div><label class="set-label !mb-1">Bordado Peq</label><input type="number" id="cfg_bor_p" value="${CONFIG.bordado.pequena}" class="calc-input !py-2 text-[var(--text-main)]"></div><div><label class="set-label !mb-1">Bordado Grd</label><input type="number" id="cfg_bor_g" value="${CONFIG.bordado.grande}" class="calc-input !py-2 text-[var(--text-main)]"></div>`;
+        renderCatalogSettings(); renderPricingMatrix(); document.getElementById('settingsModal').classList.add('show');
+    }
+    function closeSettings() { document.getElementById('settingsModal').classList.remove('show'); }
+    function renderFabricPills() { const c = document.getElementById('fabricPillsList'); c.innerHTML = ''; CONFIG.listaTecidos.forEach(f => { c.innerHTML += `<div class="bg-[var(--bg-input)] text-[var(--text-main)] text-[10px] font-black px-4 py-2 rounded-lg flex items-center gap-2 border border-[var(--border-color)]">${f} <button onclick="deleteFabric('${f}')" class="text-red-500 ml-2 transition hover:scale-125">✕</button></div>`; }); }
+    function addFabric() { const v = document.getElementById('newFabricInput').value.trim().toUpperCase(); if(v && !CONFIG.listaTecidos.includes(v)) { CONFIG.listaTecidos.push(v); Object.keys(CONFIG.catalogo).forEach(m => { CONFIG.precos[`${m}_${v}`] = 0; }); document.getElementById('newFabricInput').value = ''; renderFabricPills(); renderPricingMatrix(); } }
+    function deleteFabric(f) { if(CONFIG.listaTecidos.length > 1 && confirm(`Remover o tecido ${f}?`)) { CONFIG.listaTecidos = CONFIG.listaTecidos.filter(t => t !== f); Object.keys(CONFIG.catalogo).forEach(m => { delete CONFIG.precos[`${m}_${f}`]; }); renderFabricPills(); renderPricingMatrix(); } }
+    
+    function renderCatalogSettings() {
+        const list = document.getElementById('catalogList'); list.innerHTML = '';
+        Object.keys(CONFIG.catalogo).forEach(key => {
+            const item = CONFIG.catalogo[key];
+            list.innerHTML += `<div class="p-5 bg-[var(--bg-input)] rounded-xl border border-[var(--border-color)] flex items-center gap-5 transition">
+                <div class="flex-1 space-y-3">
+                    <input type="text" class="calc-input !py-2 !text-blue-500 font-black !text-sm" id="cat_nome_${key}" value="${item.nome}">
+                    <div class="grid grid-cols-2 gap-3">
+                        <div><label class="set-label !mb-1">Link Drive (Frente)</label><input type="text" class="calc-input !py-2 !text-[9px] font-mono text-[var(--text-main)]" id="cat_fId_${key}" value="${item.fId}"></div>
+                        <div><label class="set-label !mb-1">Link Drive (Costas)</label><input type="text" class="calc-input !py-2 !text-[9px] font-mono text-[var(--text-main)]" id="cat_cId_${key}" value="${item.cId}"></div>
+                    </div>
+                </div>
+                <button onclick="deleteCatalogRow('${key}')" class="text-red-500 font-bold p-3 hover:bg-red-500/10 rounded-lg transition text-xl">✕</button>
+            </div>`;
+        });
+    }
+    function addCatalogRow() { const newKey = 'prod_' + Date.now(); CONFIG.catalogo[newKey] = { nome: 'Novo Modelo', fId: '', cId: '' }; CONFIG.listaTecidos.forEach(f => { CONFIG.precos[`${newKey}_${f}`] = 0; }); renderCatalogSettings(); renderPricingMatrix(); }
+    function deleteCatalogRow(key) { if(Object.keys(CONFIG.catalogo).length > 1 && confirm('Excluir modelo?')) { delete CONFIG.catalogo[key]; CONFIG.listaTecidos.forEach(f => { delete CONFIG.precos[`${key}_${f}`]; }); renderCatalogSettings(); renderPricingMatrix(); } }
+    function renderPricingMatrix() {
+        const table = document.getElementById('pricingMatrixTable');
+        let html = `<thead><tr><th class="p-3 text-[10px] text-[var(--text-muted)] italic font-medium sticky left-0 z-20 w-48 text-left bg-[var(--bg-card)]">Modelo Configurado</th>`;
+        CONFIG.listaTecidos.forEach(f => { html += `<th class="p-3 text-[11px] text-[var(--text-main)] text-center font-black rounded-t-lg mx-1">${f}</th>`; }); 
+        html += `</tr></thead><tbody>`;
+        Object.keys(CONFIG.catalogo).forEach(m => {
+            const mName = document.getElementById(`cat_nome_${m}`) ? document.getElementById(`cat_nome_${m}`).value : CONFIG.catalogo[m].nome;
+            html += `<tr><td class="p-3 text-blue-500 font-black uppercase text-[10px] tracking-widest sticky left-0 bg-[var(--bg-card)] z-10 w-48 border-r border-[var(--border-color)]">${mName}</td>`;
+            CONFIG.listaTecidos.forEach(f => { const val = CONFIG.precos[`${m}_${f}`] || 0; html += `<td class="p-2"><input type="number" step="0.1" id="matriz_${m}_${f}" value="${val}" class="calc-input !text-center text-[var(--text-main)]"></td>`; });
+            html += `</tr>`;
+        }); html += `</tbody>`; table.innerHTML = html;
+    }
+    function saveSettings() {
+        Object.keys(CONFIG.catalogo).forEach(k => { if(document.getElementById(`cat_nome_${k}`)) { CONFIG.catalogo[k].nome = document.getElementById(`cat_nome_${k}`).value; CONFIG.catalogo[k].fId = document.getElementById(`cat_fId_${k}`).value; CONFIG.catalogo[k].cId = document.getElementById(`cat_cId_${k}`).value; } });
+        Object.keys(CONFIG.catalogo).forEach(m => { CONFIG.listaTecidos.forEach(f => { const input = document.getElementById(`matriz_${m}_${f}`); if(input) CONFIG.precos[`${m}_${f}`] = parseFloat(input.value) || 0; }); });
+        Object.keys(CONFIG.artes).forEach(k => { const input = document.getElementById(`cfg_art_${k}`); if(input) CONFIG.artes[k] = parseFloat(input.value) || 0; });
+        CONFIG.silk.pequena = parseFloat(document.getElementById('cfg_silk_p').value); CONFIG.silk.grande = parseFloat(document.getElementById('cfg_silk_g').value);
+        CONFIG.bordado.matriz = parseFloat(document.getElementById('cfg_bor_m').value); CONFIG.bordado.pequena = parseFloat(document.getElementById('cfg_bor_p').value); CONFIG.bordado.grande = parseFloat(document.getElementById('cfg_bor_g').value);
+        localStorage.setItem('trendwear_master_config', JSON.stringify(CONFIG)); rebuildDynamicDropdowns(); 
+        if (currentTabId) { const tab = tabs.find(t => t.id === currentTabId); if (!CONFIG.catalogo[tab.model]) tab.model = Object.keys(CONFIG.catalogo)[0]; if (!CONFIG.listaTecidos.includes(tab.fabric)) tab.fabric = CONFIG.listaTecidos[0]; document.getElementById('modelSelect').value = tab.model; document.getElementById('calcFabric').value = tab.fabric; syncModel(); syncArtes(); }
+        closeSettings(); showModal("Salvo", "Configurações salvas localmente com sucesso.", () => {});
+    }
+
+    function exportConfig() { const b = new Blob([JSON.stringify(CONFIG)], { type: "application/json" }); const u = URL.createObjectURL(b); const l = document.createElement('a'); l.href = u; l.download = `TW_v8_Config.twc`; l.click(); }
+    function importConfig(e) { const f = e.target.files[0]; if(!f) return; const r = new FileReader(); r.onload = (ev) => { try { const i = JSON.parse(ev.target.result); if(i.catalogo){ CONFIG = i; localStorage.setItem('trendwear_master_config', JSON.stringify(CONFIG)); openSettings(); rebuildDynamicDropdowns(); if(currentTabId) syncModel(); showModal("Sucesso", "Configuração importada.", () => {}); } } catch(err){ showModal("Erro", "Arquivo inválido.", () => {}); } }; r.readAsText(f); e.target.value = ''; }
+
+    function initTabs() { if(tabs.length === 0) addNewTab(); else renderTabs(); }
+    function addNewTab() { saveCurrentTabState(); const newId = 'tab_' + Date.now(); tabs.push({ id: newId, name: `Canva ${tabs.length + 1}`, model: Object.keys(CONFIG.catalogo)[0], fabric: CONFIG.listaTecidos[0], color: '#ffffff', canvasBg: '#ffffff', brightness: 0, qty: 10, discount: 0, nodes: [], history: [] }); switchTab(newId); }
+    function saveCurrentTabState() { if(!currentTabId) return; const t = tabs.find(x => x.id === currentTabId); if(t) { t.model = document.getElementById('modelSelect').value; t.fabric = document.getElementById('calcFabric').value; t.color = document.getElementById('shirtColor').value; t.brightness = document.getElementById('brightnessSlider').value; t.qty = document.getElementById('calcQty').value; t.discount = document.getElementById('manualDiscount').value; t.canvasBg = document.getElementById('canvasBgColor').value; t.nodes = designLayer.find('.editable').map(n => n.toJSON()); } }
+    
+    function switchTab(id) {
+        if(currentTabId && currentTabId !== id) { saveCurrentTabState(); }
+        currentTabId = id; const t = tabs.find(x => x.id === id);
+        if(!document.querySelector(`#modelSelect option[value="${t.model}"]`)) t.model = Object.keys(CONFIG.catalogo)[0];
+        if(!document.querySelector(`#calcFabric option[value="${t.fabric}"]`)) t.fabric = CONFIG.listaTecidos[0];
+        document.getElementById('modelSelect').value = t.model; 
+        document.getElementById('calcFabric').value = t.fabric; 
+        document.getElementById('shirtColor').value = t.color; 
+        document.getElementById('brightnessSlider').value = t.brightness; 
+        document.getElementById('calcQty').value = t.qty; 
+        document.getElementById('manualDiscount').value = t.discount;
+        document.getElementById('canvasBgColor').value = t.canvasBg || '#ffffff';
+        document.getElementById('canvas-parent').style.backgroundColor = t.canvasBg || '#ffffff';
+        designLayer.find('.editable').forEach(n => n.destroy()); tr.nodes([]);
+        t.nodes.forEach(d => { 
+            const n = Konva.Node.create(d); setupEvents(n); designLayer.add(n); 
+            if (n.attrs.type === 'image' && n.attrs.src) { 
+                const img = new Image(); img.crossOrigin = "Anonymous"; 
+                img.onload = () => { n.image(img); designLayer.batchDraw(); }; 
+                img.src = n.attrs.src; 
+            } 
+        });
+        currentView = 'frente'; document.getElementById('btnFrente').className='view-btn view-active'; document.getElementById('btnCostas').className='view-btn'; renderTabs(); syncModel(); syncArtes();
+    }
+    
+    function renderTabs() { 
+        const cont = document.getElementById('tabsContainer'); cont.innerHTML = ''; 
+        tabs.forEach(t => { 
+            const d = document.createElement('div'); d.className = `tab-btn ${t.id === currentTabId ? 'active' : ''}`;
+            d.innerHTML = `<span onclick="switchTab('${t.id}')" class="flex-1 text-center truncate">${t.name}</span> <button onclick="closeTab('${t.id}', event)" class="ml-2 ${t.id === currentTabId ? 'text-blue-100 hover:text-white' : 'text-red-400 hover:text-red-600'} font-black px-1 transition hover:scale-125">✕</button>`;
+            cont.appendChild(d); 
+        }); 
+    }
+    function closeTab(id, e) {
+        e.stopPropagation();
+        if(tabs.length <= 1) { 
+            tabs = []; currentTabId = null;
+            document.getElementById('homeScreen').style.visibility = 'visible'; document.getElementById('homeScreen').style.opacity = '1';
+            productLayer.destroyChildren(); designLayer.find('.editable').forEach(n => n.destroy()); tr.nodes([]); stage.batchDraw();
+            return; 
+        }
+        tabs = tabs.filter(t => t.id !== id);
+        if(currentTabId === id) switchTab(tabs[tabs.length-1].id); else renderTabs();
+    }
+    function renameTab() { if(!currentTabId) return; const t = tabs.find(x => x.id === currentTabId); const n = prompt("Defina o nome da Aba de trabalho:", t.name); if(n) { t.name = n.trim(); renderTabs(); saveCurrentTabState(); } }
+    function saveHistory() { if(!currentTabId) return; const t = tabs.find(x => x.id === currentTabId); if(!t) return; if(!t.history) t.history = []; t.history.push(designLayer.find('.editable').map(n => n.toJSON())); if(t.history.length > 20) t.history.shift(); saveCurrentTabState(); }
+
+    function toggleCart() { document.getElementById('cartDrawer').classList.toggle('open'); }
+    function clearCanvas() { showModal("Limpar Layout", "Remover todas as logos e textos?", () => { saveHistory(); designLayer.find('.editable').forEach(n => n.destroy()); tr.nodes([]); saveHistory(); syncArtes(); updateBudget(); }, true); }
+    function emptyCart() { showModal("Esvaziar", "Apagar orçamento atual?", () => { cart = []; renderCart(); }, true); }
+    function closeProject() { document.getElementById('homeScreen').style.visibility = 'visible'; document.getElementById('homeScreen').style.opacity = '1'; }
+
+    async function addToCart() {
+        saveCurrentTabState(); const t = tabs.find(x => x.id === currentTabId); const btn = document.getElementById('btnAddCart'); const old = btn.innerHTML; btn.innerHTML = `${spinnerSVG} Processando...`; btn.disabled = true;
+        const cap = (v) => new Promise(res => { switchView(v); setTimeout(() => res(stage.toDataURL({pixelRatio:2})), 700); });
+        const f = await cap('frente'), c = await cap('costas'); const mKey = document.getElementById('modelSelect').value;
+        const item = { id: Date.now(), tabName: t.name, model: CONFIG.catalogo[mKey].nome, fabric: document.getElementById('calcFabric').value, qty: parseInt(document.getElementById('calcQty').value), unitStr: document.getElementById('unitPriceDisplay').innerText, totalStr: document.getElementById('totalFinal').innerText, totalNum: parseFloat(document.getElementById('totalFinal').innerText.replace('R$ ','').replace('.','').replace(',','.')), fImg: f, cImg: c, canvasBg: document.getElementById('canvasBgColor').value };
+        cart.push(item); renderCart(); toggleCart(); btn.innerHTML = old; btn.disabled = false;
+    }
+    function renderCart() {
+        const c = document.getElementById('cartItemsContainer'); c.innerHTML = ''; let sum = 0;
+        if(cart.length === 0) c.innerHTML = '<div class="text-center text-[var(--text-muted)] text-xs font-bold mt-10">Carrinho vazio.</div>';
+        cart.forEach((i) => { sum += i.totalNum; const d = document.createElement('div'); d.className = 'bg-[var(--bg-card)] p-4 rounded-xl border border-[var(--border-color)] relative shadow-md transition hover:border-blue-500'; d.innerHTML = `<button onclick="removeCartItem(${i.id})" class="absolute top-2 right-2 text-[var(--text-muted)] hover:text-red-500 font-bold text-xs p-1 transition">✕</button><div class="flex gap-4 items-center"><img src="${i.fImg}" class="w-16 h-16 object-contain bg-[var(--bg-input)] rounded-lg p-1 border border-[var(--border-color)]"><div><div class="text-[9px] font-black text-blue-500 uppercase tracking-widest mb-1">${i.tabName}</div><div class="text-[11px] font-black text-[var(--text-main)] leading-tight mb-1">${i.model}</div><div class="text-[9px] text-[var(--text-muted)] uppercase font-bold">${i.qty} un. em ${i.fabric}</div><div class="text-sm font-black text-[var(--text-main)] mt-2">${i.totalStr}</div></div></div>`; c.appendChild(d); });
+        const pix = document.getElementById('condPagto').value === 'PIX'; const g = pix ? sum * 0.95 : sum;
+        document.getElementById('cartCountBadge').innerText = `Orçamento (${cart.length})`; document.getElementById('cartTotalDisplay').innerText = `R$ ${g.toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g, ".")}`;
+    }
+    function removeCartItem(id) { cart = cart.filter(i => i.id !== id); renderCart(); }
+    function saveProjectFile() { saveCurrentTabState(); const d = { version: '8.2', client: { vendNome: document.getElementById('vendNome').value, cliNome: document.getElementById('cliNome').value, cliTel: document.getElementById('cliTel').value, orcData: document.getElementById('orcData').value, condPagto: document.getElementById('condPagto').value, cliCnpj: document.getElementById('cliCnpj').value, cliEnd: document.getElementById('cliEnd').value, cliCidade: document.getElementById('cliCidade').value, cliEmail: document.getElementById('cliEmail').value, orcValidade: document.getElementById('orcValidade').value, orcPrazo: document.getElementById('orcPrazo').value }, cart: cart, tabs: tabs }; const b = new Blob([JSON.stringify(d)], { type: "application/json" }); const u = URL.createObjectURL(b); const l = document.createElement('a'); l.href = u; l.download = `Projeto_${document.getElementById('cliNome').value || 'TrendWear'}.twp`; l.click(); }
+    function loadProjectFile(e) { const f = e.target.files[0]; if(!f) return; const r = new FileReader(); r.onload = (ev) => { try { const d = JSON.parse(ev.target.result); if(d.tabs) { tabs = d.tabs; cart = d.cart || []; if(d.client) { document.getElementById('vendNome').value = d.client.vendNome || ''; document.getElementById('cliNome').value = d.client.cliNome || ''; document.getElementById('cliTel').value = d.client.cliTel || ''; document.getElementById('orcData').value = d.client.orcData || ''; document.getElementById('condPagto').value = d.client.condPagto || '50_50'; document.getElementById('cliCnpj').value = d.client.cliCnpj || ''; document.getElementById('cliEnd').value = d.client.cliEnd || ''; document.getElementById('cliCidade').value = d.client.cliCidade || ''; document.getElementById('cliEmail').value = d.client.cliEmail || ''; document.getElementById('orcValidade').value = d.client.orcValidade || '10 dias'; document.getElementById('orcPrazo').value = d.client.orcPrazo || '15 dias úteis'; } renderCart(); switchTab(tabs[0].id); startApp(); } } catch(err){ showModal("Erro", "Arquivo corrompido.", ()=>{}); } }; r.readAsText(f); e.target.value = ''; }
+
+    function setupEvents(n) {
+        n.on('dragmove', () => { const w = n.width()*n.scaleX(); const cX = n.x()+(n.offsetX()===0?w/2:0); if(n.attrs.lockedCenter||Math.abs(cX-250)<15){n.x(250-(n.offsetX()===0?w/2:0)); vLine.show();} else vLine.hide(); guideLayer.batchDraw(); });
+        n.on('dragend transformend', () => { vLine.hide(); guideLayer.draw(); saveHistory(); updateBudget(); });
+        n.on('click tap', (e) => { e.cancelBubble = true; select(n); });
+        n.on('dblclick dbltap', () => { if(n.attrs.type === 'text') editTextInline(n); });
+    }
+    
+    function select(n) { selectedNode = n; tr.nodes([n]); document.getElementById('editorToolbar').style.display = 'flex'; renderLayers(); designLayer.draw(); }
+    function deselect() { tr.nodes([]); selectedNode = null; document.getElementById('editorToolbar').style.display = 'none'; renderLayers(); designLayer.draw(); }
+    stage.on('click tap', (e) => { if (e.target === stage || e.target === shirtImageNode) deselect(); });
+    
+    function editTextInline(n) { tr.hide(); const sb = stage.container().getBoundingClientRect(); const trc = n.getClientRect(); const i = document.createElement('textarea'); i.className = 'inline-editor'; document.body.appendChild(i); i.value = n.text(); i.style.top = (sb.top + trc.y - 10) + 'px'; i.style.left = (sb.left + trc.x - 10) + 'px'; i.style.width = (trc.width + 40) + 'px'; i.style.fontSize = (n.fontSize() * stage.scaleX()) + 'px'; i.focus(); i.oninput = () => { n.text(i.value); n.offsetX(n.align()==='center'?n.width()/2:0); designLayer.batchDraw(); renderLayers(); saveCurrentTabState(); }; i.onblur = () => { document.body.removeChild(i); tr.show(); select(n); }; }
+    function toggleLock() { if(selectedNode) { selectedNode.setAttr('lockedCenter', !selectedNode.attrs.lockedCenter); if(selectedNode.attrs.lockedCenter) selectedNode.x(250 - (selectedNode.offsetX() === 0 ? (selectedNode.width()*selectedNode.scaleX())/2 : 0)); document.getElementById('lockBtn').innerText = selectedNode.attrs.lockedCenter ? '🔒 Travado' : '🔓 Solto'; designLayer.draw(); saveHistory(); } }
+    
+    function syncModel() { changeProduct(); updateBudget(); saveCurrentTabState(); }
+    
+    function syncArtes() {
+        const c = document.getElementById('artList'); c.innerHTML = '';
+        designLayer.find('.editable').forEach((obj, i) => {
+            if (!obj.attrs.orcSize) obj.attrs.orcSize = Object.keys(CONFIG.artes)[0];
+            let opt = ''; Object.keys(CONFIG.artes).forEach(k => { opt += `<option value="${k}" ${obj.attrs.orcSize===k?'selected':''}>${k}</option>`; });
+            const d = document.createElement('div'); d.className = 'bg-[var(--bg-input)] p-4 rounded-xl border border-[var(--border-color)] shadow-md transition hover:border-blue-500';
+            d.innerHTML = `<div class="flex justify-between font-black text-[var(--text-main)] mb-3 uppercase tracking-widest text-[10px]"><span>ARTE #${i+1}</span><select onchange="updateObjArt('${obj.id()}', 'orcSize', this.value)" class="bg-[var(--bg-card)] border border-[var(--border-color)] rounded px-2 py-1 text-blue-500 outline-none font-bold">${opt}</select></div><div class="flex gap-4"><label class="text-[var(--text-muted)] font-bold flex items-center gap-1 text-[9px] uppercase cursor-pointer hover:text-[var(--text-main)] transition"><input type="checkbox" onchange="toggleMode('${obj.id()}', 'isBordado', this.checked)" ${obj.attrs.isBordado?'checked':''}> Bordado</label><label class="text-[var(--text-muted)] font-bold flex items-center gap-1 text-[9px] uppercase cursor-pointer hover:text-[var(--text-main)] transition"><input type="checkbox" onchange="toggleMode('${obj.id()}', 'isSilk', this.checked)" ${obj.attrs.isSilk?'checked':''}> Silk</label><label class="text-red-500 font-bold flex items-center gap-1 text-[9px] uppercase cursor-pointer hover:text-red-400 transition"><input type="checkbox" onchange="toggleMode('${obj.id()}', 'noCharge', this.checked)" ${obj.attrs.noCharge?'checked':''}> Grátis</label></div>`; c.appendChild(d);
+        }); renderLayers(); updateBudget();
+    }
+    
+    function toggleMode(id, f, v) { const o = stage.findOne('#'+id); if(f==='isBordado' && v) o.setAttr('isSilk', false); if(f==='isSilk' && v) o.setAttr('isBordado', false); o.setAttr(f, v); syncArtes(); }
+    function updateObjArt(id, f, v) { const o = stage.findOne('#'+id); o.setAttr(f, v); updateBudget(); saveCurrentTabState(); }
+    function updateBudget() {
+        const m = document.getElementById('modelSelect').value; const f = document.getElementById('calcFabric').value; const q = parseInt(document.getElementById('calcQty').value) || 1; const dm = parseFloat(document.getElementById('manualDiscount').value) || 0; 
+        let u = CONFIG.precos[`${m}_${f}`] || 0; let e = 0; let first = false; const sk = Object.keys(CONFIG.artes)[0] || 'PEQUENA';
+        designLayer.find('.editable').forEach((obj, idx) => {
+            if (obj.attrs.noCharge) return;
+            const s = obj.attrs.orcSize || sk; let isSmall = CONFIG.artes[s] <= 5.0;
+            if (obj.attrs.isBordado) e += (isSmall ? CONFIG.bordado.pequena : CONFIG.bordado.grande) + (CONFIG.bordado.matriz / q);
+            else if (obj.attrs.isSilk) e += (isSmall ? CONFIG.silk.pequena : CONFIG.silk.grande);
+            else { if (!first && idx===0 && s===sk) first=true; else e += CONFIG.artes[s]||0; }
+        });
+        let total = (u+e)*q - dm; document.getElementById('unitPriceDisplay').innerText = `R$ ${(u+e).toFixed(2).replace('.',',')}`; document.getElementById('totalFinal').innerText = `R$ ${Math.max(0,total).toFixed(2).replace('.',',')}`;
+    }
+
+    function changeProduct() { 
+        const m = document.getElementById('modelSelect').value; if (!m || !CONFIG.catalogo[m]) return; const id = currentView === 'frente' ? CONFIG.catalogo[m].fId : CONFIG.catalogo[m].cId;
+        Konva.Image.fromURL(getDirectLink(id), (img) => { 
+            productLayer.destroyChildren(); const sc = Math.min(500/img.width(), 600/img.height()); 
+            img.setAttrs({ width: img.width()*sc, height: img.height()*sc, x: (500-img.width()*sc)/2, y: (600-img.height()*sc)/2, crossOrigin: 'Anonymous' }); 
+            img.filters([Konva.Filters.RGB, Konva.Filters.HSV]); img.cache(); shirtImageNode=img; productLayer.add(img); updateShirtColor(); updateVisibility(); 
+        }); 
+    }
+    
+    function updateShirtColor() { if(shirtImageNode) { const c = document.getElementById('shirtColor').value; const b = parseFloat(document.getElementById('brightnessSlider').value); shirtImageNode.red(parseInt(c.slice(1,3),16)).green(parseInt(c.slice(3,5),16)).blue(parseInt(c.slice(5,7),16)).value(b).cache(); productLayer.batchDraw(); saveCurrentTabState(); } }
+    
+    function applyZoom() { 
+        const z = parseFloat(document.getElementById('zoomSlider').value); 
+        const oldScale = stage.scaleX();
+        const center = { x: 500 / 2, y: 600 / 2 };
+        const relatedTo = { x: (center.x - stage.x()) / oldScale, y: (center.y - stage.y()) / oldScale };
+        stage.scale({ x: z, y: z });
+        stage.position({ x: center.x - relatedTo.x * z, y: center.y - relatedTo.y * z });
+        stage.batchDraw(); 
+    }
+
+    function switchView(v) { currentView=v; document.getElementById('btnFrente').className=v==='frente'?'view-btn view-active':'view-btn'; document.getElementById('btnCostas').className=v==='costas'?'view-btn view-active':'view-btn'; deselect(); changeProduct(); }
+    
+    function createNewText() { const n = new Konva.Text({ text: document.getElementById('newTextInput').value || "TEXTO", x: 250, y: 150, fontSize: 40, fontFamily: 'Montserrat', fill: isLightMode?'#0f172a':'#ffffff', draggable: true, name: 'editable', align: 'center', face: currentView, id: 'obj-'+Date.now(), type: 'text' }); n.offsetX(n.width()/2); setupEvents(n); designLayer.add(n); select(n); document.getElementById('newTextInput').value = ''; syncArtes(); saveHistory(); }
+    
+    document.getElementById('imageInput').addEventListener('change', (e) => { 
+        const f = e.target.files[0]; if(!f) return; const r = new FileReader(); 
+        r.onload = (ev) => { 
+            const i = new Image(); i.crossOrigin = "Anonymous";
+            i.onload = () => { 
+                const maxD = 150; let sc = 1; 
+                if(i.width > maxD || i.height > maxD) { sc = Math.min(maxD / i.width, maxD / i.height); } 
+                const w = i.width * sc; const h = i.height * sc; 
+                const n = new Konva.Image({ image: i, x: 250, y: 200, width: w, height: h, draggable: true, name: 'editable', face: currentView, type: 'image', id: 'obj-'+Date.now(), src: ev.target.result }); 
+                n.offsetX(w / 2); setupEvents(n); designLayer.add(n); select(n); syncArtes(); saveHistory(); 
+            };
+            i.src = ev.target.result; 
+        }; r.readAsDataURL(f); e.target.value = ''; 
+    });
+    
+    function deleteElement() { if(selectedNode) { selectedNode.destroy(); deselect(); syncArtes(); saveHistory(); } }
+    function updateProp(t, v) { if(!selectedNode) return; if(t==='font') selectedNode.fontFamily(v); if(t==='color') selectedNode.fill(document.getElementById('textColor').value); if(t==='bold') selectedNode.fontStyle(selectedNode.fontStyle()==='bold'?'normal':'bold'); if(t==='align') { const a = selectedNode.align()==='center'?'left':'center'; selectedNode.align(a); selectedNode.offsetX(a==='center'?selectedNode.width()/2:0); } designLayer.draw(); saveHistory(); }
+    function updateVisibility() { designLayer.find('.editable').forEach(n => n.visible(n.attrs.face === currentView)); designLayer.draw(); }
+    
+    function renderLayers() { 
+        const l = document.getElementById('layersList'); l.innerHTML = ''; 
+        designLayer.find('.editable').filter(n => n.attrs.face === currentView).forEach(n => { 
+            const isImg = n.attrs.type === 'image';
+            const d = document.createElement('div'); d.className = 'layer-card p-4 flex items-center justify-between cursor-pointer hover:border-blue-500 shadow-md'; d.onclick = (e) => { e.stopPropagation(); select(n); }; 
+            d.innerHTML = `<span class="text-[10px] font-black uppercase tracking-widest truncate w-24 text-[var(--text-main)]">${n.attrs.type==='text'?n.text():'Arte Imagem'}</span><div class="flex gap-1">
+                ${isImg ? `<button onclick="event.stopPropagation(); openChromaKey('${n.id()}')" class="bg-teal-600 text-white font-black text-[10px] px-2 hover:bg-teal-500 rounded transition py-1" title="Remover Fundo">🪄</button>` : ''}
+                ${n.attrs.type==='text'?`<button onclick="editTextLateral('${n.id()}')" class="bg-blue-600 text-white font-black text-[8px] px-2 hover:bg-blue-500 rounded transition py-1">✎ EDIT</button>`:''}<button onclick="deleteById('${n.id()}')" class="text-red-500 font-black text-xs px-2 hover:bg-red-500 hover:text-white rounded transition py-1">✕</button></div>`; l.appendChild(d); 
+        }); 
+    }
+    
+    window.deleteById = (id) => { const n = stage.findOne('#'+id); if(n) { n.destroy(); deselect(); syncArtes(); saveHistory(); } };
+    window.editTextLateral = (id) => { const n = stage.findOne('#'+id); if(n) editTextInline(n); };
+
+    // ==========================================
+    // CAPTURA DO TECLADO: CTRL+C, CTRL+V, CTRL+Z
+    // ==========================================
+    window.addEventListener('keydown', (e) => { 
+        if(document.activeElement.tagName === 'TEXTAREA' || document.activeElement.tagName === 'INPUT') return;
+        
+        // Modal da Varinha Mágica (Ctrl+Z desfaz clique rosa)
+        if(document.getElementById('chromaModal').classList.contains('show')) {
+            if(e.ctrlKey && (e.key === 'z' || e.key === 'Z')) {
+                e.preventDefault();
+                if (chromaClicks.length > 0) {
+                    chromaClicks.pop();
+                    updateChromaPreview();
+                }
+            }
+            return;
+        }
+
+        // CTRL + C (Copiar)
+        if(e.ctrlKey && (e.key === 'c' || e.key === 'C')) {
+            if(selectedNode) {
+                clipboardNodeData = selectedNode.toJSON();
+                const oldOp = selectedNode.opacity();
+                selectedNode.opacity(0.3); designLayer.draw();
+                setTimeout(() => { selectedNode.opacity(oldOp); designLayer.draw(); }, 150);
+                showToast("Arte Copiada!");
+            }
+        }
+
+        // CTRL + V (Colar na face atual)
+        if(e.ctrlKey && (e.key === 'v' || e.key === 'V')) {
+            if(clipboardNodeData) {
+                e.preventDefault();
+                const data = JSON.parse(clipboardNodeData);
+                data.attrs.id = 'obj-' + Date.now();
+                data.attrs.x += 20; 
+                data.attrs.y += 20;
+                
+                data.attrs.face = currentView; // Joga pra frente ou pras costas automático!
+                
+                const n = Konva.Node.create(data);
+                setupEvents(n);
+                designLayer.add(n);
+                
+                if (n.attrs.type === 'image' && n.attrs.src) { 
+                    const img = new Image(); 
+                    img.crossOrigin = "Anonymous";
+                    img.onload = () => { n.image(img); designLayer.batchDraw(); }; 
+                    img.src = n.attrs.src; 
+                }
+                select(n);
+                syncArtes();
+                saveHistory();
+                updateVisibility();
+                showToast("Arte Colada em: " + currentView.toUpperCase());
+            }
+        }
+
+        // CTRL + Z (Desfazer Edição Canva)
+        if(e.ctrlKey && (e.key === 'z' || e.key === 'Z')) { 
+            const tab = tabs.find(t => t.id === currentTabId); 
+            if(tab && tab.history && tab.history.length > 1) { 
+                tab.history.pop(); 
+                const s = tab.history[tab.history.length-1]; 
+                designLayer.find('.editable').forEach(n => n.destroy()); 
+                s.forEach(d => { 
+                    const n = Konva.Node.create(d); 
+                    setupEvents(n); 
+                    designLayer.add(n); 
+                    if (n.attrs.type === 'image' && n.attrs.src) { 
+                        const img = new Image(); img.src = n.attrs.src; 
+                        img.onload = () => { n.image(img); designLayer.batchDraw(); }; 
+                    } 
+                }); 
+                designLayer.draw(); renderLayers(); syncArtes(); saveCurrentTabState(); 
+            } 
+        }
+        
+        if(e.key === 'Delete' || e.key === 'Backspace') deleteElement();
+    });
+
+    async function exportLayout() {
+        const btn = document.getElementById('btnDownloadPreview'); const old = btn.innerHTML; btn.innerHTML = `Exportando...`; btn.disabled = true; 
+        const cap = (v) => new Promise(res => { switchView(v); setTimeout(() => res(stage.toDataURL({pixelRatio:2})), 700); }); 
+        const f = await cap('frente'), c = await cap('costas'); 
+        const canvas = document.createElement('canvas'); canvas.width=1100; canvas.height=750; const ctx = canvas.getContext('2d'); 
+        const bgColor = document.getElementById('canvasBgColor').value;
+        ctx.fillStyle = bgColor; ctx.fillRect(0,0,1100,750); 
+        ctx.fillStyle = (bgColor === '#000000' || bgColor === '#0f172a') ? '#ffffff' : '#000000';
+        ctx.font = 'bold 35px Montserrat'; ctx.fillText('MOCKUP DE APROVAÇÃO TRENDWEAR', 50, 70); 
+        const lo = (sr) => new Promise(res => { const i=new Image(); i.onload=()=>res(i); i.src=sr; }); 
+        const [if_i, ic_i] = await Promise.all([lo(f), lo(c)]); ctx.drawImage(if_i, 50, 120, 480, 580); ctx.drawImage(ic_i, 570, 120, 480, 580); 
+        const link = document.createElement('a'); link.download='Mockup_TrendWear.png'; link.href=canvas.toDataURL(); link.click(); 
+        switchView('frente'); btn.innerHTML = old; btn.disabled = false;
+    }
+
+    async function generateFinalPDF() {
+        if(cart.length === 0) { showModal("Aviso", "Adicione modelos ao orçamento para gerar o PDF.", ()=>{}); return; }
+        const btn = document.getElementById('btnGeneratePDF'); const old = btn.innerHTML; btn.innerHTML = `Compilando PDF...`; btn.disabled = true; 
+        const { jsPDF } = window.jspdf; const doc = new jsPDF();
+        doc.setFillColor(15, 15, 15); doc.ellipse(100, -10, 150, 40, 'F'); doc.setFillColor(60, 60, 60); doc.ellipse(150, -5, 120, 30, 'F'); 
+        doc.setTextColor(15, 15, 15); doc.setFont("helvetica", "bold"); doc.setFontSize(36); doc.text("PROPOSTA B2B", 20, 50); 
+        doc.setFontSize(9); doc.setTextColor(80); 
+        const dateInput = document.getElementById('orcData').value; const dataFormatada = dateInput ? dateInput.split('-').reverse().join('/') : new Date().toLocaleDateString('pt-BR'); 
+        doc.text(`Data: ${dataFormatada}`, 140, 45); doc.text(`Validade: ${document.getElementById('orcValidade').value || '10 dias'}`, 140, 50); 
+        doc.setFontSize(9); doc.setTextColor(0); 
+        const fields = [ { l: "Cliente / Razão:", v: document.getElementById('cliNome').value }, { l: "CNPJ / CPF:", v: document.getElementById('cliCnpj').value }, { l: "Endereço:", v: `${document.getElementById('cliEnd').value} ${document.getElementById('cliCidade').value ? '- ' + document.getElementById('cliCidade').value : ''}` }, { l: "Contato:", v: `${document.getElementById('cliTel').value} ${document.getElementById('cliEmail').value ? '| ' + document.getElementById('cliEmail').value : ''}` }, { l: "Consultor Comercial:", v: document.getElementById('vendNome').value } ]; 
+        let curY = 65; fields.forEach(f => { doc.setFont("helvetica", "bold"); doc.text(f.l, 20, curY); doc.setFont("helvetica", "normal"); doc.text(f.v || "______________________________________________________", 55, curY); curY += 7; });
+        let sumTotal = 0; let tableData = cart.map(i => { sumTotal += i.totalNum; return [ `${i.model}\n(${i.tabName})`, i.fabric, i.qty, i.unitStr, i.totalStr ]; }); 
+        const isPix = document.getElementById('condPagto').value === 'PIX'; const finalGlobal = isPix ? sumTotal * 0.95 : sumTotal; 
+        doc.autoTable({ startY: curY + 5, head: [['MODELO', 'TECIDO', 'QTD', 'UNITÁRIO', 'SUBTOTAL']], body: tableData, theme: 'grid', headStyles: { fillColor: [20, 20, 20] }, styles: { fontSize: 8, cellPadding: 3, halign: 'center' }, columnStyles: { 0: { halign: 'left' } } }); 
+        const finalY = doc.lastAutoTable.finalY + 10; 
+        doc.setFont("helvetica", "bold"); doc.text("Condições Comerciais:", 20, finalY); doc.setFont("helvetica", "normal"); doc.text(`Pagamento: ${document.getElementById('condPagto').options[document.getElementById('condPagto').selectedIndex].text}`, 20, finalY + 6); doc.text(`Prazo Confecção: ${document.getElementById('orcPrazo').value || '--'}`, 20, finalY + 12); 
+        doc.setFillColor(240); doc.rect(130, finalY - 5, 60, 15, 'F'); doc.setFont("helvetica", "bold"); doc.setFontSize(12); doc.text(`TOTAL: R$ ${finalGlobal.toFixed(2).replace('.',',')}`, 135, finalY + 5); 
+        doc.setFontSize(8); doc.setTextColor(120); doc.setFont("helvetica", "normal"); doc.text("Gerado por TrendWear LayoutPro", 20, 280); doc.setFontSize(14); doc.setFont("helvetica", "bold"); doc.setTextColor(20); doc.text("TrendWear", 165, 280);
+        for(let i=0; i<cart.length; i++) { 
+            doc.addPage(); const bgAnexo = cart[i].canvasBg || '#ffffff';
+            doc.setFillColor(bgAnexo); doc.rect(0, 0, 210, 297, 'F');
+            doc.setFillColor(20, 20, 20); doc.rect(0, 0, 210, 15, 'F'); 
+            doc.setTextColor(255); doc.setFontSize(14); doc.text(`ANEXO DE PRODUÇÃO - ${cart[i].tabName}`, 20, 10); 
+            doc.addImage(cart[i].fImg, 'PNG', 15, 30, 85, 105); doc.addImage(cart[i].cImg, 'PNG', 110, 30, 85, 105); 
+            doc.setDrawColor(150); doc.line(40, 260, 170, 260); doc.setTextColor(80); doc.setFontSize(9); doc.setFont("helvetica", "normal"); 
+            doc.text("Aprovação do Cliente (Assinatura)", 105, 265, { align: "center" }); 
+        } 
+        doc.save(`TrendWear_Proposta_${document.getElementById('cliNome').value || 'B2B'}.pdf`); btn.innerHTML = old; btn.disabled = false; toggleCart();
+    }
+
+    function preload() { 
+        rebuildDynamicDropdowns();
+        let total = Object.keys(CONFIG.catalogo).length * 2; let count = 0; let loaded = false;
+        const finishLoad = () => {
+            if(loaded) return; loaded = true;
+            document.getElementById('loadingOverlay').style.opacity = '0'; 
+            setTimeout(() => { document.getElementById('loadingOverlay').style.visibility = 'hidden'; if(tabs.length === 0) initTabs(); }, 500);
+        };
+        if(total === 0) { finishLoad(); return; }
+        Object.keys(CONFIG.catalogo).forEach(k => { 
+            [CONFIG.catalogo[k].fId, CONFIG.catalogo[k].cId].forEach(id => {
+                const i = new Image(); i.crossOrigin = "Anonymous"; i.src = getDirectLink(id); 
+                i.onload = i.onerror = () => { count++; if(count >= total) finishLoad(); };
+            });
+        });
+        setTimeout(finishLoad, 4000);
+    }
+    window.onload = preload;
+</script>
+</body>
+</html>
