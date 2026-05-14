@@ -96,11 +96,49 @@
         #crmStatusModal.show { display: flex !important; opacity: 1 !important; }
         #infinitePayModal { z-index: 99998 !important; }
         #infinitePayModal.show { display: flex !important; opacity: 1 !important; }
+
+        /* Página PCP / Controle de Produção */
+        #pcpDashboardModal { align-items: stretch !important; justify-content: flex-start !important; background: var(--bg-main) !important; backdrop-filter: none !important; z-index: 710 !important; }
+        #pcpDashboardModal.show { display: flex !important; opacity: 1 !important; }
+        #pcpDashboardModal .pcp-page-shell { width: 100%; height: 100vh; background: var(--bg-main); color: var(--text-main); }
+        body.dark-mode #pcpDashboardModal, body.dark-mode #pcpDashboardModal .pcp-page-shell { background: #0f172a !important; }
+        body.dark-mode #pcpDashboardModal .pcp-workspace { background: radial-gradient(circle at top right, rgba(20,184,166,0.10), transparent 34%), #0f172a !important; }
+        body.dark-mode #pcpDashboardModal .pcp-panel-card { background: #1e293b; border-color: #334155; }
+        body.light-mode #pcpDashboardModal .pcp-workspace { background: var(--bg-main) !important; }
+        .pcp-tab-btn { background: var(--bg-card); border: 1px solid var(--border-color); color: var(--text-muted); border-radius: 12px; padding: 12px 16px; font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: .12em; transition: all .2s ease; }
+        .pcp-tab-btn.active { background: #0f766e; border-color: #14b8a6; color: white; box-shadow: 0 10px 25px rgba(20,184,166,.18); }
+        .pcp-phase-pill { border-radius: 999px; padding: 7px 10px; font-size: 9px; font-weight: 900; text-transform: uppercase; letter-spacing: .10em; border: 1px solid; display: inline-flex; align-items: center; gap: 6px; }
+        .pcp-ok { background: rgba(16,185,129,.12); color: #34d399; border-color: rgba(16,185,129,.45); }
+        .pcp-warn { background: rgba(234,179,8,.13); color: #facc15; border-color: rgba(234,179,8,.45); }
+        .pcp-danger { background: rgba(239,68,68,.13); color: #f87171; border-color: rgba(239,68,68,.45); }
+        .pcp-info { background: rgba(59,130,246,.12); color: #60a5fa; border-color: rgba(59,130,246,.42); }
+        .pcp-filter-btn { background: var(--bg-input); border: 1px solid var(--border-color); color: var(--text-muted); border-radius: 999px; padding: 9px 13px; font-size: 9px; font-weight: 900; text-transform: uppercase; letter-spacing: .10em; transition: all .2s ease; white-space: nowrap; }
+        .pcp-filter-btn:hover { border-color: #14b8a6; color: #5eead4; }
+        .pcp-filter-btn.active { background: #0f766e; border-color: #14b8a6; color: white; box-shadow: 0 10px 22px rgba(20,184,166,.14); }
+        .pcp-delivery-kpi { background: var(--bg-input); border: 1px solid var(--border-color); border-radius: 14px; padding: 14px; }
+        .pcp-notif-badge { position: absolute; top: -7px; right: -7px; min-width: 19px; height: 19px; padding: 0 5px; border-radius: 999px; background: #ef4444; color: white; font-size: 10px; font-weight: 900; display: none; align-items: center; justify-content: center; border: 2px solid #0f172a; }
+        #pcpTopNotificationsPopup { position: fixed; top: 84px; right: 28px; width: min(420px, calc(100vw - 32px)); max-height: 70vh; overflow: hidden; z-index: 99997; background: var(--bg-modal); border: 1px solid var(--border-color); border-radius: 18px; box-shadow: 0 25px 70px rgba(0,0,0,.45); color: var(--text-main); }
+        #pcpTopNotificationsPopup.hidden { display: none; }
     </style>
 </head>
 <body class="dark-mode">
 
 <div id="toastMsg" class="fixed bottom-10 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white px-6 py-3 rounded-full font-black text-[10px] uppercase tracking-widest shadow-2xl transition-all duration-300 opacity-0 translate-y-10 z-[9999] pointer-events-none">Aviso</div>
+
+<div id="pcpTopNotificationsPopup" class="hidden">
+    <div class="p-5 border-b border-[var(--border-color)] flex justify-between items-center bg-[var(--bg-modal)]">
+        <div>
+            <div class="text-amber-400 font-black text-sm uppercase italic tracking-widest">🔔 Notificações PCP</div>
+            <div class="text-[9px] text-[var(--text-muted)] font-bold uppercase tracking-widest mt-1">Prazos, atrasos e novos pedidos</div>
+        </div>
+        <button onclick="togglePCPTopNotifications(false)" class="text-[var(--text-muted)] hover:text-red-500 font-black text-xl transition">✕</button>
+    </div>
+    <div id="pcpTopNotificationsContent" class="p-4 space-y-3 overflow-y-auto" style="max-height: 52vh;"></div>
+    <div class="p-4 border-t border-[var(--border-color)] bg-[var(--bg-modal)] flex gap-3">
+        <button onclick="clearAllPCPNotifications(); refreshPCPTopNotifications();" class="flex-1 bg-red-500/10 text-red-500 border border-red-500/30 px-4 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition hover:bg-red-500 hover:text-white active:scale-95">Limpar tudo</button>
+        <button onclick="openPCPDashboard(); togglePCPTopNotifications(false);" class="flex-1 bg-teal-600 text-white px-4 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition hover:bg-teal-500 active:scale-95">Abrir PCP</button>
+    </div>
+</div>
 
 <div id="loadingOverlay">
     <div class="loader-circle"></div>
@@ -118,6 +156,12 @@
         </button>
         <button onclick="openCRMDashboard()" class="text-indigo-400 hover:text-white transition-all transform hover:scale-110 duration-300 bg-indigo-500/20 hover:bg-indigo-500 border border-indigo-500/30 p-3 rounded-full shadow-lg flex items-center justify-center font-black text-xs" title="Painel CRM">
             📊 CRM
+        </button>
+        <button onclick="openPCPDashboard()" class="text-teal-400 hover:text-white transition-all transform hover:scale-110 duration-300 bg-teal-500/20 hover:bg-teal-500 border border-teal-500/30 p-3 rounded-full shadow-lg flex items-center justify-center font-black text-xs" title="Painel PCP">
+            🏭 PCP
+        </button>
+        <button onclick="togglePCPTopNotifications()" class="relative text-amber-400 hover:text-white transition-all transform hover:scale-110 duration-300 bg-amber-500/20 hover:bg-amber-500 border border-amber-500/30 p-3 rounded-full shadow-lg flex items-center justify-center font-black text-xs" title="Notificações PCP">
+            🔔<span id="pcpNotifBadgeHome" class="pcp-notif-badge">0</span>
         </button>
         <button onclick="openSettings()" class="text-slate-500 hover:text-white transition-all transform hover:rotate-90 hover:scale-110 duration-300 bg-slate-800 p-3 rounded-full shadow-lg flex items-center justify-center" title="Configurações">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.09a2 2 0 0 1-1-1.74v-.51a2 2 0 0 1 1-1.72l.15-.1a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
@@ -179,6 +223,12 @@
                 <div class="settings-section shadow-lg"><h3 class="set-label !text-yellow-500 mb-6 border-b border-[var(--border-color)] pb-2">Tabela Silk (R$)</h3><div class="space-y-4" id="configSilk"></div></div>
                 <div class="settings-section shadow-lg"><h3 class="set-label !text-emerald-500 mb-6 border-b border-[var(--border-color)] pb-2">Tabela Bordado (R$)</h3><div class="space-y-4" id="configBordado"></div></div>
             </div>
+
+            <div class="settings-section shadow-xl">
+                <h3 class="text-teal-500 font-black text-[10px] uppercase tracking-[0.2em] mb-4 border-b border-[var(--border-color)] pb-3 italic">Parametrização de Tecidos / PCP</h3>
+                <p class="text-[10px] text-[var(--text-muted)] font-bold uppercase tracking-widest mb-4">Rendimento informado pelo fornecedor ÷ 1,83. Tubular multiplica por 4; linear multiplica por 3. O sistema calcula camisetas por KG, KG necessário e custo estimado.</p>
+                <div id="fabricParamList" class="grid grid-cols-1 gap-4"></div>
+            </div>
         </div>
         
         <div class="p-6 border-t border-[var(--border-color)] bg-[var(--bg-modal)] flex justify-between items-center shrink-0">
@@ -228,23 +278,6 @@
     </div>
 </div>
 
-
-<div id="infinitePayModal" class="modal-overlay">
-    <div class="bg-[var(--bg-modal)] border border-[var(--border-color)] p-8 rounded-2xl shadow-2xl max-w-md w-full text-center">
-        <h3 class="text-sky-400 font-black text-xl mb-2 uppercase italic">Link de pagamento</h3>
-        <p class="text-[var(--text-muted)] text-[10px] font-bold uppercase tracking-widest mb-6">InfiniteTag padrão configurada: $trendwear-ltda. Você só precisa alterar se trocar de conta.</p>
-        <input type="hidden" id="infinitePayTargetId">
-        <div class="text-left mb-6">
-            <label class="set-label">InfiniteTag / Handle</label>
-            <input type="text" id="infinitePayHandleInput" placeholder="trendwear-ltda" class="calc-input !mb-0 font-black !text-sky-400">
-            <p class="text-[9px] text-[var(--text-muted)] mt-2 font-bold uppercase tracking-widest">Use sem o símbolo $.</p>
-        </div>
-        <div class="flex gap-4">
-            <button onclick="closeInfinitePayModal()" class="flex-1 bg-[var(--bg-card)] border border-[var(--border-color)] text-[var(--text-main)] py-4 rounded-xl font-black uppercase text-[10px] transition hover:bg-red-500 hover:text-white active:scale-95">Cancelar</button>
-            <button onclick="confirmInfinitePayLink()" class="flex-1 bg-sky-600 text-white py-4 rounded-xl font-black uppercase text-[10px] transition shadow-lg hover:bg-sky-500 active:scale-95">Criar link</button>
-        </div>
-    </div>
-</div>
 
 <div id="sizeGridModal" class="modal-overlay z-[10006]">
     <div class="bg-[var(--bg-modal)] border border-[var(--border-color)] p-6 rounded-2xl shadow-2xl max-w-5xl w-full flex flex-col max-h-[90vh]">
@@ -399,7 +432,7 @@
         </div>
 
         <div class="crm-workspace flex-1 overflow-y-auto p-8">
-            <div class="grid grid-cols-6 gap-4 mb-7">
+            <div class="grid grid-cols-7 gap-4 mb-7">
                 <div class="crm-kpi-card flex items-center gap-4 col-span-2">
                     <div class="w-24 h-24 relative shrink-0"><canvas id="crmPieChart"></canvas></div>
                     <div>
@@ -409,12 +442,17 @@
                     </div>
                 </div>
                 <div class="crm-kpi-card">
-                    <div class="text-[10px] text-[var(--text-muted)] font-black uppercase tracking-widest mb-2">Receita fechada</div>
+                    <div class="text-[10px] text-[var(--text-muted)] font-black uppercase tracking-widest mb-2">Valor fechado contrato</div>
                     <div class="text-2xl font-black text-emerald-500" id="crmMesFaturado">R$ 0,00</div>
-                    <div class="text-[9px] text-[var(--text-muted)] font-bold uppercase tracking-widest mt-2">No filtro atual</div>
+                    <div class="text-[9px] text-[var(--text-muted)] font-bold uppercase tracking-widest mt-2">Contratos fechados</div>
                 </div>
                 <div class="crm-kpi-card">
-                    <div class="text-[10px] text-[var(--text-muted)] font-black uppercase tracking-widest mb-2">A receber</div>
+                    <div class="text-[10px] text-[var(--text-muted)] font-black uppercase tracking-widest mb-2">Valor recebido</div>
+                    <div class="text-2xl font-black text-blue-400" id="crmValorRecebido">R$ 0,00</div>
+                    <div class="text-[9px] text-[var(--text-muted)] font-bold uppercase tracking-widest mt-2">Entradas/final pagos</div>
+                </div>
+                <div class="crm-kpi-card">
+                    <div class="text-[10px] text-[var(--text-muted)] font-black uppercase tracking-widest mb-2">Valor a receber</div>
                     <div class="text-2xl font-black text-yellow-500" id="crmAReceber">R$ 0,00</div>
                     <div class="text-[9px] text-[var(--text-muted)] font-bold uppercase tracking-widest mt-2">Pedidos fechados</div>
                 </div>
@@ -433,8 +471,8 @@
             <div class="crm-panel-card bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl shadow-xl overflow-hidden mb-7">
                 <div class="px-6 py-4 border-b border-[var(--border-color)] flex justify-between items-center">
                     <div>
-                        <h4 class="text-[var(--text-main)] font-black uppercase italic tracking-widest text-sm">Faturamento dia a dia</h4>
-                        <p class="text-[10px] text-[var(--text-muted)] font-bold uppercase tracking-widest mt-1">Medição dos orçamentos fechados no período selecionado</p>
+                        <h4 class="text-[var(--text-main)] font-black uppercase italic tracking-widest text-sm">Valor fechado dia a dia</h4>
+                        <p class="text-[10px] text-[var(--text-muted)] font-bold uppercase tracking-widest mt-1">Medição do valor fechado de contratos no período selecionado</p>
                     </div>
                     <div id="crmRevenueChartTotal" class="text-emerald-400 font-black text-[10px] uppercase tracking-widest">R$ 0,00</div>
                 </div>
@@ -452,6 +490,87 @@
                     <div id="crmResultCount" class="text-indigo-400 font-black text-[10px] uppercase tracking-widest">0 resultados</div>
                 </div>
                 <div id="crmListContainer" class="p-6 space-y-4 min-h-[260px]">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="pcpDashboardModal" class="modal-overlay">
+    <div class="pcp-page-shell flex flex-col overflow-hidden">
+        <div class="px-8 py-5 border-b border-[var(--border-color)] bg-[var(--bg-sidebar)] flex items-center justify-between shrink-0 shadow-xl">
+            <div class="flex items-center gap-5">
+                <button onclick="closePCPDashboard()" class="bg-[var(--bg-card)] border border-[var(--border-color)] text-[var(--text-main)] px-5 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition hover:border-teal-500 active:scale-95">← Voltar ao menu</button>
+                <div>
+                    <h3 class="text-teal-400 font-black text-2xl uppercase italic tracking-widest flex items-center gap-3">🏭 PCP / Controle de Produção</h3>
+                    <div id="pcpHeaderLabel" class="text-[10px] text-[var(--text-muted)] font-bold uppercase tracking-widest mt-1">Pedidos fechados entram aqui após pagamento da entrada</div>
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <button id="pcpOrdersTabBtn" onclick="setPCPTab('orders')" class="pcp-tab-btn active">Pedidos em andamento</button>
+                <button id="pcpSuppliersTabBtn" onclick="setPCPTab('suppliers')" class="pcp-tab-btn">Cadastros</button>
+                <button onclick="loadPCPData()" class="bg-teal-600 text-white px-5 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition hover:bg-teal-500 active:scale-95">Atualizar</button>
+            </div>
+        </div>
+        <div class="pcp-workspace flex-1 overflow-y-auto p-8">
+            <div class="pcp-panel-card bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl shadow-xl overflow-hidden mb-7">
+                <div class="p-5 border-b border-[var(--border-color)] flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+                    <div>
+                        <h4 class="text-[var(--text-main)] font-black uppercase italic tracking-widest text-sm">Filtro de entregas</h4>
+                        <p class="text-[9px] text-[var(--text-muted)] font-bold uppercase tracking-widest mt-1">Veja o que precisa ser entregue por mês ou nos próximos 7 dias</p>
+                    </div>
+                    <div id="pcpDeliveryFilterBar" class="flex gap-2 overflow-x-auto pb-1"></div>
+                </div>
+                <div id="pcpDeliveryStats" class="p-5 grid grid-cols-2 md:grid-cols-4 gap-3"></div>
+            </div>
+
+            <div class="pcp-panel-card bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl shadow-xl overflow-hidden mb-7">
+                <div class="px-6 py-4 border-b border-[var(--border-color)] flex justify-between items-center gap-4">
+                    <div>
+                        <h4 class="text-[var(--text-main)] font-black uppercase italic tracking-widest text-sm">Barra de notificações</h4>
+                        <p class="text-[10px] text-[var(--text-muted)] font-bold uppercase tracking-widest mt-1">Novos pedidos, fases vencendo e atrasos de produção</p>
+                    </div>
+                    <button onclick="clearAllPCPNotifications()" class="bg-red-500/10 text-red-500 border border-red-500/30 px-4 py-2 rounded-lg font-black text-[10px] uppercase transition hover:bg-red-500 hover:text-white active:scale-95">Limpar notificações</button>
+                </div>
+                <div id="pcpNotificationsContainer" class="p-5 space-y-3 max-h-[220px] overflow-y-auto"></div>
+            </div>
+
+            <div id="pcpOrdersPanel" class="pcp-panel-card bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl shadow-xl overflow-hidden">
+                <div class="px-6 py-4 border-b border-[var(--border-color)] flex justify-between items-center">
+                    <div>
+                        <h4 class="text-[var(--text-main)] font-black uppercase italic tracking-widest text-sm">Pedidos em andamento</h4>
+                        <p class="text-[10px] text-[var(--text-muted)] font-bold uppercase tracking-widest mt-1">Ordenado pelo prazo final calculado em dias úteis</p>
+                    </div>
+                    <div id="pcpOrderCount" class="text-teal-400 font-black text-[10px] uppercase tracking-widest">0 pedidos</div>
+                </div>
+                <div id="pcpBulkMaterialPanel" class="hidden p-5 border-b border-[var(--border-color)] bg-teal-950/10"></div>
+                <div id="pcpOrdersContainer" class="p-6 space-y-4 min-h-[260px]"></div>
+            </div>
+
+            <div id="pcpSuppliersPanel" class="hidden grid grid-cols-2 gap-6">
+                <div class="pcp-panel-card bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl shadow-xl overflow-hidden">
+                    <div class="px-6 py-4 border-b border-[var(--border-color)]"><h4 class="text-[var(--text-main)] font-black uppercase italic tracking-widest text-sm">Fornecedores de matéria-prima</h4></div>
+                    <div class="p-6 space-y-4">
+                        <div class="grid grid-cols-3 gap-3">
+                            <input type="text" id="pcpMatSupplierName" placeholder="Nome do fornecedor" class="calc-input !mb-0">
+                            <input type="text" id="pcpMatSupplierRep" placeholder="Nome do representante" class="calc-input !mb-0">
+                            <input type="text" id="pcpMatSupplierContact" placeholder="WhatsApp completo. Ex: +55 31 99999-9999" class="calc-input !mb-0">
+                        </div>
+                        <button onclick="addPCPSupplier('material')" class="w-full bg-teal-600 text-white py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition hover:bg-teal-500 active:scale-95">Adicionar matéria-prima</button>
+                        <div id="pcpMaterialSuppliersList" class="space-y-3"></div>
+                    </div>
+                </div>
+                <div class="pcp-panel-card bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl shadow-xl overflow-hidden">
+                    <div class="px-6 py-4 border-b border-[var(--border-color)]"><h4 class="text-[var(--text-main)] font-black uppercase italic tracking-widest text-sm">Fornecedores de serviço</h4></div>
+                    <div class="p-6 space-y-4">
+                        <div class="grid grid-cols-3 gap-3">
+                            <input type="text" id="pcpServiceSupplierName" placeholder="Nome do prestador" class="calc-input !mb-0">
+                            <select id="pcpServiceSupplierType" class="calc-input !mb-0"><option value="DTF">DTF</option><option value="Silk">Silk</option><option value="Bordado">Bordado</option><option value="Costura">Costura</option><option value="Outro">Outro</option></select>
+                            <input type="text" id="pcpServiceSupplierContact" placeholder="WhatsApp completo. Ex: +55 31 99999-9999" class="calc-input !mb-0">
+                        </div>
+                        <button onclick="addPCPSupplier('service')" class="w-full bg-teal-600 text-white py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition hover:bg-teal-500 active:scale-95">Adicionar prestador</button>
+                        <div id="pcpServiceSuppliersList" class="space-y-3"></div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -579,6 +698,8 @@
                 <button onclick="clearCanvas()" class="text-[10px] font-black text-red-500 uppercase tracking-widest bg-red-500/10 border border-red-500/30 px-4 py-2 rounded-lg transition hover:bg-red-500 hover:text-white">Limpar</button>
                 
                 <button onclick="openInboxDashboard()" class="relative text-[10px] font-black text-sky-400 uppercase tracking-widest bg-sky-500/10 border border-sky-500/30 px-4 py-2 rounded-lg transition hover:bg-sky-500 hover:text-white active:scale-95 shadow-sm ml-2">📩 Site<span id="siteNotifBadgeApp" class="site-notif-badge">0</span></button>
+                <button onclick="openPCPDashboard()" class="text-[10px] font-black text-teal-400 uppercase tracking-widest bg-teal-500/10 border border-teal-500/30 px-4 py-2 rounded-lg transition hover:bg-teal-500 hover:text-white active:scale-95 shadow-sm ml-2">🏭 PCP</button>
+                <button onclick="togglePCPTopNotifications()" class="relative text-[10px] font-black text-amber-400 uppercase tracking-widest bg-amber-500/10 border border-amber-500/30 px-4 py-2 rounded-lg transition hover:bg-amber-500 hover:text-white active:scale-95 shadow-sm">🔔<span id="pcpNotifBadgeApp" class="pcp-notif-badge">0</span></button>
                 
                 <button onclick="openQuotesDashboard()" class="text-[10px] font-black text-emerald-500 uppercase tracking-widest bg-emerald-500/10 border border-emerald-500/30 px-4 py-2 rounded-lg transition hover:bg-emerald-500 hover:text-white active:scale-95 shadow-sm ml-2">☁️ Banco</button>
 
@@ -700,6 +821,7 @@
 
     let CONFIG = {
         listaTecidos: ['PV', 'DRYFIT', 'ALGODAO', 'PIQUET'],
+        tecidosParametros: {},
         precos: { 'basica_PV': 35.9, 'basica_DRYFIT': 29.9, 'basica_ALGODAO': 39.9, 'basica_PIQUET': 45.9, 'longa_PV': 45.9, 'longa_DRYFIT': 39.9, 'longa_ALGODAO': 49.9, 'longa_PIQUET': 55.9, 'polo_PV': 59.9, 'polo_DRYFIT': 63.9, 'polo_ALGODAO': 65.9, 'polo_PIQUET': 69.9 },
         artes: { 'PEQUENA': 2.5, 'PQ-MEDIA': 4.0, 'MEDIA': 5.0, 'MEDIA-GRANDE': 7.5, 'GRANDE': 10.0, 'A4': 5.5, 'A3': 7.5 },
         silk: { pequena: 5.0, grande: 10.0 }, bordado: { matriz: 15.0, pequena: 8.0, grande: 15.0 },
@@ -708,6 +830,16 @@
 
     const savedConfig = localStorage.getItem('trendwear_master_config');
     if (savedConfig) { CONFIG = JSON.parse(savedConfig); }
+    function ensureFabricParamDefaults() {
+        if(!CONFIG.tecidosParametros) CONFIG.tecidosParametros = {};
+        (CONFIG.listaTecidos || []).forEach(f => {
+            if(!CONFIG.tecidosParametros[f]) CONFIG.tecidosParametros[f] = { rendimento: 0, tipo: 'linear', custoKg: 0 };
+            CONFIG.tecidosParametros[f].tipo = CONFIG.tecidosParametros[f].tipo === 'tubular' ? 'tubular' : 'linear';
+            CONFIG.tecidosParametros[f].rendimento = Number(CONFIG.tecidosParametros[f].rendimento || 0);
+            CONFIG.tecidosParametros[f].custoKg = Number(CONFIG.tecidosParametros[f].custoKg || 0);
+        });
+    }
+    ensureFabricParamDefaults();
 
     let cart = []; let tabs = []; let currentTabId = null;
     let currentView = 'frente'; let shirtImageNode = null; let selectedNode = null;
@@ -1054,12 +1186,12 @@
         Object.keys(CONFIG.artes).forEach(k => { ca.innerHTML += `<div><label class="set-label !mb-1">${k}</label><input type="number" step="0.1" id="cfg_art_${k}" value="${CONFIG.artes[k]}" class="calc-input !py-2 text-[var(--text-main)]"></div>`; });
         document.getElementById('configSilk').innerHTML = `<div><label class="set-label !mb-1">Pequeno</label><input type="number" id="cfg_silk_p" value="${CONFIG.silk.pequena}" class="calc-input !py-2 text-[var(--text-main)]"></div><div><label class="set-label !mb-1">Grande</label><input type="number" id="cfg_silk_g" value="${CONFIG.silk.grande}" class="calc-input !py-2 text-[var(--text-main)]"></div>`;
         document.getElementById('configBordado').innerHTML = `<div><label class="set-label !mb-1 !text-emerald-500">Matriz Fixa</label><input type="number" id="cfg_bor_m" value="${CONFIG.bordado.matriz}" class="calc-input !py-2 !border-emerald-500/50 text-[var(--text-main)]"></div><div><label class="set-label !mb-1">Bordado Peq</label><input type="number" id="cfg_bor_p" value="${CONFIG.bordado.pequena}" class="calc-input !py-2 text-[var(--text-main)]"></div><div><label class="set-label !mb-1">Bordado Grd</label><input type="number" id="cfg_bor_g" value="${CONFIG.bordado.grande}" class="calc-input !py-2 text-[var(--text-main)]"></div>`;
-        renderCatalogSettings(); renderPricingMatrix(); document.getElementById('settingsModal').classList.add('show');
+        renderCatalogSettings(); renderPricingMatrix(); renderFabricParamSettings(); document.getElementById('settingsModal').classList.add('show');
     }
     function closeSettings() { document.getElementById('settingsModal').classList.remove('show'); }
     function renderFabricPills() { const c = document.getElementById('fabricPillsList'); c.innerHTML = ''; CONFIG.listaTecidos.forEach(f => { c.innerHTML += `<div class="bg-[var(--bg-input)] text-[var(--text-main)] text-[10px] font-black px-4 py-2 rounded-lg flex items-center gap-2 border border-[var(--border-color)]">${f} <button onclick="deleteFabric('${f}')" class="text-red-500 ml-2 transition hover:scale-125">✕</button></div>`; }); }
-    function addFabric() { const v = document.getElementById('newFabricInput').value.trim().toUpperCase(); if(v && !CONFIG.listaTecidos.includes(v)) { CONFIG.listaTecidos.push(v); Object.keys(CONFIG.catalogo).forEach(m => { CONFIG.precos[`${m}_${v}`] = 0; }); document.getElementById('newFabricInput').value = ''; renderFabricPills(); renderPricingMatrix(); } }
-    function deleteFabric(f) { if(CONFIG.listaTecidos.length > 1 && confirm(`Remover o tecido ${f}?`)) { CONFIG.listaTecidos = CONFIG.listaTecidos.filter(t => t !== f); Object.keys(CONFIG.catalogo).forEach(m => { delete CONFIG.precos[`${m}_${f}`]; }); renderFabricPills(); renderPricingMatrix(); } }
+    function addFabric() { const v = document.getElementById('newFabricInput').value.trim().toUpperCase(); if(v && !CONFIG.listaTecidos.includes(v)) { CONFIG.listaTecidos.push(v); Object.keys(CONFIG.catalogo).forEach(m => { CONFIG.precos[`${m}_${v}`] = 0; }); ensureFabricParamDefaults(); document.getElementById('newFabricInput').value = ''; renderFabricPills(); renderPricingMatrix(); renderFabricParamSettings(); } }
+    function deleteFabric(f) { if(CONFIG.listaTecidos.length > 1 && confirm(`Remover o tecido ${f}?`)) { CONFIG.listaTecidos = CONFIG.listaTecidos.filter(t => t !== f); Object.keys(CONFIG.catalogo).forEach(m => { delete CONFIG.precos[`${m}_${f}`]; }); if(CONFIG.tecidosParametros) delete CONFIG.tecidosParametros[f]; renderFabricPills(); renderPricingMatrix(); renderFabricParamSettings(); } }
     
     function renderCatalogSettings() {
         const list = document.getElementById('catalogList'); list.innerHTML = '';
@@ -1091,19 +1223,103 @@
             html += `</tr>`;
         }); html += `</tbody>`; table.innerHTML = html;
     }
+    function calculateFabricYield(param = {}) {
+        const rendimento = Number(param.rendimento || 0);
+        const tipo = param.tipo === 'tubular' ? 'tubular' : 'linear';
+        if(rendimento <= 0) return 0;
+        return (rendimento / 1.83) * (tipo === 'tubular' ? 4 : 3);
+    }
+
+    function renderFabricParamSettings() {
+        ensureFabricParamDefaults();
+        const list = document.getElementById('fabricParamList');
+        if(!list) return;
+        list.innerHTML = (CONFIG.listaTecidos || []).map(f => {
+            const param = CONFIG.tecidosParametros[f] || { rendimento: 0, tipo: 'linear', custoKg: 0 };
+            const rendimento = Number(param.rendimento || 0);
+            const custoKg = Number(param.custoKg || 0);
+            const camisetasKg = calculateFabricYield(param);
+            return `<div class="bg-[var(--bg-input)] border border-[var(--border-color)] rounded-xl p-4 grid grid-cols-12 gap-3 items-end">
+                <div class="col-span-2"><label class="set-label !mb-1">Tecido</label><div class="text-blue-500 font-black text-sm uppercase">${safeText(f)}</div></div>
+                <div class="col-span-2"><label class="set-label !mb-1">Rendimento fornecedor/KG</label><input type="number" step="1" id="fabric_param_rend_${f}" value="${rendimento || ''}" oninput="previewFabricParam('${f}')" class="calc-input !mb-0 text-center font-black"></div>
+                <div class="col-span-2"><label class="set-label !mb-1">Tipo</label><select id="fabric_param_tipo_${f}" onchange="previewFabricParam('${f}')" class="calc-input !mb-0 font-black"><option value="linear" ${param.tipo !== 'tubular' ? 'selected' : ''}>Linear x3</option><option value="tubular" ${param.tipo === 'tubular' ? 'selected' : ''}>Tubular x4</option></select></div>
+                <div class="col-span-2"><label class="set-label !mb-1">Custo KG</label><input type="number" step="0.01" id="fabric_param_custo_${f}" value="${custoKg || ''}" oninput="previewFabricParam('${f}')" class="calc-input !mb-0 text-center font-black text-emerald-500"></div>
+                <div class="col-span-4 bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg p-3"><div class="text-[8px] text-[var(--text-muted)] font-black uppercase tracking-widest mb-1">Camisetas por KG estimadas</div><div id="fabric_param_preview_${f}" class="text-teal-400 font-black text-sm">${camisetasKg > 0 ? camisetasKg.toFixed(2).replace('.', ',') : 'Não parametrizado'}</div></div>
+            </div>`;
+        }).join('');
+    }
+
+    function previewFabricParam(f) {
+        const rendimento = Number(document.getElementById(`fabric_param_rend_${f}`)?.value || 0);
+        const tipo = document.getElementById(`fabric_param_tipo_${f}`)?.value === 'tubular' ? 'tubular' : 'linear';
+        const preview = document.getElementById(`fabric_param_preview_${f}`);
+        const camisetasKg = calculateFabricYield({ rendimento, tipo });
+        if(preview) preview.innerText = camisetasKg > 0 ? camisetasKg.toFixed(2).replace('.', ',') : 'Não parametrizado';
+    }
+
+    function saveFabricParamsFromSettings() {
+        ensureFabricParamDefaults();
+        (CONFIG.listaTecidos || []).forEach(f => {
+            CONFIG.tecidosParametros[f] = {
+                rendimento: Number(document.getElementById(`fabric_param_rend_${f}`)?.value || 0),
+                tipo: document.getElementById(`fabric_param_tipo_${f}`)?.value === 'tubular' ? 'tubular' : 'linear',
+                custoKg: Number(document.getElementById(`fabric_param_custo_${f}`)?.value || 0)
+            };
+        });
+    }
+
+    function calculateMaterialForCartItems(items = []) {
+        ensureFabricParamDefaults();
+        const grouped = {};
+        (items || []).forEach(item => {
+            const tecido = item.fabric || item.tecido || 'SEM TECIDO';
+            const qtd = parseInt(item.qty ?? item.quantidade ?? 0) || 0;
+            if(qtd <= 0) return;
+            if(!grouped[tecido]) grouped[tecido] = { tecido, quantidade: 0 };
+            grouped[tecido].quantidade += qtd;
+        });
+        return Object.values(grouped).map(row => {
+            const param = CONFIG.tecidosParametros?.[row.tecido] || { rendimento: 0, tipo: 'linear', custoKg: 0 };
+            const camisetasPorKg = calculateFabricYield(param);
+            const kgEstimado = camisetasPorKg > 0 ? row.quantidade / camisetasPorKg : 0;
+            const custoKg = Number(param.custoKg || 0);
+            return {
+                tecido: row.tecido,
+                quantidade: row.quantidade,
+                rendimentoFornecedor: Number(param.rendimento || 0),
+                tipo: param.tipo === 'tubular' ? 'tubular' : 'linear',
+                camisetasPorKg,
+                kgEstimado,
+                custoKg,
+                custoEstimado: kgEstimado * custoKg
+            };
+        });
+    }
+
+    function calculateMaterialFromQuoteData(data = {}) {
+        if(Array.isArray(data.materiaisNecessarios) && data.materiaisNecessarios.length) return data.materiaisNecessarios;
+        return calculateMaterialForCartItems((data.detalhes || []).map(d => ({ fabric: d.tecido, qty: d.quantidade })));
+    }
+
+    window.calculateFabricYield = calculateFabricYield;
+    window.calculateMaterialForCartItems = calculateMaterialForCartItems;
+    window.calculateMaterialFromQuoteData = calculateMaterialFromQuoteData;
+    window.previewFabricParam = previewFabricParam;
+
     function saveSettings() {
         Object.keys(CONFIG.catalogo).forEach(k => { if(document.getElementById(`cat_nome_${k}`)) { CONFIG.catalogo[k].nome = document.getElementById(`cat_nome_${k}`).value; CONFIG.catalogo[k].fId = document.getElementById(`cat_fId_${k}`).value; CONFIG.catalogo[k].cId = document.getElementById(`cat_cId_${k}`).value; } });
         Object.keys(CONFIG.catalogo).forEach(m => { CONFIG.listaTecidos.forEach(f => { const input = document.getElementById(`matriz_${m}_${f}`); if(input) CONFIG.precos[`${m}_${f}`] = parseFloat(input.value) || 0; }); });
         Object.keys(CONFIG.artes).forEach(k => { const input = document.getElementById(`cfg_art_${k}`); if(input) CONFIG.artes[k] = parseFloat(input.value) || 0; });
         CONFIG.silk.pequena = parseFloat(document.getElementById('cfg_silk_p').value); CONFIG.silk.grande = parseFloat(document.getElementById('cfg_silk_g').value);
         CONFIG.bordado.matriz = parseFloat(document.getElementById('cfg_bor_m').value); CONFIG.bordado.pequena = parseFloat(document.getElementById('cfg_bor_p').value); CONFIG.bordado.grande = parseFloat(document.getElementById('cfg_bor_g').value);
+        saveFabricParamsFromSettings();
         localStorage.setItem('trendwear_master_config', JSON.stringify(CONFIG)); rebuildDynamicDropdowns(); 
         if (currentTabId) { const tab = tabs.find(t => t.id === currentTabId); if (!CONFIG.catalogo[tab.model]) tab.model = Object.keys(CONFIG.catalogo)[0]; if (!CONFIG.listaTecidos.includes(tab.fabric)) tab.fabric = CONFIG.listaTecidos[0]; document.getElementById('modelSelect').value = tab.model; document.getElementById('calcFabric').value = tab.fabric; syncModel(); syncArtes(); }
         closeSettings(); showModal("Salvo", "Configurações salvas localmente com sucesso.", () => {});
     }
 
     function exportConfig() { const b = new Blob([JSON.stringify(CONFIG)], { type: "application/json" }); const u = URL.createObjectURL(b); const l = document.createElement('a'); l.href = u; l.download = `TW_v8_Config.twc`; l.click(); }
-    function importConfig(e) { const f = e.target.files[0]; if(!f) return; const r = new FileReader(); r.onload = (ev) => { try { const i = JSON.parse(ev.target.result); if(i.catalogo){ CONFIG = i; localStorage.setItem('trendwear_master_config', JSON.stringify(CONFIG)); openSettings(); rebuildDynamicDropdowns(); if(currentTabId) syncModel(); showModal("Sucesso", "Configuração importada.", () => {}); } } catch(err){ showModal("Erro", "Arquivo inválido.", () => {}); } }; r.readAsText(f); e.target.value = ''; }
+    function importConfig(e) { const f = e.target.files[0]; if(!f) return; const r = new FileReader(); r.onload = (ev) => { try { const i = JSON.parse(ev.target.result); if(i.catalogo){ CONFIG = i; ensureFabricParamDefaults(); localStorage.setItem('trendwear_master_config', JSON.stringify(CONFIG)); openSettings(); rebuildDynamicDropdowns(); if(currentTabId) syncModel(); showModal("Sucesso", "Configuração importada.", () => {}); } } catch(err){ showModal("Erro", "Arquivo inválido.", () => {}); } }; r.readAsText(f); e.target.value = ''; }
 
     const SIZE_LABELS = ['P', 'M', 'G', 'GG', 'XG', 'ESP'];
     let sizeGridBackup = null;
@@ -1475,6 +1691,7 @@
                 totalStr: moneyBR(totalNum),
                 totalNum,
                 sizeBreakdown,
+                productionFlags: getCurrentProductionTechniques(),
                 fImg: f,
                 cImg: c,
                 canvasBg: document.getElementById('canvasBgColor').value
@@ -1617,6 +1834,18 @@
     
     function toggleMode(id, f, v) { const o = stage.findOne('#'+id); if(f==='isBordado' && v) o.setAttr('isSilk', false); if(f==='isSilk' && v) o.setAttr('isBordado', false); o.setAttr(f, v); syncArtes(); }
     function updateObjArt(id, f, v) { const o = stage.findOne('#'+id); o.setAttr(f, v); updateBudget(); saveCurrentTabState(); }
+
+    function getCurrentProductionTechniques() {
+        const flags = { dtf: false, bordado: false, silk: false };
+        designLayer.find('.editable').forEach(obj => {
+            if(obj.attrs.isBordado) flags.bordado = true;
+            else if(obj.attrs.isSilk) flags.silk = true;
+            else flags.dtf = true;
+        });
+        return flags;
+    }
+
+    window.getCurrentProductionTechniques = getCurrentProductionTechniques;
 
     function updateBudget() {
         const m = document.getElementById('modelSelect').value;
@@ -2615,6 +2844,7 @@
       overlay.style.display = 'none';
       if(window.loadHomeQuotes) window.loadHomeQuotes();
       if(window.startInboxRealtime) window.startInboxRealtime();
+      if(window.loadPCPNotificationsBadge) window.loadPCPNotificationsBadge();
   }
 
   async function ensureUserProfile(user) {
@@ -2832,9 +3062,12 @@
               acrescimo: Number(item.sizeAdjustmentTotalNum || 0),
               ajusteTamanhos: Number(item.sizeAdjustmentTotalNum || 0),
               observacoesAcrescimo: typeof sizeAdjustmentToPDFLines === 'function' ? sizeAdjustmentToPDFLines(item.sizeBreakdown || {}) : [],
-              subtotalAntesDesconto: Number(item.subtotalBeforeDiscountNum || 0)
+              subtotalAntesDesconto: Number(item.subtotalBeforeDiscountNum || 0),
+              tecnicas: item.productionFlags || {}
           };
       });
+
+      const materiaisNecessarios = window.calculateMaterialForCartItems ? window.calculateMaterialForCartItems(cartData) : [];
 
       const baseProject = { 
           version: '8.2', 
@@ -2857,6 +3090,7 @@
           valorTotal: totalValue,
           descontoTotal: cartData.reduce((acc, item) => acc + Number(item.discountNum || 0), 0),
           detalhes: nCartDetails,
+          materiaisNecessarios,
           projectData: packedProject.json,
           payloadSize: packedProject.size,
           vendedor: document.getElementById('vendNome').value || window.currentUserProfile?.nome || '',
@@ -3456,6 +3690,24 @@
       return `R$ ${Number(value || 0).toFixed(2).replace('.', ',')}`;
   }
 
+  function calcCRMPaymentAmounts(data = {}, cData = {}, paidEntry = false, paidFinal = false) {
+      const contrato = Math.max(0, Number(data.valorTotal || 0));
+      const cond = cData.condPagto || data.condPagto || '50_50';
+      let recebido = 0;
+
+      if(cond === '50_50') {
+          const metade = contrato / 2;
+          if(paidEntry) recebido += metade;
+          if(paidFinal) recebido += metade;
+      } else {
+          if(paidEntry || paidFinal) recebido = contrato;
+      }
+
+      recebido = Math.min(contrato, Math.max(0, recebido));
+      const aReceber = Math.max(0, contrato - recebido);
+      return { contrato, recebido, aReceber };
+  }
+
   function normalizeWhatsAppNumber(raw) {
       let digits = String(raw || '').replace(/\D/g, '');
       if(!digits) return '';
@@ -3511,7 +3763,7 @@
           data: {
               labels: series.labels,
               datasets: [{
-                  label: 'Faturamento fechado',
+                  label: 'Valor fechado contrato',
                   data: series.values,
                   borderColor: '#34d399',
                   backgroundColor: 'rgba(52, 211, 153, 0.12)',
@@ -3562,6 +3814,7 @@
           let totalFechado = 0;
           let totalPerdido = 0;
           let receitaFechada = 0;
+          let valorRecebido = 0;
           let aReceber = 0;
 
           snapshot.forEach(docSnap => {
@@ -3575,24 +3828,19 @@
               const nTp = data.touchpoints || [false, false, false, false, false];
               const pe = data.pagoEntrada || false;
               const pf = data.pagoFinal || false;
-              const totalValue = Number(data.valorTotal || 0);
+              const amounts = calcCRMPaymentAmounts(data, cData, pe, pf);
 
               if(status === 'aberto') totalAberto++;
               if(status === 'perdido') totalPerdido++;
               if(status === 'fechado') {
                   totalFechado++;
-                  receitaFechada += totalValue;
+                  receitaFechada += amounts.contrato;
+                  valorRecebido += amounts.recebido;
+                  aReceber += amounts.aReceber;
                   const refDate = getQuoteReferenceDate(data);
                   if(refDate) {
                       const key = dateOnly(refDate);
-                      revenueByDay[key] = (revenueByDay[key] || 0) + totalValue;
-                  }
-                  const cond = cData.condPagto || '50_50';
-                  if(cond === '50_50') {
-                      if(!pe && !pf) aReceber += totalValue;
-                      else if(pe && !pf) aReceber += totalValue / 2;
-                  } else {
-                      if(!pe) aReceber += totalValue;
+                      revenueByDay[key] = (revenueByDay[key] || 0) + amounts.contrato;
                   }
               }
 
@@ -3606,6 +3854,7 @@
 
           const setTxt = (id, val) => { const el = document.getElementById(id); if(el) el.innerText = val; };
           setTxt('crmMesFaturado', moneyBR(receitaFechada));
+          setTxt('crmValorRecebido', moneyBR(valorRecebido));
           setTxt('crmAReceber', moneyBR(aReceber));
           setTxt('crmConvRate', `${rate}%`);
           setTxt('crmTotalOrcamentos', total);
@@ -3633,226 +3882,99 @@
       }
   };
 
-  const INFINITEPAY_DEFAULT_HANDLE = 'trendwear-ltda';
-
-  function getSavedInfinitePayHandle() {
-      const saved = (localStorage.getItem('trendwear_infinitepay_handle') || '').replace(/^[$@]+/, '').trim();
-      return saved || INFINITEPAY_DEFAULT_HANDLE;
+  function parseBusinessDaysFromText(value) {
+      const match = String(value || '').match(/\d+/);
+      return match ? Math.max(0, parseInt(match[0], 10) || 0) : 0;
   }
 
-  function getQuoteTotalForPayment(data) {
-      const raw = data?.valorTotal;
-      if(typeof raw === 'number') return raw;
-      if(typeof raw === 'string') {
-          const normalized = raw.replace(/[^\d,.-]/g, '').replace(/\./g, '').replace(',', '.');
-          const parsed = Number(normalized);
-          return isNaN(parsed) ? 0 : parsed;
-      }
-      return 0;
-  }
-
-  function extractInfinitePayUrl(responseData) {
-      if(!responseData || typeof responseData !== 'object') return '';
-      const candidates = [
-          responseData.url,
-          responseData.link,
-          responseData.checkout_url,
-          responseData.payment_url,
-          responseData.checkoutUrl,
-          responseData.paymentUrl,
-          responseData?.data?.url,
-          responseData?.data?.link,
-          responseData?.data?.checkout_url,
-          responseData?.data?.payment_url,
-          responseData?.data?.checkoutUrl,
-          responseData?.data?.paymentUrl,
-          responseData?.links?.[0]?.url,
-          responseData?.links?.[0]?.link,
-          responseData?.result?.url,
-          responseData?.result?.link
-      ].filter(Boolean);
-      return candidates.find(v => /^https?:\/\//i.test(String(v))) || '';
-  }
-
-  function buildInfinitePayPayload(id, data, cData, handle) {
-      const total = getQuoteTotalForPayment(data);
-      const cents = Math.round(total * 100);
-      const codigo = data.codigo || id;
-      const cliente = data.cliente || cData.cliNome || 'Cliente TrendWear';
-      const digits = normalizeWhatsAppNumber(data.whatsapp || cData.cliTel || '');
-      const payload = {
-          handle,
-          order_nsu: String(codigo),
-          items: [{
-              quantity: 1,
-              price: cents,
-              description: `Orçamento TrendWear ${codigo} - ${cliente}`.slice(0, 240)
-          }]
-      };
-      const customer = {};
-      if(cliente) customer.name = String(cliente).slice(0, 120);
-      if(cData.cliEmail && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(cData.cliEmail).trim())) customer.email = String(cData.cliEmail).trim();
-      if(digits && digits.length >= 12) customer.phone_number = `+${digits}`;
-      if(Object.keys(customer).length) payload.customer = customer;
-      return payload;
-  }
-
-  function describeInfinitePayError(error, responseData = null) {
-      const rawMsg = String(error?.message || error || '').trim();
-      const lower = rawMsg.toLowerCase();
-      if(lower.includes('failed to fetch') || lower.includes('networkerror') || lower.includes('load failed')) {
-          return 'O navegador bloqueou ou não conseguiu acessar a API da InfinitePay. Se você abriu o LayoutPro como arquivo local (file://), teste em um servidor HTTPS. Se persistir, essa chamada precisa passar por um backend/proxy, porque pode ser bloqueio de CORS.';
-      }
-      if(responseData) {
-          try {
-              const compact = JSON.stringify(responseData).slice(0, 700);
-              return `${rawMsg || 'Erro retornado pela InfinitePay.'}\n\nResposta: ${compact}`;
-          } catch(e) {}
-      }
-      return rawMsg || 'Erro desconhecido ao criar link.';
-  }
-
-  async function requestInfinitePayCheckoutLink(payload) {
-      console.log('InfinitePay payload:', payload);
-      let response;
+  function normalizeDateStart(value) {
       try {
-          response = await fetch('https://api.checkout.infinitepay.io/links', {
-              method: 'POST',
-              mode: 'cors',
-              headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-              body: JSON.stringify(payload)
-          });
-      } catch(networkError) {
-          networkError.infinitePayFriendlyMessage = describeInfinitePayError(networkError);
-          throw networkError;
-      }
-
-      const rawText = await response.text();
-      let data = null;
-      try { data = rawText ? JSON.parse(rawText) : {}; } catch(e) { data = { raw: rawText }; }
-      console.log('InfinitePay response:', response.status, data);
-
-      if(!response.ok) {
-          const msg = data?.message || data?.error || data?.errors?.[0]?.message || data?.errors?.[0] || rawText || `HTTP ${response.status}`;
-          const err = new Error(`HTTP ${response.status}: ${msg}`);
-          err.responseData = data;
-          throw err;
-      }
-      const url = extractInfinitePayUrl(data);
-      if(!url) {
-          const err = new Error('A InfinitePay respondeu com sucesso, mas o campo URL não foi encontrado.');
-          err.responseData = data;
-          throw err;
-      }
-      return { url, responseData: data };
+          if(value?.toDate) return value.toDate();
+          if(value) return new Date(value);
+      } catch(e) {}
+      return null;
   }
 
-  window.openInfinitePayModal = (id) => {
-      const modal = document.getElementById('infinitePayModal');
-      const target = document.getElementById('infinitePayTargetId');
-      const input = document.getElementById('infinitePayHandleInput');
-      if(target) target.value = id;
-      if(input) input.value = getSavedInfinitePayHandle();
-      if(modal) modal.classList.add('show');
-      setTimeout(() => input?.focus(), 60);
-  };
+  function startOfDay(date) {
+      return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  }
 
-  window.closeInfinitePayModal = () => {
-      document.getElementById('infinitePayModal')?.classList.remove('show');
-  };
+  function isBusinessDay(date) {
+      const day = date.getDay();
+      return day !== 0 && day !== 6;
+  }
 
-  window.confirmInfinitePayLink = async () => {
-      const id = document.getElementById('infinitePayTargetId')?.value;
-      const input = document.getElementById('infinitePayHandleInput');
-      const handle = (input?.value || '').replace(/^[$@]+/, '').trim();
-      if(!id) return;
-      if(!handle) { showToast('Informe sua InfiniteTag.'); input?.focus(); return; }
-      localStorage.setItem('trendwear_infinitepay_handle', handle);
-      window.closeInfinitePayModal();
-      await window.createInfinitePayCardLink(id, handle, true);
-  };
-
-  window.createOrOpenInfinitePayCardLink = async (id, existingLink = '') => {
-      if(existingLink) {
-          window.open(existingLink, '_blank');
-          return;
+  function addBusinessDays(start, days) {
+      const d = startOfDay(start || new Date());
+      let added = 0;
+      let guard = 0;
+      while(added < days && guard < 1000) {
+          d.setDate(d.getDate() + 1);
+          if(isBusinessDay(d)) added++;
+          guard++;
       }
-      const handle = getSavedInfinitePayHandle();
-      if(!handle) {
-          window.openInfinitePayModal(id);
-          return;
+      return d;
+  }
+
+  function businessDaysBetween(from, to) {
+      const start = startOfDay(from || new Date());
+      const end = startOfDay(to || new Date());
+      if(start.getTime() === end.getTime()) return 0;
+      const direction = start < end ? 1 : -1;
+      let count = 0;
+      const cursor = new Date(start);
+      let guard = 0;
+      while(cursor.getTime() !== end.getTime() && guard < 1000) {
+          cursor.setDate(cursor.getDate() + direction);
+          if(isBusinessDay(cursor)) count += direction;
+          guard++;
       }
-      await window.createInfinitePayCardLink(id, handle, false);
-  };
+      return count;
+  }
 
-  window.createInfinitePayCardLink = async (id, handle, force = false) => {
-      const btn = document.querySelector(`[data-ipay-btn="${id}"]`);
-      const original = btn ? btn.innerHTML : '';
-      let createdUrl = '';
-      try {
-          if(btn) { btn.disabled = true; btn.innerHTML = `${spinnerSVG} Criando...`; }
-          const ref = doc(db, 'orcamentos', id);
-          const snap = await getDoc(ref);
-          if(!snap.exists()) { showToast('Orçamento não encontrado.'); return; }
-          const data = snap.data();
-          if(data.infinitePayLink && !force) {
-              window.open(data.infinitePayLink, '_blank');
-              return;
-          }
-          let cData = {};
-          if(data.projectData) { try { cData = JSON.parse(data.projectData).client || {}; } catch(e){} }
-          const total = getQuoteTotalForPayment(data);
-          if(!total || total <= 0) { showToast('Orçamento sem valor total válido.'); return; }
-          const cleanHandle = String(handle || '').replace(/^[$@]+/, '').trim();
-          if(!cleanHandle) { window.openInfinitePayModal(id); return; }
-          localStorage.setItem('trendwear_infinitepay_handle', cleanHandle);
+  function getProductionStartDate(data = {}) {
+      return normalizeDateStart(data.dataInicioProducao) || normalizeDateStart(data.dataFechamento) || getQuoteReferenceDate(data) || new Date();
+  }
 
-          const payload = buildInfinitePayPayload(id, data, cData, cleanHandle);
-          if(!payload.items?.[0]?.price || payload.items[0].price <= 0) throw new Error('Valor do pedido inválido para pagamento.');
+  function getProductionDeadlineInfo(data = {}, cData = {}) {
+      const businessDays = parseBusinessDaysFromText(cData.orcPrazo || data.orcPrazo || data.prazo || '0');
+      if(!businessDays) return { label: 'Prazo não definido', days: 0, start: null, due: null, remaining: null, status: 'info' };
+      const start = getProductionStartDate(data);
+      const due = addBusinessDays(start, businessDays);
+      const remaining = businessDaysBetween(new Date(), due);
+      let label = `⏳ Produção: ${remaining} dia(s) úteis restantes`;
+      let status = remaining <= 2 ? 'warn' : 'info';
+      if(remaining === 0) { label = '⚠️ Produção: Entrega HOJE'; status = 'warn'; }
+      if(remaining < 0) { label = `🚨 Produção: Atrasado em ${Math.abs(remaining)} dia(s) úteis`; status = 'danger'; }
+      return { label, days: businessDays, start, due, remaining, status };
+  }
 
-          const { url, responseData } = await requestInfinitePayCheckoutLink(payload);
-          createdUrl = url;
+  function getQuoteMaterials(data = {}) {
+      if(window.calculateMaterialFromQuoteData) return window.calculateMaterialFromQuoteData(data);
+      return data.materiaisNecessarios || [];
+  }
 
-          try { await navigator.clipboard?.writeText(url); } catch(e) {}
-
-          try {
-              await updateDoc(ref, {
-                  infinitePayLink: url,
-                  infinitePayHandle: cleanHandle,
-                  infinitePayOrderNsu: payload.order_nsu,
-                  infinitePayCreatedAt: new Date().toISOString()
-              });
-          } catch(saveError) {
-              console.error('Link criado, mas falhou ao salvar no Firestore:', saveError);
-              showModal('Link criado, mas não salvo', `O link foi criado e copiado, mas não consegui salvar no orçamento.\n\nLink:\n${url}\n\nErro ao salvar: ${saveError.message || saveError}`, () => { window.open(url, '_blank'); });
-              return;
-          }
-
-          showModal('Link criado', 'O link de pagamento foi criado, salvo no orçamento e copiado para a área de transferência. Clique em confirmar para abrir o checkout.', () => { window.open(url, '_blank'); });
-          await window.loadCRMData();
-      } catch(e) {
-          console.error('Erro InfinitePay:', e);
-          const detail = e.infinitePayFriendlyMessage || describeInfinitePayError(e, e.responseData);
-          showModal('Erro InfinitePay', `Não foi possível criar o link.\n\n${detail}`, () => {});
-      } finally {
-          if(btn) { btn.disabled = false; btn.innerHTML = original; }
-      }
-  };
+  function renderMaterialSummaryHTML(materials = []) {
+      if(!materials || materials.length === 0) return '<div class="italic text-slate-500">Sem material calculado. Parametrize os tecidos nas configurações e atualize/salve o orçamento.</div>';
+      return materials.map(m => {
+          const kg = Number(m.kgEstimado || 0);
+          const ribanaKg = kg * 0.03;
+          const custo = Number(m.custoEstimado || 0);
+          const camKg = Number(m.camisetasPorKg || 0);
+          return `<div class="grid grid-cols-6 gap-2 bg-[var(--bg-input)] border border-[var(--border-color)] rounded-lg p-3 text-[10px] font-bold uppercase tracking-widest">
+              <div><span class="text-[var(--text-muted)]">Tecido</span><br><span class="text-teal-400 font-black">${safeText(m.tecido || '-')}</span></div>
+              <div><span class="text-[var(--text-muted)]">Qtd</span><br><span class="text-[var(--text-main)] font-black">${safeText(m.quantidade || 0)} peças</span></div>
+              <div><span class="text-[var(--text-muted)]">KG tecido</span><br><span class="text-yellow-400 font-black">${kg > 0 ? kg.toFixed(2).replace('.', ',') + ' kg' : 'Parametrizar'}</span></div>
+              <div><span class="text-[var(--text-muted)]">Ribana 3%</span><br><span class="text-orange-400 font-black">${kg > 0 ? ribanaKg.toFixed(2).replace('.', ',') + ' kg' : '-'}</span></div>
+              <div><span class="text-[var(--text-muted)]">Camisetas/KG</span><br><span class="text-blue-400 font-black">${camKg > 0 ? camKg.toFixed(2).replace('.', ',') : '-'}</span></div>
+              <div><span class="text-[var(--text-muted)]">Custo tecido</span><br><span class="text-emerald-400 font-black">${moneyBR(custo)}</span></div>
+          </div>`;
+      }).join('');
+  }
 
   function renderCRMCard(id, data, status, nTp, pe, pf, cData) {
-      let prazoTxt = "Prazo não definido";
-      if (status === 'fechado' && data.dataFechamento && cData.orcPrazo) {
-          const match = cData.orcPrazo.match(/\d+/);
-          if (match) {
-              const dias = parseInt(match[0]);
-              const fechamento = new Date(data.dataFechamento);
-              const diffDays = Math.ceil(Math.abs(new Date() - fechamento) / (1000 * 60 * 60 * 24));
-              const restantes = dias - diffDays;
-              if (restantes > 0) prazoTxt = `⏳ Produção: ${restantes} dias restantes`;
-              else if (restantes === 0) prazoTxt = `⚠️ Produção: Entrega HOJE!`;
-              else prazoTxt = `🚨 Produção: Atrasado em ${Math.abs(restantes)} dias`;
-          }
-      }
+      const deadlineInfo = getProductionDeadlineInfo(data, cData);
+      let prazoTxt = deadlineInfo.label;
 
       let bColor = 'border-[var(--border-color)]';
       if(status === 'fechado') bColor = 'border-emerald-500/50';
@@ -3866,10 +3988,7 @@
       const phoneRaw = data.whatsapp || cData.cliTel || '';
       const whatsLink = makeWhatsAppLink(phoneRaw, clienteRaw);
       const whatsButton = whatsLink ? `<a href="${whatsLink}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="bg-green-600 text-white hover:bg-green-500 border border-green-500 px-3 py-2.5 rounded-lg font-black text-[10px] uppercase transition active:scale-95 flex items-center justify-center gap-2 shadow-lg">☘️ Enviar WhatsApp</a>` : `<button onclick="event.stopPropagation(); showToast('Cliente sem WhatsApp cadastrado.');" class="bg-green-600/30 text-white/70 border border-green-500/30 px-3 py-2.5 rounded-lg font-black text-[10px] uppercase transition flex items-center justify-center gap-2">☘️ Enviar WhatsApp</button>`;
-      const payLink = data.infinitePayLink || '';
-      const payLabel = payLink ? '💳 Abrir Link Cartão' : '💳 Criar Link Cartão';
-      const payButtonClass = payLink ? 'bg-sky-600 text-white hover:bg-sky-500 border border-sky-500' : 'bg-sky-500/10 text-sky-400 hover:bg-sky-500 hover:text-white border border-sky-500/30';
-      const payButton = `<button data-ipay-btn="${id}" onclick="event.stopPropagation(); window.createOrOpenInfinitePayCardLink('${id}', '${safeText(payLink)}')" class="${payButtonClass} px-3 py-2.5 rounded-lg font-black text-[10px] uppercase transition active:scale-95 flex items-center justify-center gap-2 shadow-lg">${payLabel}</button>`;
+      const amounts = calcCRMPaymentAmounts(data, cData, pe, pf);
       const meta = getCRMStatusMeta(status);
 
       return `
@@ -3877,13 +3996,16 @@
           <div class="flex justify-between items-start mb-4 cursor-pointer" onclick="document.getElementById('crm_det_${id}').classList.toggle('hidden')">
               <div>
                   <div class="text-indigo-400 font-black text-sm uppercase tracking-widest flex items-center gap-2 flex-wrap">${clienteNome} ${codigo} <span class="text-[9px] bg-indigo-500/20 text-indigo-300 px-2 py-1 rounded font-bold transition">▼ GERENCIAR</span></div>
-                  <div class="text-[var(--text-main)] font-black text-lg mt-2">${moneyBR(data.valorTotal)}</div>
+                  <div class="text-[var(--text-main)] font-black text-lg mt-2">Contrato: ${moneyBR(amounts.contrato)}</div>
+                  <div class="flex flex-wrap gap-3 mt-2 text-[10px] font-black uppercase tracking-widest">
+                      <span class="text-blue-400">Recebido: ${moneyBR(status === 'fechado' ? amounts.recebido : 0)}</span>
+                      <span class="text-yellow-400">A receber: ${moneyBR(status === 'fechado' ? amounts.aReceber : amounts.contrato)}</span>
+                  </div>
                   <div class="text-[10px] text-[var(--text-muted)] font-bold uppercase tracking-widest mt-1">${safeText(dataTxt)} • ${safeText(phoneRaw || 'Sem telefone')}</div>
               </div>
               <div class="text-right flex items-center gap-3 flex-wrap justify-end">
                   <button onclick="event.stopPropagation(); window.openCRMStatusModal('${id}', '${status}')" class="crm-status-pill ${meta.cls}">${meta.icon} ${meta.label}</button>
                   ${whatsButton}
-                  ${payButton}
                   <button onclick="event.stopPropagation(); window.downloadQuotePDFFromFirebase('${id}')" class="bg-blue-500/10 text-blue-500 hover:bg-blue-500 hover:text-white border border-blue-500/30 px-3 py-2.5 rounded-lg font-black text-[10px] uppercase transition active:scale-95 flex items-center justify-center">PDF</button>
                   <button onclick="event.stopPropagation(); window.deleteQuote('${id}')" class="bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white border border-red-500/30 p-2.5 rounded-lg font-black transition active:scale-95 flex items-center justify-center">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
@@ -3898,14 +4020,12 @@
                       ${data.detalhes ? data.detalhes.map(d => `<div class="mb-1">👕 ${safeText(d.quantidade)}x ${safeText(d.modelo)} (${safeText(d.tecido)})</div>`).join('') : '<div class="italic text-slate-500">Sem itens detalhados</div>'}
                   </div>
               </div>
-
-              ${payLink ? `
               <div>
-                  <div class="text-[10px] text-[var(--text-muted)] font-bold uppercase tracking-widest mb-2">Link de pagamento:</div>
-                  <a href="${safeText(payLink)}" target="_blank" rel="noopener" class="text-sky-400 hover:text-sky-300 font-black text-[11px] break-all bg-[var(--bg-input)] border border-sky-500/30 p-3 rounded-xl block">${safeText(payLink)}</a>
+                  <div class="text-[10px] text-[var(--text-muted)] font-bold uppercase tracking-widest mb-2">Material / tecido estimado:</div>
+                  <div class="space-y-2">
+                      ${renderMaterialSummaryHTML(getQuoteMaterials(data))}
+                  </div>
               </div>
-              ` : ''}
-
               <div>
                   <div class="text-[10px] text-[var(--text-muted)] font-bold uppercase tracking-widest mb-2">Monitoramento de contato (Touch Points):</div>
                   <div class="flex gap-2">
@@ -3922,6 +4042,20 @@
                   <div class="flex justify-between items-center mb-1">
                       <div class="text-[10px] font-black uppercase text-emerald-500 tracking-widest">${safeText(prazoTxt)}</div>
                       <div class="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Contrato: ${safeText(cData.condPagto||'N/A')}</div>
+                  </div>
+                  <div class="grid grid-cols-3 gap-3 text-left">
+                      <div class="bg-[var(--bg-input)] border border-[var(--border-color)] rounded-lg p-3">
+                          <div class="text-[8px] text-[var(--text-muted)] font-black uppercase tracking-widest mb-1">Valor fechado do contrato</div>
+                          <div class="text-emerald-400 font-black text-sm">${moneyBR(amounts.contrato)}</div>
+                      </div>
+                      <div class="bg-[var(--bg-input)] border border-blue-500/30 rounded-lg p-3">
+                          <div class="text-[8px] text-[var(--text-muted)] font-black uppercase tracking-widest mb-1">Valor recebido</div>
+                          <div class="text-blue-400 font-black text-sm">${moneyBR(amounts.recebido)}</div>
+                      </div>
+                      <div class="bg-[var(--bg-input)] border border-yellow-500/30 rounded-lg p-3">
+                          <div class="text-[8px] text-[var(--text-muted)] font-black uppercase tracking-widest mb-1">Valor a receber</div>
+                          <div class="text-yellow-400 font-black text-sm">${moneyBR(amounts.aReceber)}</div>
+                      </div>
                   </div>
                   <div class="flex gap-6">
                       <label class="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-[var(--text-main)] cursor-pointer"><input type="checkbox" onchange="window.updateCRMPayment('${id}', 'pagoEntrada', this.checked)" ${pe?'checked':''}> Pagou Entrada</label>
@@ -3988,10 +4122,872 @@
 
   window.updateCRMPayment = async (id, field, checked) => {
       try {
-          await updateDoc(doc(db, "orcamentos", id), { [field]: checked });
+          const payload = { [field]: checked };
+          if(field === 'pagoEntrada' && checked) payload.dataInicioProducao = new Date().toISOString();
+          await updateDoc(doc(db, "orcamentos", id), payload);
           window.loadCRMData();
+          if(document.getElementById('pcpDashboardModal')?.classList.contains('show')) window.loadPCPData();
       } catch(e) { console.error(e); showToast('Erro ao atualizar pagamento.'); }
   };
+
+
+  // MÓDULO PCP / CONTROLE DE PRODUÇÃO
+  window.pcpCurrentTab = 'orders';
+  window.pcpDeliveryFilter = window.pcpDeliveryFilter || { type: 'all', value: '' };
+  let pcpOrdersCache = [];
+  window.pcpBulkSelected = window.pcpBulkSelected || {};
+  const PCP_GENERAL_PHASES = ['Compra de tecido', 'Corte de tecido', 'Costura de tecido'];
+  const PCP_FINAL_PHASE = 'Expedição dos itens';
+  const PCP_DTF_PHASES = ['Separar artes', 'Envio para fornecedor de DTF', 'Retirada dos itens quando concluídos'];
+  const PCP_BORDADO_PHASES = ['Criação da Matriz', 'Envio para fornecedor de bordado'];
+  const PCP_SILK_PHASES = ['Envio de arte para prestador de serviço', 'Envio para o prestador de serviço', 'Prazo do prestador de serviço', 'Recolher no prestador de serviço'];
+
+  function pcpSafeKey(label, index) {
+      return `${index}_${String(label || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-zA-Z0-9]+/g, '_').replace(/^_|_$/g, '').toLowerCase()}`;
+  }
+
+  function getPCPOrderFlags(data = {}) {
+      const detalhes = Array.isArray(data.detalhes) ? data.detalhes : [];
+      const full = JSON.stringify(detalhes).toLowerCase();
+      const has = (word) => full.includes(word.toLowerCase());
+      return {
+          dtf: has('dtf') || has('arte'),
+          bordado: has('bordado'),
+          silk: has('silk')
+      };
+  }
+
+  function getPCPPhaseStoredData(statusMap = {}, key, label) {
+      if(statusMap[key]) return statusMap[key];
+      const normalizedLabel = pcpSafeKey(label, 0).replace(/^0_/, '');
+      const found = Object.entries(statusMap).find(([storedKey]) => String(storedKey || '').endsWith('_' + normalizedLabel));
+      return found ? found[1] : {};
+  }
+
+  function formatPCPPhaseTitle(phase) {
+      return `${phase.orderNumber || ''} > ${phase.label || ''}`.trim();
+  }
+
+  function buildPCPPhases(data = {}, cData = {}) {
+      const flags = getPCPOrderFlags(data);
+      const labels = [...PCP_GENERAL_PHASES];
+      if(flags.dtf) labels.push(...PCP_DTF_PHASES);
+      if(flags.bordado) labels.push(...PCP_BORDADO_PHASES);
+      if(flags.silk) labels.push(...PCP_SILK_PHASES);
+      labels.push(PCP_FINAL_PHASE);
+      const start = getProductionStartDate(data);
+      const totalDays = Math.max(1, parseBusinessDaysFromText(cData.orcPrazo || data.orcPrazo || data.prazo || '10'));
+      const statusMap = data.pcp?.phaseStatus || {};
+      return labels.map((label, index) => {
+          const key = pcpSafeKey(label, index);
+          const stored = getPCPPhaseStoredData(statusMap, key, label);
+          const dueOffset = Math.max(1, Math.ceil(((index + 1) / labels.length) * totalDays));
+          const due = addBusinessDays(start, dueOffset);
+          const remaining = businessDaysBetween(new Date(), due);
+          const rawStatus = stored?.status || (stored?.done ? 'done' : 'pending');
+          const status = ['pending','progress','done'].includes(rawStatus) ? rawStatus : 'pending';
+          const done = status === 'done';
+          const inProgress = status === 'progress';
+          const updatedAt = normalizeDateStart(stored?.updatedAt) || null;
+          const state = done ? 'done' : (remaining < 0 ? 'late' : (remaining <= 1 ? 'due' : (inProgress ? 'progress' : 'ok')));
+          const category = (PCP_GENERAL_PHASES.includes(label) || label === PCP_FINAL_PHASE) ? 'Geral' : (PCP_DTF_PHASES.includes(label) ? 'DTF' : (PCP_BORDADO_PHASES.includes(label) ? 'Bordado' : 'Silk'));
+          return { key, label, orderNumber: index + 1, totalPhases: labels.length, due, remaining, done, inProgress, status, updatedAt, state, category };
+      });
+  }
+
+  function pcpPhaseClass(phase) {
+      if(phase.done) return 'pcp-ok';
+      if(phase.state === 'late') return 'pcp-danger';
+      if(phase.inProgress || phase.state === 'due') return 'pcp-warn';
+      return 'pcp-info';
+  }
+
+  function getPCPDismissed() {
+      try { return new Set(JSON.parse(localStorage.getItem('trendwear_pcp_notifications_dismissed') || '[]')); }
+      catch(e) { return new Set(); }
+  }
+
+  function savePCPDismissed(set) {
+      localStorage.setItem('trendwear_pcp_notifications_dismissed', JSON.stringify([...set]));
+  }
+
+  function buildPCPNotifications(orders) {
+      const dismissed = getPCPDismissed();
+      const notes = [];
+      (orders || []).forEach(order => {
+          const data = order.data || {};
+          const cData = order.cData || {};
+          const code = data.codigo || order.id;
+          const newId = `${order.id}_new`;
+          if(!dismissed.has(newId)) notes.push({ id: newId, type: 'info', text: `Novo pedido cadastrado no PCP: ${code} • ${data.cliente || cData.cliNome || 'Cliente'}` });
+
+          const deadline = getProductionDeadlineInfo(data, cData);
+          if(deadline.remaining !== null && deadline.remaining < 0) {
+              const id = `${order.id}_order_late`;
+              if(!dismissed.has(id)) notes.push({ id, type: 'danger', text: `Pedido ${code} está atrasado em ${Math.abs(deadline.remaining)} dia(s) úteis.` });
+          } else if(deadline.remaining !== null && deadline.remaining <= 2) {
+              const id = `${order.id}_order_due`;
+              if(!dismissed.has(id)) notes.push({ id, type: 'warn', text: `Pedido ${code} vence em ${deadline.remaining} dia(s) útil(eis).` });
+          }
+
+          buildPCPPhases(data, cData).forEach(phase => {
+              if(phase.done) return;
+              if(phase.remaining < 0) {
+                  const id = `${order.id}_${phase.key}_late`;
+                  if(!dismissed.has(id)) notes.push({ id, type: 'danger', text: `Prazo de ${formatPCPPhaseTitle(phase)} do pedido ${code} está atrasado.` });
+              } else if(phase.remaining <= 1) {
+                  const id = `${order.id}_${phase.key}_due`;
+                  if(!dismissed.has(id)) notes.push({ id, type: 'warn', text: `Prazo de ${formatPCPPhaseTitle(phase)} do pedido ${code} está vencendo.` });
+              }
+          });
+      });
+      return notes;
+  }
+
+  function pcpNoteClass(type) {
+      if(type === 'danger') return 'pcp-danger';
+      if(type === 'warn') return 'pcp-warn';
+      return 'pcp-info';
+  }
+
+  function renderPCPNotificationItems(notes, compact = false) {
+      if(!notes || notes.length === 0) return '<div class="text-center text-[var(--text-muted)] font-bold text-xs py-4">Nenhuma notificação pendente.</div>';
+      return notes.map(note => `<div class="${pcpNoteClass(note.type)} border rounded-xl p-3 flex justify-between gap-3 items-start">
+          <div class="text-[10px] font-black uppercase tracking-widest leading-relaxed">${safeText(note.text)}</div>
+          <button onclick="dismissPCPNotification('${note.id}'); ${compact ? 'refreshPCPTopNotifications();' : ''}" class="text-[10px] font-black uppercase px-3 py-1 rounded bg-[var(--bg-card)] border border-[var(--border-color)] hover:border-red-500 transition">Limpar</button>
+      </div>`).join('');
+  }
+
+  function renderPCPNotifications(orders) {
+      const container = document.getElementById('pcpNotificationsContainer');
+      if(!container) return;
+      const notes = buildPCPNotifications(orders);
+      container.innerHTML = renderPCPNotificationItems(notes, false);
+      updatePCPTopNotificationBadges(notes);
+  }
+
+  function updatePCPTopNotificationBadges(notesOrOrders) {
+      const notes = Array.isArray(notesOrOrders) && notesOrOrders.length && notesOrOrders[0].text ? notesOrOrders : buildPCPNotifications(notesOrOrders || pcpOrdersCache);
+      const count = notes.length;
+      ['pcpNotifBadgeHome','pcpNotifBadgeApp'].forEach(id => {
+          const el = document.getElementById(id);
+          if(!el) return;
+          el.innerText = count > 99 ? '99+' : String(count);
+          el.style.display = count > 0 ? 'flex' : 'none';
+      });
+  }
+
+  window.dismissPCPNotification = (id) => {
+      const dismissed = getPCPDismissed();
+      dismissed.add(id);
+      savePCPDismissed(dismissed);
+      renderPCPNotifications(pcpOrdersCache);
+  };
+
+  window.clearAllPCPNotifications = () => {
+      const dismissed = getPCPDismissed();
+      buildPCPNotifications(pcpOrdersCache).forEach(n => dismissed.add(n.id));
+      savePCPDismissed(dismissed);
+      renderPCPNotifications(pcpOrdersCache);
+  };
+
+  async function fetchPCPOrders() {
+      const q = query(collection(db, "orcamentos"), orderBy("timestamp", "desc"));
+      const snap = await getDocs(q);
+      const orders = [];
+      snap.forEach(docSnap => {
+          const data = docSnap.data() || {};
+          let cData = {};
+          try { cData = JSON.parse(data.projectData || '{}').client || {}; } catch(e) {}
+          if((data.crmStatus || 'aberto') === 'fechado' && data.pagoEntrada) {
+              orders.push({ id: docSnap.id, data, cData });
+          }
+      });
+      orders.sort((a,b) => {
+          const da = getProductionDeadlineInfo(a.data, a.cData).due?.getTime?.() || 0;
+          const db = getProductionDeadlineInfo(b.data, b.cData).due?.getTime?.() || 0;
+          return da - db;
+      });
+      return orders;
+  }
+
+  window.loadPCPNotificationsBadge = async () => {
+      try {
+          const orders = await fetchPCPOrders();
+          pcpOrdersCache = orders;
+          updatePCPTopNotificationBadges(buildPCPNotifications(orders));
+      } catch(e) { console.warn('Não foi possível atualizar badge do PCP:', e); }
+  };
+
+  window.refreshPCPTopNotifications = async () => {
+      const container = document.getElementById('pcpTopNotificationsContent');
+      if(!container) return;
+      if(!pcpOrdersCache || pcpOrdersCache.length === 0) {
+          try { pcpOrdersCache = await fetchPCPOrders(); } catch(e) { console.warn(e); }
+      }
+      const notes = buildPCPNotifications(pcpOrdersCache);
+      container.innerHTML = renderPCPNotificationItems(notes, true);
+      updatePCPTopNotificationBadges(notes);
+  };
+
+  window.togglePCPTopNotifications = async (force) => {
+      const popup = document.getElementById('pcpTopNotificationsPopup');
+      if(!popup) return;
+      const shouldShow = typeof force === 'boolean' ? force : popup.classList.contains('hidden');
+      popup.classList.toggle('hidden', !shouldShow);
+      if(shouldShow) await window.refreshPCPTopNotifications();
+  };
+
+  window.openPCPDashboard = async () => {
+      document.getElementById('pcpDashboardModal')?.classList.add('show');
+      await window.loadPCPData();
+  };
+
+  window.closePCPDashboard = () => {
+      document.getElementById('pcpDashboardModal')?.classList.remove('show');
+  };
+
+  window.setPCPTab = (tab) => {
+      window.pcpCurrentTab = tab;
+      document.getElementById('pcpOrdersTabBtn')?.classList.toggle('active', tab === 'orders');
+      document.getElementById('pcpSuppliersTabBtn')?.classList.toggle('active', tab === 'suppliers');
+      document.getElementById('pcpOrdersPanel')?.classList.toggle('hidden', tab !== 'orders');
+      document.getElementById('pcpSuppliersPanel')?.classList.toggle('hidden', tab !== 'suppliers');
+      if(tab === 'suppliers') renderPCPSuppliers();
+  };
+
+  window.loadPCPData = async () => {
+      const container = document.getElementById('pcpOrdersContainer');
+      if(container) container.innerHTML = '<div class="text-center text-slate-400 font-black tracking-widest text-[10px] uppercase mt-10">Carregando PCP...</div>';
+      try {
+          const orders = await fetchPCPOrders();
+          pcpOrdersCache = orders;
+          renderPCPDeliveryFilters(orders);
+          renderPCPNotifications(orders);
+          renderPCPOrders(orders);
+          await window.refreshPCPTopNotifications();
+      } catch(e) {
+          console.error(e);
+          if(container) container.innerHTML = '<div class="text-red-500 font-bold text-center mt-10">Erro ao carregar PCP.</div>';
+      }
+  };
+
+  function pcpFilterMonthKey(date) {
+      return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}`;
+  }
+
+  function pcpMonthLabel(key) {
+      const [y, m] = String(key).split('-').map(Number);
+      const d = new Date(y, (m || 1) - 1, 1);
+      return d.toLocaleDateString('pt-BR', { month: 'short', year: 'numeric' }).replace('.', '');
+  }
+
+  function getPCPMonthOptions(orders) {
+      const set = new Set();
+      const now = new Date();
+      for(let i = 0; i < 6; i++) set.add(pcpFilterMonthKey(new Date(now.getFullYear(), now.getMonth() + i, 1)));
+      (orders || []).forEach(order => {
+          const due = getProductionDeadlineInfo(order.data, order.cData).due;
+          if(due) set.add(pcpFilterMonthKey(due));
+      });
+      return [...set].sort();
+  }
+
+  function renderPCPDeliveryFilters(orders) {
+      const bar = document.getElementById('pcpDeliveryFilterBar');
+      if(!bar) return;
+      const current = window.pcpDeliveryFilter || { type: 'all', value: '' };
+      const buttons = [];
+      const isActive = (type, value = '') => current.type === type && String(current.value || '') === String(value || '');
+      buttons.push(`<button onclick="setPCPDeliveryFilter('all','')" class="pcp-filter-btn ${isActive('all') ? 'active' : ''}">Todos</button>`);
+      buttons.push(`<button onclick="setPCPDeliveryFilter('next7','')" class="pcp-filter-btn ${isActive('next7') ? 'active' : ''}">Próx. 7 dias</button>`);
+      getPCPMonthOptions(orders).forEach(key => buttons.push(`<button onclick="setPCPDeliveryFilter('month','${key}')" class="pcp-filter-btn ${isActive('month', key) ? 'active' : ''}">${safeText(pcpMonthLabel(key))}</button>`));
+      bar.innerHTML = buttons.join('');
+  }
+
+  window.setPCPDeliveryFilter = (type, value = '') => {
+      window.pcpDeliveryFilter = { type, value };
+      renderPCPDeliveryFilters(pcpOrdersCache);
+      renderPCPOrders(pcpOrdersCache);
+  };
+
+  function filterPCPOrders(orders) {
+      const filter = window.pcpDeliveryFilter || { type: 'all', value: '' };
+      if(filter.type === 'all') return orders || [];
+      const today = startOfDay(new Date());
+      const limit = startOfDay(new Date());
+      limit.setDate(limit.getDate() + 7);
+      return (orders || []).filter(order => {
+          const due = getProductionDeadlineInfo(order.data, order.cData).due;
+          if(!due) return false;
+          const d = startOfDay(due);
+          if(filter.type === 'next7') return d >= today && d <= limit;
+          if(filter.type === 'month') return pcpFilterMonthKey(d) === filter.value;
+          return true;
+      });
+  }
+
+  function getPCPDeliveryResult(order) {
+      const deadline = getProductionDeadlineInfo(order.data, order.cData);
+      const expPhase = buildPCPPhases(order.data, order.cData).find(p => p.label === 'Expedição dos itens');
+      if(!expPhase || !expPhase.done) return { status: 'andamento', label: 'Em andamento' };
+      const completed = startOfDay(expPhase.updatedAt || new Date());
+      const due = deadline.due ? startOfDay(deadline.due) : null;
+      if(!due) return { status: 'noprazo', label: 'Entregue' };
+      if(completed.getTime() < due.getTime()) return { status: 'antes', label: 'Antes do prazo' };
+      if(completed.getTime() > due.getTime()) return { status: 'fora', label: 'Fora do prazo' };
+      return { status: 'noprazo', label: 'No prazo' };
+  }
+
+  function renderPCPDeliveryStats(orders) {
+      const el = document.getElementById('pcpDeliveryStats');
+      if(!el) return;
+      const stats = { andamento: 0, noprazo: 0, fora: 0, antes: 0 };
+      (orders || []).forEach(order => { const res = getPCPDeliveryResult(order); stats[res.status] = (stats[res.status] || 0) + 1; });
+      el.innerHTML = `
+          <div class="pcp-delivery-kpi"><div class="text-[8px] text-[var(--text-muted)] font-black uppercase tracking-widest">Pedidos em andamento</div><div class="text-2xl font-black text-teal-400 mt-1">${stats.andamento}</div></div>
+          <div class="pcp-delivery-kpi"><div class="text-[8px] text-[var(--text-muted)] font-black uppercase tracking-widest">Entregues no prazo</div><div class="text-2xl font-black text-emerald-400 mt-1">${stats.noprazo}</div></div>
+          <div class="pcp-delivery-kpi"><div class="text-[8px] text-[var(--text-muted)] font-black uppercase tracking-widest">Entregues antes do prazo</div><div class="text-2xl font-black text-blue-400 mt-1">${stats.antes}</div></div>
+          <div class="pcp-delivery-kpi"><div class="text-[8px] text-[var(--text-muted)] font-black uppercase tracking-widest">Entregues fora do prazo</div><div class="text-2xl font-black text-red-400 mt-1">${stats.fora}</div></div>`;
+  }
+
+  function renderPCPOrders(orders) {
+      const filtered = filterPCPOrders(orders || []);
+      renderPCPDeliveryStats(filtered);
+      renderPCPBulkMaterialPanel(filtered);
+      const container = document.getElementById('pcpOrdersContainer');
+      const count = document.getElementById('pcpOrderCount');
+      if(count) count.innerText = `${filtered.length} pedido${filtered.length === 1 ? '' : 's'}`;
+      if(!container) return;
+      if(filtered.length === 0) {
+          container.innerHTML = '<div class="text-center text-slate-500 font-bold text-xs mt-10">Nenhum pedido encontrado nesse filtro. Marque um pedido como fechado e confirme pagamento de entrada.</div>';
+          return;
+      }
+      container.innerHTML = filtered.map(order => renderPCPOrderCard(order.id, order.data, order.cData)).join('');
+  }
+
+  function formatKg(value) {
+      return `${Number(value || 0).toFixed(2).replace('.', ',')} kg`;
+  }
+
+  function buildPCPMaterialLines(materials = []) {
+      if(!materials || !materials.length) return ['Sem material calculado. Parametrize os tecidos e atualize/salve o orçamento.'];
+      return materials.map(m => {
+          const kg = Number(m.kgEstimado || 0);
+          const ribana = kg * 0.03;
+          return `${m.tecido || 'Tecido'}: ${formatKg(kg)} de tecido + ${formatKg(ribana)} de ribana adicional (3%) • ${m.quantidade || 0} peças`;
+      });
+  }
+
+  function getPCPSupplierRepresentative(supplier) {
+      return (supplier?.representante || supplier?.rep || supplier?.representative || supplier?.name || '').trim();
+  }
+
+  function renderPCPMaterialRequestHTML(id, materials) {
+      const suppliers = getPCPSuppliers().material || [];
+      const options = suppliers.length ? suppliers.map(s => `<option value="${safeText(String(s.id))}">${safeText(s.name)} ${getPCPSupplierRepresentative(s) && getPCPSupplierRepresentative(s) !== s.name ? '• Rep: ' + safeText(getPCPSupplierRepresentative(s)) : ''} ${s.contact ? '• ' + safeText(s.contact) : ''}</option>`).join('') : '<option value="">Cadastre um fornecedor na aba Cadastros</option>';
+      const lines = buildPCPMaterialLines(materials).map(line => `<div class="bg-[var(--bg-input)] border border-[var(--border-color)] rounded-lg p-2 text-[10px] font-bold uppercase tracking-widest text-[var(--text-main)]">${safeText(line)}</div>`).join('');
+      return `<div class="bg-teal-900/10 border border-teal-500/30 rounded-xl overflow-hidden">
+          <button onclick="document.getElementById('pcp_mat_${id}').classList.toggle('hidden')" class="w-full p-4 flex justify-between items-center text-left hover:bg-teal-500/10 transition">
+              <div>
+                  <div class="text-teal-400 font-black text-[11px] uppercase tracking-widest">🧾 Pedir material</div>
+                  <div class="text-[9px] text-[var(--text-muted)] font-bold uppercase tracking-widest mt-1">Gera mensagem de WhatsApp com tecido + 3% de ribana</div>
+              </div>
+              <span class="text-teal-400 font-black">▼</span>
+          </button>
+          <div id="pcp_mat_${id}" class="hidden p-4 border-t border-teal-500/20 space-y-3">
+              <div class="space-y-2">${lines}</div>
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <select id="pcpMatSupplier_${id}" class="calc-input !mb-0 md:col-span-1">${options}</select>
+                  <textarea id="pcpMatObs_${id}" placeholder="Observação. Ex: Ribana da cor vermelha" class="calc-input !mb-0 md:col-span-2" style="min-height: 70px; resize: vertical;"></textarea>
+              </div>
+              <button onclick="openPCPMaterialWhatsApp('${id}')" class="bg-green-600 text-white hover:bg-green-500 border border-green-500 px-5 py-3 rounded-xl font-black text-[10px] uppercase transition active:scale-95 flex items-center justify-center gap-2 shadow-lg">🟢 Enviar WhatsApp ao fornecedor</button>
+          </div>
+      </div>`;
+  }
+
+
+  function getPCPCompraPhase(order) {
+      const data = order?.data || {};
+      const cData = order?.cData || {};
+      return buildPCPPhases(data, cData).find(p => p.label === 'Compra de tecido');
+  }
+
+  function isPCPMaterialSelectable(order) {
+      const phase = getPCPCompraPhase(order);
+      return !!phase && phase.status === 'pending';
+  }
+
+  function pcpPhaseStatusLabel(phase) {
+      if(phase.done) return 'feito';
+      if(phase.inProgress) return 'em andamento';
+      if(phase.remaining < 0) return 'atrasado';
+      if(phase.remaining <= 1) return 'vencendo';
+      return 'pendente';
+  }
+
+  function pcpPhaseStatusBtn(id, phase, status, label, cls) {
+      const active = phase.status === status;
+      return `<button onclick="event.stopPropagation(); updatePCPPhaseStatus('${id}', '${phase.key}', '${status}')" class="${cls} ${active ? 'ring-2 ring-white/50 scale-[1.02]' : 'opacity-75'} px-3 py-2 rounded-lg border font-black text-[9px] uppercase tracking-widest transition active:scale-95">${label}</button>`;
+  }
+
+
+  function getPCPProjectFromOrderData(data = {}) {
+      try {
+          if(data.projectData) return JSON.parse(data.projectData || '{}');
+      } catch(e) { console.warn('Projeto do pedido não pôde ser lido para PDF de produção:', e); }
+      return {};
+  }
+
+  function getPCPProductionItems(data = {}) {
+      const project = getPCPProjectFromOrderData(data);
+      if(Array.isArray(project.cart) && project.cart.length) {
+          return project.cart.map((item, idx) => ({
+              index: idx + 1,
+              tabName: item.tabName || `Item ${idx + 1}`,
+              model: item.model || 'Modelo',
+              fabric: item.fabric || '',
+              qty: parseInt(item.qty) || 0,
+              sizeBreakdown: item.sizeBreakdown || {},
+              fImg: item.fImg || '',
+              cImg: item.cImg || '',
+              canvasBg: item.canvasBg || '#ffffff'
+          }));
+      }
+      const detalhes = Array.isArray(data.detalhes) ? data.detalhes : [];
+      return detalhes.map((item, idx) => ({
+          index: idx + 1,
+          tabName: `Item ${idx + 1}`,
+          model: item.modelo || 'Modelo',
+          fabric: item.tecido || '',
+          qty: parseInt(item.quantidade) || 0,
+          sizeBreakdown: item.grade || {},
+          fImg: '',
+          cImg: '',
+          canvasBg: '#ffffff'
+      }));
+  }
+
+  function getProductionSizeRows(sizeBreakdown = {}, fallbackQty = 0) {
+      const hasGrade = sumSizeBreakdown(sizeBreakdown || {}) > 0;
+      const rows = SIZE_LABELS.map(label => {
+          const row = normalizeSizeRow(label, sizeBreakdown ? sizeBreakdown[label] : null);
+          return [label, String(row.qty || 0), row.esp || '-', row.obs || '-'];
+      });
+      if(!hasGrade && fallbackQty > 0) rows.push(['SEM GRADE', String(fallbackQty), '-', 'Quantidade total sem grade detalhada']);
+      return rows;
+  }
+
+  function addProductionImageToPDF(doc, src, x, y, w, h, label) {
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(9);
+      doc.setTextColor(15, 23, 42);
+      doc.text(label, x, y - 3);
+      doc.setDrawColor(203, 213, 225);
+      doc.setFillColor(248, 250, 252);
+      doc.roundedRect(x, y, w, h, 2, 2, 'FD');
+      if(!src) {
+          doc.setFont('helvetica', 'normal');
+          doc.setFontSize(8);
+          doc.setTextColor(100);
+          doc.text('Imagem não disponível', x + w / 2, y + h / 2, { align: 'center' });
+          return;
+      }
+      try {
+          doc.addImage(src, imageFormatFromSrc(src), x + 2, y + 2, w - 4, h - 4, undefined, 'FAST');
+      } catch(e) {
+          console.warn('Imagem ignorada na folha de produção:', e);
+          doc.setFont('helvetica', 'normal');
+          doc.setFontSize(8);
+          doc.setTextColor(220, 38, 38);
+          doc.text('Falha ao inserir imagem', x + w / 2, y + h / 2, { align: 'center' });
+      }
+  }
+
+  window.downloadPCPProductionPDF = async (id) => {
+      try {
+          const order = (pcpOrdersCache || []).find(o => String(o.id) === String(id));
+          if(!order) { showToast('Pedido não encontrado no PCP.'); return; }
+          const data = order.data || {};
+          const cData = order.cData || {};
+          const deadline = getProductionDeadlineInfo(data, cData);
+          const items = getPCPProductionItems(data);
+          if(!items.length) { showToast('Pedido sem itens para folha de produção.'); return; }
+
+          const { jsPDF } = window.jspdf;
+          const doc = new jsPDF('p', 'mm', 'a4');
+          const code = data.codigo || id;
+          const cliente = data.cliente || cData.cliNome || 'Cliente';
+          const entrega = deadline.due ? deadline.due.toLocaleDateString('pt-BR') : '-';
+          const prazo = cData.orcPrazo || data.orcPrazo || data.prazo || '-';
+          const totalQty = items.reduce((acc, item) => acc + (parseInt(item.qty) || 0), 0);
+
+          items.forEach((item, idx) => {
+              if(idx > 0) doc.addPage();
+              doc.setFillColor(15, 23, 42);
+              doc.rect(0, 0, 210, 22, 'F');
+              doc.setFont('helvetica', 'bold');
+              doc.setFontSize(16);
+              doc.setTextColor(255, 255, 255);
+              doc.text('FOLHA DE PRODUÇÃO', 14, 14);
+              doc.setFontSize(9);
+              doc.text(`Pedido: ${code}`, 196, 9, { align: 'right' });
+              doc.text(`Item ${idx + 1}/${items.length}`, 196, 16, { align: 'right' });
+
+              doc.setTextColor(15, 23, 42);
+              doc.setFontSize(9);
+              doc.setFont('helvetica', 'bold');
+              doc.text('CLIENTE', 14, 32);
+              doc.text('ENTREGA', 82, 32);
+              doc.text('QUANTIDADE TOTAL', 128, 32);
+              doc.text('PRAZO COMERCIAL', 170, 32);
+              doc.setFont('helvetica', 'normal');
+              doc.setFontSize(10);
+              doc.text(String(cliente), 14, 39, { maxWidth: 62 });
+              doc.text(String(entrega), 82, 39);
+              doc.text(`${totalQty} peça(s)`, 128, 39);
+              doc.text(String(prazo), 170, 39, { maxWidth: 28 });
+
+              doc.setFillColor(241, 245, 249);
+              doc.roundedRect(14, 47, 182, 16, 2, 2, 'F');
+              doc.setFont('helvetica', 'bold');
+              doc.setFontSize(9);
+              doc.text('ITEM / MODELO', 18, 54);
+              doc.text('TECIDO', 100, 54);
+              doc.text('QTD DO ITEM', 150, 54);
+              doc.setFont('helvetica', 'normal');
+              doc.setFontSize(9);
+              doc.text(`${item.tabName || 'Item'} • ${item.model || '-'}`, 18, 60, { maxWidth: 78 });
+              doc.text(String(item.fabric || '-'), 100, 60, { maxWidth: 42 });
+              doc.text(`${item.qty || 0} peça(s)`, 150, 60);
+
+              addProductionImageToPDF(doc, item.fImg, 14, 78, 86, 104, 'FRENTE');
+              addProductionImageToPDF(doc, item.cImg, 110, 78, 86, 104, 'COSTAS');
+
+              doc.setFont('helvetica', 'bold');
+              doc.setFontSize(10);
+              doc.setTextColor(15, 23, 42);
+              doc.text('GRADE DE PRODUÇÃO', 14, 195);
+              doc.autoTable({
+                  startY: 200,
+                  head: [['TAMANHO', 'QTD', 'ESP.', 'OBSERVAÇÃO']],
+                  body: getProductionSizeRows(item.sizeBreakdown || {}, item.qty),
+                  theme: 'grid',
+                  headStyles: { fillColor: [15, 23, 42], textColor: 255, fontSize: 8 },
+                  styles: { fontSize: 8, cellPadding: 2.2, valign: 'middle' },
+                  columnStyles: { 0: { cellWidth: 28, halign: 'center' }, 1: { cellWidth: 22, halign: 'center' }, 2: { cellWidth: 38 }, 3: { cellWidth: 90 } },
+                  margin: { left: 14, right: 14 }
+              });
+
+              const finalY = Math.min((doc.lastAutoTable?.finalY || 236) + 10, 252);
+              doc.setDrawColor(203, 213, 225);
+              doc.line(14, finalY, 196, finalY);
+              doc.setFont('helvetica', 'bold');
+              doc.setFontSize(9);
+              doc.setTextColor(15, 23, 42);
+              doc.text('OBSERVAÇÕES DA PRODUÇÃO:', 14, finalY + 8);
+              doc.setFont('helvetica', 'normal');
+              doc.setTextColor(100);
+              doc.text('________________________________________________________________________________', 14, finalY + 17);
+              doc.text('________________________________________________________________________________', 14, finalY + 26);
+              doc.setFontSize(7);
+              doc.text(`Gerado pelo PCP LayoutPro • ${new Date().toLocaleString('pt-BR')}`, 14, 287);
+          });
+
+          doc.save(`Folha_Producao_${sanitizeFileName(code || cliente)}.pdf`);
+          showToast('PDF de produção baixado.');
+      } catch(e) {
+          console.error('Erro ao gerar PDF de produção:', e);
+          showToast('Erro ao baixar PDF de produção.');
+      }
+  };
+
+  function renderPCPPhaseCard(id, phase, materials) {
+      const isCompra = phase.label === 'Compra de tecido';
+      const isCostura = phase.label === 'Costura de tecido';
+      return `<div class="bg-[var(--bg-input)] border border-[var(--border-color)] rounded-xl p-3 hover:border-teal-500 transition">
+          <div class="flex items-start gap-3">
+              <div class="flex-1">
+                  <div class="font-black text-[var(--text-main)] text-[11px] uppercase tracking-widest flex items-center gap-2">
+                      <span class="bg-teal-500/20 text-teal-400 border border-teal-500/40 px-2 py-0.5 rounded-md text-[9px] shrink-0">${safeText(String(phase.orderNumber))} &gt;</span>
+                      <span>${safeText(phase.label)}</span>
+                  </div>
+                  <div class="text-[9px] text-[var(--text-muted)] font-bold uppercase tracking-widest mt-1">${safeText(phase.category)} • etapa ${safeText(String(phase.orderNumber))}/${safeText(String(phase.totalPhases))} • prazo: ${phase.due.toLocaleDateString('pt-BR')}</div>
+                  <div class="flex flex-wrap gap-2 mt-3">
+                      ${pcpPhaseStatusBtn(id, phase, 'pending', 'Pendente', 'bg-slate-500/10 text-slate-300 border-slate-500/30 hover:bg-slate-500 hover:text-white')}
+                      ${pcpPhaseStatusBtn(id, phase, 'progress', 'Em andamento', 'bg-yellow-500/10 text-yellow-400 border-yellow-500/30 hover:bg-yellow-500 hover:text-white')}
+                      ${pcpPhaseStatusBtn(id, phase, 'done', 'Concluído', 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500 hover:text-white')}
+                  </div>
+                  ${isCostura ? `<div class="mt-3"><button onclick="event.stopPropagation(); downloadPCPProductionPDF('${id}')" class="bg-blue-600 text-white hover:bg-blue-500 border border-blue-500 px-4 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition active:scale-95 shadow-lg">📄 Baixar PDF de produção</button></div>` : ''}
+              </div>
+              <span class="pcp-phase-pill ${pcpPhaseClass(phase)}">${safeText(pcpPhaseStatusLabel(phase))}</span>
+          </div>
+          ${isCompra ? `<div class="mt-3 border-t border-[var(--border-color)] pt-3">${renderPCPMaterialRequestHTML(id, materials)}</div>` : ''}
+      </div>`;
+  }
+
+  function renderPCPBulkMaterialPanel(orders) {
+      const panel = document.getElementById('pcpBulkMaterialPanel');
+      if(!panel) return;
+      const selectedOrders = (orders || []).filter(o => window.pcpBulkSelected && window.pcpBulkSelected[o.id] && isPCPMaterialSelectable(o));
+      if(selectedOrders.length === 0) {
+          panel.classList.add('hidden');
+          panel.innerHTML = '';
+          return;
+      }
+      panel.classList.remove('hidden');
+      const suppliers = getPCPSuppliers().material || [];
+      const options = suppliers.length ? suppliers.map(s => `<option value="${safeText(String(s.id))}">${safeText(s.name)} ${getPCPSupplierRepresentative(s) && getPCPSupplierRepresentative(s) !== s.name ? '• Rep: ' + safeText(getPCPSupplierRepresentative(s)) : ''} ${s.contact ? '• ' + safeText(s.contact) : ''}</option>`).join('') : '<option value="">Cadastre um fornecedor na aba Cadastros</option>';
+      const totals = aggregatePCPMaterials(selectedOrders.map(o => getQuoteMaterials(o.data)).flat());
+      const totalLines = buildPCPMaterialLines(totals).map(line => `<div class="bg-[var(--bg-input)] border border-[var(--border-color)] rounded-lg p-2 text-[10px] font-bold uppercase tracking-widest text-[var(--text-main)]">${safeText(line)}</div>`).join('');
+      const obsRows = selectedOrders.map(o => {
+          const data = o.data || {}, cData = o.cData || {};
+          const code = data.codigo || o.id;
+          const cliente = data.cliente || cData.cliNome || 'Cliente';
+          return `<div class="bg-[var(--bg-input)] border border-[var(--border-color)] rounded-xl p-3">
+              <div class="text-teal-400 font-black text-[10px] uppercase tracking-widest mb-2">${safeText(code)} • ${safeText(cliente)}</div>
+              <textarea id="pcpBulkObs_${o.id}" placeholder="Obs deste pedido. Ex: Ribana vermelha / ribana laranja" class="calc-input !mb-0" style="min-height: 58px; resize: vertical;"></textarea>
+          </div>`;
+      }).join('');
+      panel.innerHTML = `<div class="flex flex-col gap-4">
+          <div class="flex justify-between items-start gap-4">
+              <div>
+                  <div class="text-teal-400 font-black text-sm uppercase italic tracking-widest">🧾 Pedido de material em massa</div>
+                  <div class="text-[10px] text-[var(--text-muted)] font-bold uppercase tracking-widest mt-1">${selectedOrders.length} pedido(s) selecionado(s). Só entram pedidos com compra de tecido pendente.</div>
+              </div>
+              <button onclick="clearPCPBulkMaterialSelection()" class="bg-red-500/10 text-red-500 border border-red-500/30 px-4 py-2 rounded-lg font-black text-[10px] uppercase transition hover:bg-red-500 hover:text-white active:scale-95">Limpar seleção</button>
+          </div>
+          <div class="grid grid-cols-1 xl:grid-cols-2 gap-4">
+              <div class="space-y-2"><div class="text-[9px] text-[var(--text-muted)] font-black uppercase tracking-widest">Total consolidado</div>${totalLines}</div>
+              <div class="space-y-3">
+                  <select id="pcpBulkMatSupplier" class="calc-input !mb-0">${options}</select>
+                  <div class="grid grid-cols-1 gap-3 max-h-[260px] overflow-y-auto pr-1">${obsRows}</div>
+                  <button onclick="openPCPBulkMaterialWhatsApp()" class="w-full bg-green-600 text-white hover:bg-green-500 border border-green-500 px-5 py-3 rounded-xl font-black text-[10px] uppercase transition active:scale-95 flex items-center justify-center gap-2 shadow-lg">🟢 Enviar WhatsApp com materiais selecionados</button>
+              </div>
+          </div>
+      </div>`;
+  }
+
+  function aggregatePCPMaterials(materials = []) {
+      const map = {};
+      (materials || []).forEach(m => {
+          const key = String(m.tecido || 'Tecido').toUpperCase();
+          if(!map[key]) map[key] = { ...m, tecido: m.tecido || key, kgEstimado: 0, quantidade: 0, custoEstimado: 0 };
+          map[key].kgEstimado += Number(m.kgEstimado || 0);
+          map[key].quantidade += Number(m.quantidade || 0);
+          map[key].custoEstimado += Number(m.custoEstimado || 0);
+      });
+      return Object.values(map);
+  }
+
+  window.togglePCPBulkMaterial = (id, checked) => {
+      if(checked) window.pcpBulkSelected[id] = true;
+      else delete window.pcpBulkSelected[id];
+      renderPCPOrders(pcpOrdersCache);
+  };
+
+  window.clearPCPBulkMaterialSelection = () => {
+      window.pcpBulkSelected = {};
+      renderPCPOrders(pcpOrdersCache);
+  };
+
+  async function setPCPMaterialPhaseForOrders(orderIds, status) {
+      const targets = (pcpOrdersCache || []).filter(o => orderIds.includes(o.id));
+      await Promise.all(targets.map(order => {
+          const phase = getPCPCompraPhase(order);
+          if(!phase) return Promise.resolve();
+          return updateDoc(doc(db, "orcamentos", order.id), {
+              [`pcp.phaseStatus.${phase.key}.status`]: status,
+              [`pcp.phaseStatus.${phase.key}.done`]: status === 'done',
+              [`pcp.phaseStatus.${phase.key}.updatedAt`]: new Date().toISOString()
+          });
+      }));
+  }
+
+  function renderPCPOrderCard(id, data, cData) {
+      const deadline = getProductionDeadlineInfo(data, cData);
+      const phases = buildPCPPhases(data, cData);
+      const doneCount = phases.filter(p => p.done).length;
+      const progress = phases.length ? Math.round((doneCount / phases.length) * 100) : 0;
+      const materials = getQuoteMaterials(data);
+      const delivery = getPCPDeliveryResult({ id, data, cData });
+      const color = deadline.status === 'danger' ? 'border-red-500/60' : (deadline.status === 'warn' ? 'border-yellow-500/60' : 'border-teal-500/40');
+      const deliveryCls = delivery.status === 'fora' ? 'pcp-danger' : (delivery.status === 'antes' ? 'pcp-info' : (delivery.status === 'noprazo' ? 'pcp-ok' : 'pcp-warn'));
+      const materialSelectable = isPCPMaterialSelectable({ id, data, cData });
+      const bulkChecked = !!(window.pcpBulkSelected && window.pcpBulkSelected[id]);
+      return `<div class="bg-[var(--bg-card)] border ${color} rounded-2xl shadow-lg overflow-hidden">
+          <div class="p-5 flex justify-between items-start gap-4 cursor-pointer" onclick="document.getElementById('pcp_det_${id}').classList.toggle('hidden')">
+              <div>
+                  ${materialSelectable ? `<label onclick="event.stopPropagation()" class="inline-flex items-center gap-2 mb-3 bg-teal-500/10 border border-teal-500/30 text-teal-400 px-3 py-2 rounded-lg font-black text-[9px] uppercase tracking-widest cursor-pointer hover:bg-teal-500 hover:text-white transition"><input type="checkbox" onchange="togglePCPBulkMaterial('${id}', this.checked)" ${bulkChecked ? 'checked' : ''}> Selecionar para pedir tecido</label>` : `<div class="mb-3 text-[9px] text-[var(--text-muted)] font-black uppercase tracking-widest">Compra de tecido já em andamento/concluída</div>`}
+                  <div class="text-teal-400 font-black text-sm uppercase tracking-widest flex flex-wrap gap-2 items-center">${safeText(data.cliente || cData.cliNome || 'Cliente')} ${data.codigo ? `<span class="text-[9px] bg-[var(--bg-input)] text-[var(--text-muted)] px-2 py-1 rounded border border-[var(--border-color)]">${safeText(data.codigo)}</span>` : ''}</div>
+                  <div class="text-[var(--text-main)] font-black text-lg mt-2">${safeText(deadline.label)}</div>
+                  <div class="text-[10px] text-[var(--text-muted)] font-bold uppercase tracking-widest mt-1">Entrega útil: ${deadline.due ? deadline.due.toLocaleDateString('pt-BR') : '-'} • Progresso: ${progress}%</div>
+              </div>
+              <div class="text-right flex flex-col items-end gap-2">
+                  <div class="pcp-phase-pill ${deadline.status === 'danger' ? 'pcp-danger' : deadline.status === 'warn' ? 'pcp-warn' : 'pcp-info'}">${safeText(deadline.remaining ?? '-')} dia(s) úteis</div>
+                  <div class="pcp-phase-pill ${deliveryCls}">${safeText(delivery.label)}</div>
+                  <div class="text-[9px] text-[var(--text-muted)] font-black uppercase tracking-widest mt-1">Clique para averiguar</div>
+              </div>
+          </div>
+          <div class="h-2 bg-[var(--bg-input)]"><div class="h-2 bg-teal-500" style="width:${progress}%"></div></div>
+          <div id="pcp_det_${id}" class="hidden p-5 border-t border-[var(--border-color)] space-y-5">
+              <div>
+                  <div class="text-[10px] text-[var(--text-muted)] font-black uppercase tracking-widest mb-3">Fases de produção</div>
+                  <div class="grid grid-cols-1 xl:grid-cols-2 gap-3">
+                      ${phases.map(phase => renderPCPPhaseCard(id, phase, materials)).join('')}
+                  </div>
+              </div>
+              <div>
+                  <div class="text-[10px] text-[var(--text-muted)] font-black uppercase tracking-widest mb-3">Material necessário / média de gasto com tecido</div>
+                  <div class="space-y-2">${renderMaterialSummaryHTML(materials)}</div>
+              </div>
+
+          </div>
+      </div>`;
+  }
+
+  window.updatePCPPhase = async (id, phaseKey, checked) => {
+      return window.updatePCPPhaseStatus(id, phaseKey, checked ? 'done' : 'pending');
+  };
+
+  window.updatePCPPhaseStatus = async (id, phaseKey, status) => {
+      try {
+          const cleanStatus = ['pending','progress','done'].includes(status) ? status : 'pending';
+          const payload = {
+              [`pcp.phaseStatus.${phaseKey}.status`]: cleanStatus,
+              [`pcp.phaseStatus.${phaseKey}.done`]: cleanStatus === 'done',
+              [`pcp.phaseStatus.${phaseKey}.updatedAt`]: new Date().toISOString()
+          };
+          await updateDoc(doc(db, "orcamentos", id), payload);
+          if(cleanStatus !== 'pending' && phaseKey.includes('compra_de_tecido')) delete window.pcpBulkSelected[id];
+          showToast(cleanStatus === 'done' ? 'Fase concluída.' : (cleanStatus === 'progress' ? 'Fase em andamento.' : 'Fase reaberta.'));
+          await window.loadPCPData();
+          if(window.loadCRMData) window.loadCRMData();
+      } catch(e) { console.error(e); showToast('Erro ao atualizar fase do PCP.'); }
+  };
+
+  window.openPCPBulkMaterialWhatsApp = async () => {
+      const supplierId = document.getElementById('pcpBulkMatSupplier')?.value;
+      const suppliers = getPCPSuppliers().material || [];
+      const supplier = suppliers.find(s => String(s.id) === String(supplierId));
+      if(!supplier) { showToast('Selecione/cadastre um fornecedor de matéria-prima.'); return; }
+      const phone = normalizeWhatsAppNumber(supplier.contact || '');
+      if(!phone) { showToast('Fornecedor sem WhatsApp/telefone cadastrado com DDD/DDI.'); return; }
+      const selectedOrders = (pcpOrdersCache || []).filter(o => window.pcpBulkSelected && window.pcpBulkSelected[o.id] && isPCPMaterialSelectable(o));
+      if(selectedOrders.length === 0) { showToast('Selecione pedidos com compra de tecido pendente.'); return; }
+      const consolidated = aggregatePCPMaterials(selectedOrders.map(o => getQuoteMaterials(o.data)).flat());
+      const repName = getPCPSupplierRepresentative(supplier);
+      const lines = [
+          `Olá ${repName || supplier.name || ''}, tudo bem?`,
+          '',
+          'Preciso solicitar um material',
+          '',
+          'Material necessário:',
+          ...buildPCPMaterialLines(consolidated),
+          '',
+          'Detalhamento por pedido:'
+      ];
+      selectedOrders.forEach(order => {
+          const data = order.data || {}, cData = order.cData || {};
+          const code = data.codigo || order.id;
+          const cliente = data.cliente || cData.cliNome || 'Cliente';
+          lines.push('', `${code} - ${cliente}`);
+          buildPCPMaterialLines(getQuoteMaterials(data)).forEach(line => lines.push(`- ${line}`));
+          const obs = document.getElementById(`pcpBulkObs_${order.id}`)?.value.trim() || '';
+          if(obs) lines.push(`Obs: ${obs}`);
+      });
+      const url = `https://wa.me/${phone}?text=${encodeURIComponent(lines.join('\n'))}`;
+      window.open(url, '_blank');
+      try {
+          await setPCPMaterialPhaseForOrders(selectedOrders.map(o => o.id), 'progress');
+          window.pcpBulkSelected = {};
+          await window.loadPCPData();
+      } catch(e) { console.warn('Não foi possível marcar compra em andamento:', e); }
+  };
+
+  window.openPCPMaterialWhatsApp = async (id) => {
+      const order = (pcpOrdersCache || []).find(o => o.id === id);
+      if(!order) { showToast('Pedido não encontrado no PCP.'); return; }
+      const supplierId = document.getElementById(`pcpMatSupplier_${id}`)?.value;
+      const suppliers = getPCPSuppliers().material || [];
+      const supplier = suppliers.find(s => String(s.id) === String(supplierId));
+      if(!supplier) { showToast('Selecione/cadastre um fornecedor de matéria-prima.'); return; }
+      const phone = normalizeWhatsAppNumber(supplier.contact || '');
+      if(!phone) { showToast('Fornecedor sem WhatsApp/telefone cadastrado.'); return; }
+      const obs = document.getElementById(`pcpMatObs_${id}`)?.value.trim() || '';
+      const data = order.data || {};
+      const cData = order.cData || {};
+      const code = data.codigo || id;
+      const cliente = data.cliente || cData.cliNome || 'Cliente';
+      const repName = getPCPSupplierRepresentative(supplier);
+      const lines = [
+          `Olá ${repName || supplier.name || ''}, tudo bem?`,
+          '',
+          'Preciso solicitar um material',
+          '',
+          'Material necessário:',
+          ...buildPCPMaterialLines(getQuoteMaterials(data)),
+          '',
+          `Obs: ${obs}`
+      ];
+      const url = `https://wa.me/${phone}?text=${encodeURIComponent(lines.join('\n'))}`;
+      window.open(url, '_blank');
+      try {
+          await setPCPMaterialPhaseForOrders([id], 'progress');
+          await window.loadPCPData();
+      } catch(e) { console.warn('Não foi possível marcar compra de tecido em andamento:', e); }
+  };
+
+  function getPCPSuppliers() {
+      try { return JSON.parse(localStorage.getItem('trendwear_pcp_suppliers') || '{"material":[],"service":[]}'); }
+      catch(e) { return { material: [], service: [] }; }
+  }
+
+  function savePCPSuppliers(data) {
+      localStorage.setItem('trendwear_pcp_suppliers', JSON.stringify(data || { material: [], service: [] }));
+  }
+
+  window.addPCPSupplier = (kind) => {
+      const data = getPCPSuppliers();
+      if(kind === 'material') {
+          const name = document.getElementById('pcpMatSupplierName')?.value.trim();
+          const representante = document.getElementById('pcpMatSupplierRep')?.value.trim();
+          const contact = document.getElementById('pcpMatSupplierContact')?.value.trim();
+          if(!name) { showToast('Informe o nome do fornecedor.'); return; }
+          data.material.push({ id: Date.now(), name, representante, contact });
+          document.getElementById('pcpMatSupplierName').value = '';
+          if(document.getElementById('pcpMatSupplierRep')) document.getElementById('pcpMatSupplierRep').value = '';
+          document.getElementById('pcpMatSupplierContact').value = '';
+      } else {
+          const name = document.getElementById('pcpServiceSupplierName')?.value.trim();
+          const type = document.getElementById('pcpServiceSupplierType')?.value || 'Outro';
+          const contact = document.getElementById('pcpServiceSupplierContact')?.value.trim();
+          if(!name) { showToast('Informe o nome do prestador.'); return; }
+          data.service.push({ id: Date.now(), name, type, contact });
+          document.getElementById('pcpServiceSupplierName').value = '';
+          document.getElementById('pcpServiceSupplierContact').value = '';
+      }
+      savePCPSuppliers(data);
+      renderPCPSuppliers();
+      renderPCPOrders(pcpOrdersCache);
+  };
+
+  window.deletePCPSupplier = (kind, id) => {
+      const data = getPCPSuppliers();
+      data[kind] = (data[kind] || []).filter(x => String(x.id) !== String(id));
+      savePCPSuppliers(data);
+      renderPCPSuppliers();
+      renderPCPOrders(pcpOrdersCache);
+  };
+
+  function renderPCPSuppliers() {
+      const data = getPCPSuppliers();
+      const mat = document.getElementById('pcpMaterialSuppliersList');
+      const svc = document.getElementById('pcpServiceSuppliersList');
+      if(mat) mat.innerHTML = (data.material || []).length ? data.material.map(s => `<div class="bg-[var(--bg-input)] border border-[var(--border-color)] rounded-xl p-3 flex justify-between items-center"><div><div class="text-teal-400 font-black text-xs uppercase">${safeText(s.name)}</div><div class="text-[10px] text-yellow-400 font-black uppercase tracking-widest">Rep: ${safeText(getPCPSupplierRepresentative(s) || '-')}</div><div class="text-[10px] text-[var(--text-muted)] font-bold">${safeText(s.contact || '-')}</div></div><button onclick="deletePCPSupplier('material','${s.id}')" class="text-red-500 font-black">✕</button></div>`).join('') : '<div class="text-slate-500 text-xs font-bold">Nenhum fornecedor cadastrado.</div>';
+      if(svc) svc.innerHTML = (data.service || []).length ? data.service.map(s => `<div class="bg-[var(--bg-input)] border border-[var(--border-color)] rounded-xl p-3 flex justify-between items-center"><div><div class="text-teal-400 font-black text-xs uppercase">${safeText(s.name)} <span class="text-[9px] text-yellow-400">${safeText(s.type)}</span></div><div class="text-[10px] text-[var(--text-muted)] font-bold">${safeText(s.contact || '-')}</div></div><button onclick="deletePCPSupplier('service','${s.id}')" class="text-red-500 font-black">✕</button></div>`).join('') : '<div class="text-slate-500 text-xs font-bold">Nenhum prestador cadastrado.</div>';
+  }
+
 </script>
 </body>
 </html>
