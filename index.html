@@ -7,123 +7,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;700;900&display=swap" rel="stylesheet">
-    
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, serverTimestamp, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyDorV0iFvETAYzmbDENcmPH5n4lA1M1JOQ",
-            authDomain: "layoutpro-3b1ca.firebaseapp.com",
-            projectId: "layoutpro-3b1ca",
-            storageBucket: "layoutpro-3b1ca.firebasestorage.app",
-            messagingSenderId: "902663626254",
-            appId: "1:902663626254:web:2d70c1b85e840dc788e65f",
-            measurementId: "G-Q0269SSXSF"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-
-        window.auth = auth;
-        window.db = db;
-        
-        window.handleLogin = async function() {
-            const email = document.getElementById('loginEmail').value;
-            const pass = document.getElementById('loginPass').value;
-            const error = document.getElementById('loginError');
-            const btn = document.getElementById('btnLogin');
-
-            btn.innerHTML = 'Conectando...';
-            btn.disabled = true;
-
-            try {
-                await signInWithEmailAndPassword(auth, email, pass);
-                document.getElementById('loginOverlay').style.display = 'none';
-                window.showToast("Autenticação Aprovada. Bem-vindo!");
-            } catch (e) {
-                error.classList.remove('hidden');
-                btn.innerHTML = 'Entrar no Sistema';
-                btn.disabled = false;
-            }
-        };
-
-        window.logout = function() {
-            signOut(auth).then(() => {
-                document.getElementById('loginOverlay').style.display = 'flex';
-                window.showToast("Sessão encerrada.");
-            });
-        };
-
-        window.salvarOrcamentoNoBanco = async function(dadosOrcamento) {
-            try {
-                await addDoc(collection(db, "orcamentos"), {
-                    ...dadosOrcamento,
-                    vendedor: {
-                        nome: document.getElementById('vendNome').value || 'TrendWear',
-                        email: auth.currentUser ? auth.currentUser.email : 'desconhecido'
-                    },
-                    dataRegistro: serverTimestamp()
-                });
-                window.showToast("Orçamento sincronizado na nuvem!");
-            } catch (e) {
-                console.error("Erro ao salvar no banco:", e);
-                window.showToast("Erro ao salvar na nuvem.");
-            }
-        };
-
-        window.abrirPainelOrcamentos = async function() {
-            document.getElementById('dashboardOverlay').classList.add('show');
-            const container = document.getElementById('dashboardList');
-            container.innerHTML = '<div class="text-center text-blue-500 font-bold py-10 flex flex-col items-center"><div class="loader-circle mb-4"></div>Carregando histórico...</div>';
-            
-            try {
-                const q = query(collection(db, "orcamentos"), orderBy("dataRegistro", "desc"));
-                const querySnapshot = await getDocs(q);
-                
-                if (querySnapshot.empty) {
-                    container.innerHTML = '<div class="text-center text-[var(--text-muted)] font-bold py-10">Nenhum orçamento encontrado.</div>';
-                    return;
-                }
-
-                container.innerHTML = '';
-                querySnapshot.forEach((doc) => {
-                    const data = doc.data();
-                    const dataFormatada = data.dataRegistro ? new Date(data.dataRegistro.toDate()).toLocaleDateString('pt-BR') : 'Hoje';
-                    
-                    container.innerHTML += `
-                        <div class="bg-[var(--bg-card)] border border-[var(--border-color)] p-5 rounded-xl shadow-md mb-4 flex justify-between items-center transition hover:border-blue-500">
-                            <div>
-                                <div class="text-blue-500 font-black text-[10px] uppercase tracking-widest mb-1">${dataFormatada} • ${data.vendedor.nome}</div>
-                                <div class="text-lg font-black text-[var(--text-main)] uppercase tracking-tighter">${data.cliente}</div>
-                                <div class="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest mt-1">${data.cidade} • CNPJ: ${data.cnpj || 'N/A'}</div>
-                            </div>
-                            <div class="text-right">
-                                <div class="text-2xl font-black text-[var(--text-main)] tracking-tighter">R$ ${data.valorTotal.toFixed(2).replace('.', ',')}</div>
-                                <div class="text-[9px] font-bold text-emerald-500 uppercase tracking-widest bg-emerald-500/10 px-2 py-1 rounded inline-block mt-2">${data.formaPagamento.replace('_', ' ')}</div>
-                            </div>
-                        </div>
-                    `;
-                });
-            } catch (e) {
-                console.error("Erro ao buscar orçamentos:", e);
-                container.innerHTML = '<div class="text-center text-red-500 font-bold py-10">Erro ao carregar dados do banco.</div>';
-            }
-        };
-
-        window.fecharPainelOrcamentos = function() {
-            document.getElementById('dashboardOverlay').classList.remove('show');
-        };
-
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                document.getElementById('loginOverlay').style.display = 'none';
-            }
-        });
-    </script>
     <style>
         /* VARIÁVEIS DE TEMA E TRANSIÇÕES */
         :root {
@@ -190,31 +75,6 @@
 </head>
 <body class="dark-mode">
 
-<div id="loginOverlay" class="fixed inset-0 bg-slate-900 z-[10000] flex items-center justify-center">
-    <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-md text-center">
-        <h2 class="text-3xl font-black italic text-blue-600 mb-6 uppercase tracking-tighter">TrendWear Access</h2>
-        <div class="space-y-4">
-            <input type="email" id="loginEmail" placeholder="E-mail do Vendedor" class="calc-input !text-black !border-slate-300">
-            <input type="password" id="loginPass" placeholder="Senha" class="calc-input !text-black !border-slate-300" onkeypress="if(event.key === 'Enter') handleLogin()">
-            <button id="btnLogin" onclick="handleLogin()" class="w-full bg-blue-600 text-white py-4 rounded-xl font-black uppercase tracking-widest hover:bg-blue-500 transition shadow-lg active:scale-95">Entrar no Sistema</button>
-        </div>
-        <p id="loginError" class="text-red-500 text-xs mt-4 font-bold uppercase hidden">Credenciais Inválidas</p>
-    </div>
-</div>
-
-<div id="dashboardOverlay" class="modal-overlay">
-    <div class="settings-content max-w-4xl">
-        <div class="p-6 border-b border-[var(--border-color)] bg-[var(--bg-modal)] flex justify-between items-center shrink-0">
-            <h2 class="font-black italic uppercase tracking-widest text-lg text-emerald-500">📊 Histórico de Orçamentos B2B</h2>
-            <button onclick="fecharPainelOrcamentos()" class="text-[var(--text-muted)] hover:text-red-500 font-bold text-2xl transition hover:scale-110 active:scale-90">✕</button>
-        </div>
-        <div class="flex-1 overflow-y-auto p-8 bg-[var(--bg-main)]">
-            <div id="dashboardList" class="space-y-2">
-                </div>
-        </div>
-    </div>
-</div>
-
 <div id="toastMsg" class="fixed bottom-10 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white px-6 py-3 rounded-full font-black text-[10px] uppercase tracking-widest shadow-2xl transition-all duration-300 opacity-0 translate-y-10 z-[9999] pointer-events-none">Aviso</div>
 
 <div id="loadingOverlay">
@@ -225,26 +85,31 @@
 
 <div id="homeScreen">
     <div class="absolute top-8 right-8 flex gap-4">
-        <button onclick="logout()" class="text-red-500 hover:text-white transition-all transform hover:scale-110 duration-300 bg-red-500/10 p-3 rounded-full border border-red-500/30" title="Sair da Conta">
-            <span class="text-xs font-black uppercase">Sair</span>
-        </button>
         <button onclick="toggleTheme()" class="text-slate-500 hover:text-blue-500 transition-all transform hover:scale-110 duration-300 bg-slate-800 p-3 rounded-full shadow-lg" title="Alternar Tema">
             <span id="themeIconHome" class="text-xl">☀️</span>
         </button>
+        <button onclick="openCRMDashboard()" class="text-indigo-400 hover:text-white transition-all transform hover:scale-110 duration-300 bg-indigo-500/20 hover:bg-indigo-500 border border-indigo-500/30 p-3 rounded-full shadow-lg flex items-center justify-center font-black text-xs" title="Painel CRM">
+            📊 CRM
+        </button>
         <button onclick="openSettings()" class="text-slate-500 hover:text-white transition-all transform hover:rotate-90 hover:scale-110 duration-300 bg-slate-800 p-3 rounded-full shadow-lg" title="Configurações">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+        </button>
+        <button onclick="logoutApp()" class="text-red-500 hover:text-white transition-all transform hover:scale-110 duration-300 bg-red-500/10 hover:bg-red-500 border border-red-500/30 p-3 rounded-full shadow-lg flex items-center justify-center" title="Sair do Sistema">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
         </button>
     </div>
     <h1 class="text-[5.5rem] leading-none font-black italic tracking-tighter mb-4 text-[var(--text-main)] drop-shadow-2xl animate-slide-up"><span class="text-blue-500">TrendWear</span> LayoutPro</h1>
     <p class="text-slate-500 font-bold tracking-[0.3em] uppercase mb-12 text-sm animate-slide-up">SaaS Architecture • v8.2 Master</p>
     <div class="flex gap-6 animate-slide-up">
-        <button onclick="startApp()" class="bg-blue-600 text-white px-14 py-5 rounded-full font-black uppercase tracking-widest transition-all duration-300 shadow-xl transform hover:scale-105 active:scale-95 hover:bg-blue-500">Criar Novo</button>
+        <button onclick="window.currentQuoteDocId = null; window.quoteUniqueCode = null; document.getElementById('btnGeneratePDF').innerText = 'GERAR PDF'; startApp()" class="bg-blue-600 text-white px-14 py-5 rounded-full font-black uppercase tracking-widest transition-all duration-300 shadow-xl transform hover:scale-105 active:scale-95 hover:bg-blue-500">Criar Novo</button>
         <button onclick="document.getElementById('loadProjectInput').click()" class="bg-[var(--bg-card)] text-[var(--text-main)] border border-[var(--border-color)] px-14 py-5 rounded-full font-black uppercase tracking-widest transition-all duration-300 shadow-xl transform hover:scale-105 active:scale-95 hover:border-blue-500">Abrir Projeto</button>
         <input type="file" id="loadProjectInput" class="hidden" accept=".twp" onchange="loadProjectFile(event)">
     </div>
-    <button onclick="abrirPainelOrcamentos()" class="animate-slide-up text-[10px] font-black uppercase tracking-widest text-emerald-500 border border-emerald-500/30 bg-emerald-500/10 px-8 py-3 rounded-full hover:bg-emerald-500 hover:text-white transition-all mt-6">
-        📊 Painel de Orçamentos
-    </button>
+
+    <div id="homeQuotesWrapper" class="w-full max-w-4xl mt-12 animate-slide-up bg-[var(--bg-card)] p-6 rounded-2xl border border-[var(--border-color)] shadow-xl flex flex-col hidden" style="max-height: 35vh;">
+        <h3 class="text-blue-500 font-black text-xs uppercase tracking-widest mb-4 italic flex items-center gap-2">☁️ Últimos Orçamentos Gerados</h3>
+        <div id="homeQuotesListContainer" class="overflow-y-auto pr-2 space-y-3 flex-1"></div>
+    </div>
 </div>
 
 <div id="settingsModal" class="modal-overlay">
@@ -293,6 +158,9 @@
                 <button onclick="exportConfig()" class="bg-[var(--bg-card)] border border-[var(--border-color)] px-5 py-3 rounded-lg font-bold text-[10px] uppercase text-[var(--text-main)] transition hover:border-blue-500 active:scale-95">⬇️ Exportar .TWC</button>
                 <button onclick="document.getElementById('importConfigInput').click()" class="bg-[var(--bg-card)] border border-[var(--border-color)] px-5 py-3 rounded-lg font-bold text-[10px] uppercase text-[var(--text-main)] transition hover:border-blue-500 active:scale-95">⬆️ Importar .TWC</button>
                 <input type="file" id="importConfigInput" class="hidden" accept=".twc" onchange="importConfig(event)">
+                <button onclick="verificarAtualizacao()" class="ml-4 bg-teal-900/30 text-teal-500 border border-teal-500/50 px-5 py-3 rounded-lg font-bold text-[10px] uppercase flex items-center gap-2 transition hover:bg-teal-600 hover:text-white active:scale-95">
+                    <span id="updateIcon">🔄</span> Update Web
+                </button>
             </div>
             <div class="flex gap-4">
                 <button onclick="closeSettings()" class="bg-red-500/10 text-red-500 border border-red-500/50 px-8 py-3 rounded-lg font-bold text-xs uppercase transition hover:bg-red-500 hover:text-white active:scale-95">Cancelar</button>
@@ -350,6 +218,47 @@
                 <button onclick="applyChromaKey()" class="flex-[2] bg-blue-600 text-white py-4 rounded-lg font-black uppercase text-[10px] tracking-widest shadow-lg hover:bg-blue-500 transition active:scale-95">✅ Confirmar Recorte</button>
             </div>
         </div>
+    </div>
+</div>
+
+<div id="quotesDashboardModal" class="modal-overlay z-[10002]">
+    <div class="bg-[var(--bg-modal)] border border-[var(--border-color)] p-8 rounded-2xl shadow-2xl max-w-2xl w-full flex flex-col max-h-[80vh]">
+        <div class="flex justify-between items-center mb-6 shrink-0">
+            <h3 class="text-blue-500 font-black text-xl uppercase italic tracking-widest flex items-center gap-3">☁️ Banco de Orçamentos</h3>
+            <button onclick="closeQuotesDashboard()" class="text-[var(--text-muted)] hover:text-red-500 font-bold text-2xl transition hover:rotate-90">✕</button>
+        </div>
+        <div id="quotesListContainer" class="flex-1 overflow-y-auto pr-2 space-y-3">
+            </div>
+    </div>
+</div>
+
+<div id="crmDashboardModal" class="modal-overlay z-[10003]">
+    <div class="bg-[var(--bg-modal)] border border-[var(--border-color)] p-8 rounded-2xl shadow-2xl max-w-5xl w-full flex flex-col max-h-[90vh]">
+        <div class="flex justify-between items-center mb-6 shrink-0">
+            <h3 class="text-indigo-400 font-black text-xl uppercase italic tracking-widest flex items-center gap-3">📊 Painel CRM & Vendas</h3>
+            <button onclick="closeCRMDashboard()" class="text-[var(--text-muted)] hover:text-red-500 font-bold text-2xl transition hover:rotate-90">✕</button>
+        </div>
+        
+        <div class="grid grid-cols-3 gap-4 mb-6 shrink-0">
+            <div class="bg-[var(--bg-card)] p-4 rounded-xl border border-[var(--border-color)] flex items-center gap-4 shadow-lg">
+                <div class="w-20 h-20 relative"><canvas id="crmPieChart"></canvas></div>
+                <div>
+                    <div class="text-[10px] text-[var(--text-muted)] font-bold uppercase tracking-widest">Conversão</div>
+                    <div class="text-2xl font-black text-indigo-400" id="crmConvRate">0%</div>
+                </div>
+            </div>
+            <div class="bg-[var(--bg-card)] p-4 rounded-xl border border-[var(--border-color)] flex flex-col justify-center shadow-lg">
+                <div class="text-[10px] text-[var(--text-muted)] font-bold uppercase tracking-widest mb-1">Faturado (Mês Atual)</div>
+                <div class="text-2xl font-black text-emerald-500" id="crmMesFaturado">R$ 0,00</div>
+            </div>
+            <div class="bg-[var(--bg-card)] p-4 rounded-xl border border-[var(--border-color)] flex flex-col justify-center shadow-lg">
+                <div class="text-[10px] text-[var(--text-muted)] font-bold uppercase tracking-widest mb-1">A Receber (Restante)</div>
+                <div class="text-2xl font-black text-yellow-500" id="crmAReceber">R$ 0,00</div>
+            </div>
+        </div>
+
+        <div id="crmListContainer" class="flex-1 overflow-y-auto pr-2 space-y-4">
+            </div>
     </div>
 </div>
 
@@ -438,7 +347,7 @@
                 <button onclick="saveProjectFile()" class="w-full bg-blue-600 py-3 rounded-lg font-black text-[9px] uppercase tracking-widest text-white shadow-lg active:scale-95 hover:bg-blue-500">💾 Salvar .TWP</button>
                 <button onclick="document.getElementById('loadProjectInput_Editor').click()" class="w-full bg-[var(--bg-card)] py-3 rounded-lg font-black text-[9px] uppercase tracking-widest border border-[var(--border-color)] text-[var(--text-main)] transition hover:border-blue-500 active:scale-95">📂 Abrir</button>
             </div>
-            <button onclick="closeProject()" class="w-full bg-red-500/10 py-2 rounded-lg font-black text-[9px] uppercase tracking-widest text-red-500 border border-red-500/30 transition hover:bg-red-500 hover:text-white active:scale-95">Encerrar Sessão</button>
+            <button onclick="closeProject()" class="w-full bg-red-500/10 py-2 rounded-lg font-black text-[9px] uppercase tracking-widest text-red-500 border border-red-500/30 transition hover:bg-red-500 hover:text-white active:scale-95">Voltar para menu</button>
             <input type="file" id="loadProjectInput_Editor" class="hidden" accept=".twp" onchange="loadProjectFile(event)">
         </div>
     </aside>
@@ -454,14 +363,19 @@
                 
                 <button onclick="addNewTab()" class="text-[10px] font-black text-blue-500 uppercase tracking-widest bg-blue-500/10 border border-blue-500/30 px-4 py-2 rounded-lg transition hover:bg-blue-500 hover:text-white active:scale-95">+ Nova Aba</button>
                 <button onclick="clearCanvas()" class="text-[10px] font-black text-red-500 uppercase tracking-widest bg-red-500/10 border border-red-500/30 px-4 py-2 rounded-lg transition hover:bg-red-500 hover:text-white">Limpar</button>
-                <button onclick="toggleCart()" class="bg-blue-600 text-white py-2.5 px-6 rounded-xl flex items-center gap-3 transition-all hover:bg-blue-500 active:scale-95 ml-4 shadow-lg">
+                
+                <button onclick="openCRMDashboard()" class="text-[10px] font-black text-indigo-400 uppercase tracking-widest bg-indigo-500/10 border border-indigo-500/30 px-4 py-2 rounded-lg transition hover:bg-indigo-500 hover:text-white active:scale-95 shadow-sm ml-2">📊 CRM</button>
+                
+                <button onclick="openQuotesDashboard()" class="text-[10px] font-black text-emerald-500 uppercase tracking-widest bg-emerald-500/10 border border-emerald-500/30 px-4 py-2 rounded-lg transition hover:bg-emerald-500 hover:text-white active:scale-95 shadow-sm ml-2">☁️ Banco</button>
+
+                <button onclick="toggleCart()" class="bg-blue-600 text-white py-2.5 px-6 rounded-xl flex items-center gap-3 transition-all hover:bg-blue-500 active:scale-95 ml-2 shadow-lg">
                     <span class="text-lg">🛒</span><span class="text-[10px] font-black uppercase tracking-[0.2em]" id="cartCountBadge">Orc. (0)</span>
                 </button>
             </div>
         </div>
 
         <div class="flex-1 flex flex-col items-center justify-center p-10 relative">
-            <div id="editorToolbar" class="animate-slide-up bg-[var(--bg-card)] text-[var(--text-main)] border border-[var(--border-color)] rounded-xl shadow-2xl flex items-center gap-3 px-5 py-2 absolute top-6 z-[100]" style="display: none;">
+            <div id="editorToolbar" class="animate-slide-up bg-[var(--bg-card)] text-[var(--text-main)] border border-[var(--border-color)] rounded-xl shadow-2xl flex items-center gap-3 px-5 py-2 absolute top-6 z-[100]">
                 <button id="lockBtn" onclick="toggleLock()" class="border border-[var(--border-color)] bg-[var(--bg-input)] px-3 py-1.5 rounded-lg text-[10px] font-bold hover:border-blue-500 transition">🔓 Solto</button>
                 <div class="w-px h-6 bg-[var(--border-color)] mx-1"></div>
                 
@@ -549,8 +463,11 @@
     let cart = []; let tabs = []; let currentTabId = null;
     let currentView = 'frente'; let shirtImageNode = null; let selectedNode = null;
     
-    // VARIÁVEL PARA O COPY/PASTE
+    // VARIÁVEIS PARA CÓDIGO ÚNICO E DB
     let clipboardNodeData = null;
+    window.quoteUniqueCode = null;
+    window.currentQuoteDocId = null;
+    window.crmChartInstance = null;
 
     // VARIÁVEIS DA VARINHA MÁGICA
     let chromaOriginalImage = null; 
@@ -566,10 +483,9 @@
         if(!id) return ''; 
         const match = id.match(/[-\w]{25,}/); 
         const cleanId = match ? match[0] : id;
-        return `https://lh3.googleusercontent.com/d/$${cleanId}`; 
+        return `https://lh3.googleusercontent.com/d/${cleanId}`; 
     }
 
-    // AVISO POPUP RÁPIDO
     window.showToast = (msg) => {
         const t = document.getElementById('toastMsg');
         t.innerText = msg;
@@ -581,6 +497,16 @@
         }, 2000);
     };
 
+    function setLocalDataOrcamento() {
+        const hoje = new Date();
+        const dia = String(hoje.getDate()).padStart(2, '0');
+        const mes = String(hoje.getMonth() + 1).padStart(2, '0');
+        const ano = hoje.getFullYear();
+        const dataLocal = `${ano}-${mes}-${dia}`;
+        const inputData = document.getElementById('orcData');
+        if(inputData) inputData.value = dataLocal;
+    }
+
     let isLightMode = false;
     function toggleTheme() {
         isLightMode = !isLightMode;
@@ -591,6 +517,20 @@
         designLayer.find('.editable').filter(n => n.attrs.type === 'text').forEach(n => { if(n.fill() === '#fff' || n.fill() === '#000') { n.fill(isLightMode ? '#000' : '#fff'); } }); designLayer.draw();
     }
 
+    window.updateCanvasBackground = () => {
+        const color = document.getElementById('canvasBgColor').value;
+        document.getElementById('canvas-parent').style.backgroundColor = color;
+        if(currentTabId) {
+            const t = tabs.find(x => x.id === currentTabId);
+            if(t) t.canvasBg = color;
+            saveCurrentTabState();
+        }
+    };
+    window.resetCanvasBg = () => {
+        document.getElementById('canvasBgColor').value = '#ffffff';
+        updateCanvasBackground();
+    };
+
     const stage = new Konva.Stage({ container: 'canvas-parent', width: 500, height: 600 });
     const productLayer = new Konva.Layer(); const designLayer = new Konva.Layer(); const guideLayer = new Konva.Layer();
     stage.add(productLayer, designLayer, guideLayer);
@@ -599,9 +539,6 @@
     const vLine = new Konva.Line({ points: [250, 0, 250, 600], stroke: '#3b82f6', strokeWidth: 1.5, dash: [6, 4], visible: false }); 
     guideLayer.add(vLine);
 
-    // ==========================================
-    // ZOOM PELO MOUSE SCROLL & PANNING DA TELA
-    // ==========================================
     stage.on('wheel', (e) => {
         e.evt.preventDefault();
         const oldScale = stage.scaleX();
@@ -621,7 +558,7 @@
     let lastPanPos = { x: 0, y: 0 };
 
     stage.on('mousedown', (e) => {
-        if (e.evt.button === 1) { // Click scroll (meio)
+        if (e.evt.button === 1) { 
             e.evt.preventDefault();
             isPanningCanvas = true;
             lastPanPos = { x: e.evt.clientX, y: e.evt.clientY };
@@ -655,9 +592,6 @@
         showToast("Visualização Centralizada");
     };
 
-    // ==========================================
-    // NOVO MOTOR CHROMA KEY ACUMULATIVO (ROSA)
-    // ==========================================
     function setChromaMode(m) {
         chromaMode = m;
         document.getElementById('modeGlobal').className = m==='global'?'mode-btn active':'mode-btn';
@@ -807,7 +741,12 @@
         const fabSel = document.getElementById('calcFabric'); if(fabSel) { fabSel.innerHTML = ''; CONFIG.listaTecidos.forEach(fab => { fabSel.innerHTML += `<option value="${fab}">${fab}</option>`; }); }
     }
 
-    function startApp() { if (tabs.length === 0) initTabs(); document.getElementById('homeScreen').style.opacity = '0'; setTimeout(() => { document.getElementById('homeScreen').style.visibility = 'hidden'; }, 500); }
+    function startApp() { 
+        if (tabs.length === 0) initTabs(); 
+        setLocalDataOrcamento();
+        document.getElementById('homeScreen').style.opacity = '0'; 
+        setTimeout(() => { document.getElementById('homeScreen').style.visibility = 'hidden'; }, 500); 
+    }
 
     function showModal(title, text, confirmCallback, isDestructive = false) { 
         document.getElementById('modalTitle').innerText = title; document.getElementById('modalText').innerText = text; 
@@ -835,7 +774,6 @@
         renderCatalogSettings(); renderPricingMatrix(); document.getElementById('settingsModal').classList.add('show');
     }
     function closeSettings() { document.getElementById('settingsModal').classList.remove('show'); }
-
     function renderFabricPills() { const c = document.getElementById('fabricPillsList'); c.innerHTML = ''; CONFIG.listaTecidos.forEach(f => { c.innerHTML += `<div class="bg-[var(--bg-input)] text-[var(--text-main)] text-[10px] font-black px-4 py-2 rounded-lg flex items-center gap-2 border border-[var(--border-color)]">${f} <button onclick="deleteFabric('${f}')" class="text-red-500 ml-2 transition hover:scale-125">✕</button></div>`; }); }
     function addFabric() { const v = document.getElementById('newFabricInput').value.trim().toUpperCase(); if(v && !CONFIG.listaTecidos.includes(v)) { CONFIG.listaTecidos.push(v); Object.keys(CONFIG.catalogo).forEach(m => { CONFIG.precos[`${m}_${v}`] = 0; }); document.getElementById('newFabricInput').value = ''; renderFabricPills(); renderPricingMatrix(); } }
     function deleteFabric(f) { if(CONFIG.listaTecidos.length > 1 && confirm(`Remover o tecido ${f}?`)) { CONFIG.listaTecidos = CONFIG.listaTecidos.filter(t => t !== f); Object.keys(CONFIG.catalogo).forEach(m => { delete CONFIG.precos[`${m}_${f}`]; }); renderFabricPills(); renderPricingMatrix(); } }
@@ -856,10 +794,8 @@
             </div>`;
         });
     }
-
     function addCatalogRow() { const newKey = 'prod_' + Date.now(); CONFIG.catalogo[newKey] = { nome: 'Novo Modelo', fId: '', cId: '' }; CONFIG.listaTecidos.forEach(f => { CONFIG.precos[`${newKey}_${f}`] = 0; }); renderCatalogSettings(); renderPricingMatrix(); }
     function deleteCatalogRow(key) { if(Object.keys(CONFIG.catalogo).length > 1 && confirm('Excluir modelo?')) { delete CONFIG.catalogo[key]; CONFIG.listaTecidos.forEach(f => { delete CONFIG.precos[`${key}_${f}`]; }); renderCatalogSettings(); renderPricingMatrix(); } }
-    
     function renderPricingMatrix() {
         const table = document.getElementById('pricingMatrixTable');
         let html = `<thead><tr><th class="p-3 text-[10px] text-[var(--text-muted)] italic font-medium sticky left-0 z-20 w-48 text-left bg-[var(--bg-card)]">Modelo Configurado</th>`;
@@ -872,7 +808,6 @@
             html += `</tr>`;
         }); html += `</tbody>`; table.innerHTML = html;
     }
-
     function saveSettings() {
         Object.keys(CONFIG.catalogo).forEach(k => { if(document.getElementById(`cat_nome_${k}`)) { CONFIG.catalogo[k].nome = document.getElementById(`cat_nome_${k}`).value; CONFIG.catalogo[k].fId = document.getElementById(`cat_fId_${k}`).value; CONFIG.catalogo[k].cId = document.getElementById(`cat_cId_${k}`).value; } });
         Object.keys(CONFIG.catalogo).forEach(m => { CONFIG.listaTecidos.forEach(f => { const input = document.getElementById(`matriz_${m}_${f}`); if(input) CONFIG.precos[`${m}_${f}`] = parseFloat(input.value) || 0; }); });
@@ -881,11 +816,11 @@
         CONFIG.bordado.matriz = parseFloat(document.getElementById('cfg_bor_m').value); CONFIG.bordado.pequena = parseFloat(document.getElementById('cfg_bor_p').value); CONFIG.bordado.grande = parseFloat(document.getElementById('cfg_bor_g').value);
         localStorage.setItem('trendwear_master_config', JSON.stringify(CONFIG)); rebuildDynamicDropdowns(); 
         if (currentTabId) { const tab = tabs.find(t => t.id === currentTabId); if (!CONFIG.catalogo[tab.model]) tab.model = Object.keys(CONFIG.catalogo)[0]; if (!CONFIG.listaTecidos.includes(tab.fabric)) tab.fabric = CONFIG.listaTecidos[0]; document.getElementById('modelSelect').value = tab.model; document.getElementById('calcFabric').value = tab.fabric; syncModel(); syncArtes(); }
-        closeSettings(); showToast("Configurações salvas!");
+        closeSettings(); showModal("Salvo", "Configurações salvas localmente com sucesso.", () => {});
     }
 
     function exportConfig() { const b = new Blob([JSON.stringify(CONFIG)], { type: "application/json" }); const u = URL.createObjectURL(b); const l = document.createElement('a'); l.href = u; l.download = `TW_v8_Config.twc`; l.click(); }
-    function importConfig(e) { const f = e.target.files[0]; if(!f) return; const r = new FileReader(); r.onload = (ev) => { try { const i = JSON.parse(ev.target.result); if(i.catalogo){ CONFIG = i; localStorage.setItem('trendwear_master_config', JSON.stringify(CONFIG)); openSettings(); rebuildDynamicDropdowns(); if(currentTabId) syncModel(); showToast("Sucesso: Configuração importada."); } } catch(err){ showToast("Erro: Arquivo inválido."); } }; r.readAsText(f); e.target.value = ''; }
+    function importConfig(e) { const f = e.target.files[0]; if(!f) return; const r = new FileReader(); r.onload = (ev) => { try { const i = JSON.parse(ev.target.result); if(i.catalogo){ CONFIG = i; localStorage.setItem('trendwear_master_config', JSON.stringify(CONFIG)); openSettings(); rebuildDynamicDropdowns(); if(currentTabId) syncModel(); showModal("Sucesso", "Configuração importada.", () => {}); } } catch(err){ showModal("Erro", "Arquivo inválido.", () => {}); } }; r.readAsText(f); e.target.value = ''; }
 
     function initTabs() { if(tabs.length === 0) addNewTab(); else renderTabs(); }
     function addNewTab() { saveCurrentTabState(); const newId = 'tab_' + Date.now(); tabs.push({ id: newId, name: `Canva ${tabs.length + 1}`, model: Object.keys(CONFIG.catalogo)[0], fabric: CONFIG.listaTecidos[0], color: '#ffffff', canvasBg: '#ffffff', brightness: 0, qty: 10, discount: 0, nodes: [], history: [] }); switchTab(newId); }
@@ -898,19 +833,28 @@
         if(!document.querySelector(`#calcFabric option[value="${t.fabric}"]`)) t.fabric = CONFIG.listaTecidos[0];
         document.getElementById('modelSelect').value = t.model; 
         document.getElementById('calcFabric').value = t.fabric; 
-        document.getElementById('shirtColor').value = t.color; 
-        document.getElementById('brightnessSlider').value = t.brightness; 
-        document.getElementById('calcQty').value = t.qty; 
-        document.getElementById('manualDiscount').value = t.discount;
+        document.getElementById('shirtColor').value = t.color || '#ffffff'; 
+        document.getElementById('brightnessSlider').value = t.brightness !== undefined ? t.brightness : 0; 
+        document.getElementById('calcQty').value = t.qty || 10; 
+        document.getElementById('manualDiscount').value = t.discount || 0;
         document.getElementById('canvasBgColor').value = t.canvasBg || '#ffffff';
         document.getElementById('canvas-parent').style.backgroundColor = t.canvasBg || '#ffffff';
+        
         designLayer.find('.editable').forEach(n => n.destroy()); tr.nodes([]);
+        
         t.nodes.forEach(d => { 
-            const n = Konva.Node.create(d); setupEvents(n); designLayer.add(n); 
-            if (n.attrs.type === 'image' && n.attrs.src) { 
+            const parsedNode = typeof d === 'string' ? JSON.parse(d) : d;
+            const imgSrc = parsedNode.attrs ? parsedNode.attrs.src : null;
+            
+            const n = Konva.Node.create(d); 
+            setupEvents(n); 
+            designLayer.add(n); 
+            
+            if (n.attrs.type === 'image' && imgSrc) { 
+                n.setAttr('src', imgSrc);
                 const img = new Image(); img.crossOrigin = "Anonymous"; 
                 img.onload = () => { n.image(img); designLayer.batchDraw(); }; 
-                img.src = n.attrs.src; 
+                img.src = imgSrc; 
             } 
         });
         currentView = 'frente'; document.getElementById('btnFrente').className='view-btn view-active'; document.getElementById('btnCostas').className='view-btn'; renderTabs(); syncModel(); syncArtes();
@@ -930,6 +874,7 @@
             tabs = []; currentTabId = null;
             document.getElementById('homeScreen').style.visibility = 'visible'; document.getElementById('homeScreen').style.opacity = '1';
             productLayer.destroyChildren(); designLayer.find('.editable').forEach(n => n.destroy()); tr.nodes([]); stage.batchDraw();
+            if(window.loadHomeQuotes) window.loadHomeQuotes();
             return; 
         }
         tabs = tabs.filter(t => t.id !== id);
@@ -940,8 +885,10 @@
 
     function toggleCart() { document.getElementById('cartDrawer').classList.toggle('open'); }
     function clearCanvas() { showModal("Limpar Layout", "Remover todas as logos e textos?", () => { saveHistory(); designLayer.find('.editable').forEach(n => n.destroy()); tr.nodes([]); saveHistory(); syncArtes(); updateBudget(); }, true); }
-    function emptyCart() { showModal("Esvaziar", "Apagar orçamento atual?", () => { cart = []; renderCart(); }, true); }
-    function closeProject() { document.getElementById('homeScreen').style.visibility = 'visible'; document.getElementById('homeScreen').style.opacity = '1'; }
+    
+    function emptyCart() { showModal("Esvaziar", "Apagar os itens do carrinho atual?", () => { cart = []; renderCart(); }, true); }
+    
+    function closeProject() { document.getElementById('homeScreen').style.visibility = 'visible'; document.getElementById('homeScreen').style.opacity = '1'; if(window.loadHomeQuotes) window.loadHomeQuotes(); }
 
     async function addToCart() {
         saveCurrentTabState(); const t = tabs.find(x => x.id === currentTabId); const btn = document.getElementById('btnAddCart'); const old = btn.innerHTML; btn.innerHTML = `${spinnerSVG} Processando...`; btn.disabled = true;
@@ -953,13 +900,64 @@
     function renderCart() {
         const c = document.getElementById('cartItemsContainer'); c.innerHTML = ''; let sum = 0;
         if(cart.length === 0) c.innerHTML = '<div class="text-center text-[var(--text-muted)] text-xs font-bold mt-10">Carrinho vazio.</div>';
-        cart.forEach((i) => { sum += i.totalNum; const d = document.createElement('div'); d.className = 'bg-[var(--bg-card)] p-4 rounded-xl border border-[var(--border-color)] relative shadow-md transition hover:border-blue-500'; d.innerHTML = `<button onclick="removeCartItem(${i.id})" class="absolute top-2 right-2 text-[var(--text-muted)] hover:text-red-500 font-bold text-xs p-1 transition">✕</button><div class="flex gap-4 items-center"><img src="${i.fImg}" class="w-16 h-16 object-contain bg-[var(--bg-input)] rounded-lg p-1 border border-[var(--border-color)]"><div><div class="text-[9px] font-black text-blue-500 uppercase tracking-widest mb-1">${i.tabName}</div><div class="text-[11px] font-black text-[var(--text-main)] leading-tight mb-1">${i.model}</div><div class="text-[9px] text-[var(--text-muted)] uppercase font-bold">${i.qty} un. em ${i.fabric}</div><div class="text-sm font-black text-[var(--text-main)] mt-2">${i.totalStr}</div></div></div>`; c.appendChild(d); });
+        cart.forEach((i) => { sum += i.totalNum; const d = document.createElement('div'); d.className = 'bg-[var(--bg-card)] p-4 rounded-xl border border-[var(--border-color)] relative shadow-md transition hover:border-blue-500'; d.innerHTML = `<button onclick="removeCartItem(${i.id})" class="absolute top-2 right-2 text-[var(--text-muted)] hover:text-red-500 font-bold text-xs p-1 transition">✕</button><div class="flex gap-4 items-center"><img src="${i.fImg || 'https://via.placeholder.com/150?text=S%2F+Imagem'}" class="w-16 h-16 object-contain bg-[var(--bg-input)] rounded-lg p-1 border border-[var(--border-color)]"><div><div class="text-[9px] font-black text-blue-500 uppercase tracking-widest mb-1">${i.tabName}</div><div class="text-[11px] font-black text-[var(--text-main)] leading-tight mb-1">${i.model}</div><div class="text-[9px] text-[var(--text-muted)] uppercase font-bold">${i.qty} un. em ${i.fabric}</div><div class="text-sm font-black text-[var(--text-main)] mt-2">${i.totalStr}</div></div></div>`; c.appendChild(d); });
         const pix = document.getElementById('condPagto').value === 'PIX'; const g = pix ? sum * 0.95 : sum;
         document.getElementById('cartCountBadge').innerText = `Orçamento (${cart.length})`; document.getElementById('cartTotalDisplay').innerText = `R$ ${g.toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g, ".")}`;
     }
     function removeCartItem(id) { cart = cart.filter(i => i.id !== id); renderCart(); }
-    function saveProjectFile() { saveCurrentTabState(); const d = { version: '8.2', client: { vendNome: document.getElementById('vendNome').value, cliNome: document.getElementById('cliNome').value, cliTel: document.getElementById('cliTel').value, orcData: document.getElementById('orcData').value, condPagto: document.getElementById('condPagto').value, cliCnpj: document.getElementById('cliCnpj').value, cliEnd: document.getElementById('cliEnd').value, cliCidade: document.getElementById('cliCidade').value, cliEmail: document.getElementById('cliEmail').value, orcValidade: document.getElementById('orcValidade').value, orcPrazo: document.getElementById('orcPrazo').value }, cart: cart, tabs: tabs }; const b = new Blob([JSON.stringify(d)], { type: "application/json" }); const u = URL.createObjectURL(b); const l = document.createElement('a'); l.href = u; l.download = `Projeto_${document.getElementById('cliNome').value || 'TrendWear'}.twp`; l.click(); }
-    function loadProjectFile(e) { const f = e.target.files[0]; if(!f) return; const r = new FileReader(); r.onload = (ev) => { try { const d = JSON.parse(ev.target.result); if(d.tabs) { tabs = d.tabs; cart = d.cart || []; if(d.client) { document.getElementById('vendNome').value = d.client.vendNome || ''; document.getElementById('cliNome').value = d.client.cliNome || ''; document.getElementById('cliTel').value = d.client.cliTel || ''; document.getElementById('orcData').value = d.client.orcData || ''; document.getElementById('condPagto').value = d.client.condPagto || '50_50'; document.getElementById('cliCnpj').value = d.client.cliCnpj || ''; document.getElementById('cliEnd').value = d.client.cliEnd || ''; document.getElementById('cliCidade').value = d.client.cliCidade || ''; document.getElementById('cliEmail').value = d.client.cliEmail || ''; document.getElementById('orcValidade').value = d.client.orcValidade || '10 dias'; document.getElementById('orcPrazo').value = d.client.orcPrazo || '15 dias úteis'; } renderCart(); switchTab(tabs[0].id); startApp(); } } catch(err){ showToast("Erro: Arquivo corrompido."); } }; r.readAsText(f); e.target.value = ''; }
+    
+    function saveProjectFile() { 
+        saveCurrentTabState(); 
+        const d = { 
+            version: '8.2', 
+            quoteCode: window.quoteUniqueCode,
+            firebaseId: window.currentQuoteDocId,
+            client: { vendNome: document.getElementById('vendNome').value, cliNome: document.getElementById('cliNome').value, cliTel: document.getElementById('cliTel').value, orcData: document.getElementById('orcData').value, condPagto: document.getElementById('condPagto').value, cliCnpj: document.getElementById('cliCnpj').value, cliEnd: document.getElementById('cliEnd').value, cliCidade: document.getElementById('cliCidade').value, cliEmail: document.getElementById('cliEmail').value, orcValidade: document.getElementById('orcValidade').value, orcPrazo: document.getElementById('orcPrazo').value }, 
+            cart: cart, 
+            tabs: tabs 
+        }; 
+        const b = new Blob([JSON.stringify(d)], { type: "application/json" }); 
+        const u = URL.createObjectURL(b); 
+        const l = document.createElement('a'); 
+        l.href = u; 
+        l.download = `Projeto_${document.getElementById('cliNome').value || 'TrendWear'}.twp`; 
+        l.click(); 
+    }
+    
+    function loadProjectFile(e) { 
+        const f = e.target.files[0]; if(!f) return; const r = new FileReader(); 
+        r.onload = (ev) => { 
+            try { 
+                const d = JSON.parse(ev.target.result); 
+                if(d.tabs) { 
+                    tabs = d.tabs; cart = d.cart || []; 
+                    if(d.client) { 
+                        document.getElementById('vendNome').value = d.client.vendNome || ''; 
+                        document.getElementById('cliNome').value = d.client.cliNome || ''; 
+                        document.getElementById('cliTel').value = d.client.cliTel || ''; 
+                        setLocalDataOrcamento(); 
+                        document.getElementById('condPagto').value = d.client.condPagto || '50_50'; 
+                        document.getElementById('cliCnpj').value = d.client.cliCnpj || ''; 
+                        document.getElementById('cliEnd').value = d.client.cliEnd || ''; 
+                        document.getElementById('cliCidade').value = d.client.cliCidade || ''; 
+                        document.getElementById('cliEmail').value = d.client.cliEmail || ''; 
+                        document.getElementById('orcValidade').value = d.client.orcValidade || '10 dias'; 
+                        document.getElementById('orcPrazo').value = d.client.orcPrazo || '15 dias úteis'; 
+                    } 
+                    
+                    window.currentQuoteDocId = d.firebaseId || null;
+                    window.quoteUniqueCode = d.quoteCode || null;
+                    
+                    renderCart(); 
+                    document.getElementById('btnGeneratePDF').innerText = window.currentQuoteDocId ? 'ATUALIZAR ORÇAMENTO' : 'GERAR PDF'; 
+                    switchTab(tabs[0].id); 
+                    startApp(); 
+                } 
+            } catch(err){ showModal("Erro", "Arquivo corrompido.", ()=>{}); } 
+        }; 
+        r.readAsText(f); 
+        e.target.value = ''; 
+    }
 
     function setupEvents(n) {
         n.on('dragmove', () => { const w = n.width()*n.scaleX(); const cX = n.x()+(n.offsetX()===0?w/2:0); if(n.attrs.lockedCenter||Math.abs(cX-250)<15){n.x(250-(n.offsetX()===0?w/2:0)); vLine.show();} else vLine.hide(); guideLayer.batchDraw(); });
@@ -1011,7 +1009,15 @@
         }); 
     }
     
-    function updateShirtColor() { if(shirtImageNode) { const c = document.getElementById('shirtColor').value; const b = parseFloat(document.getElementById('brightnessSlider').value); shirtImageNode.red(parseInt(c.slice(1,3),16)).green(parseInt(c.slice(3,5),16)).blue(parseInt(c.slice(5,7),16)).value(b).cache(); productLayer.batchDraw(); saveCurrentTabState(); } }
+    function updateShirtColor() { 
+        if(shirtImageNode) { 
+            const c = document.getElementById('shirtColor').value || '#ffffff'; 
+            const b = parseFloat(document.getElementById('brightnessSlider').value) || 0; 
+            shirtImageNode.red(parseInt(c.slice(1,3),16)).green(parseInt(c.slice(3,5),16)).blue(parseInt(c.slice(5,7),16)).value(b).cache(); 
+            productLayer.batchDraw(); 
+            saveCurrentTabState(); 
+        } 
+    }
     
     function applyZoom() { 
         const z = parseFloat(document.getElementById('zoomSlider').value); 
@@ -1035,7 +1041,15 @@
                 const maxD = 150; let sc = 1; 
                 if(i.width > maxD || i.height > maxD) { sc = Math.min(maxD / i.width, maxD / i.height); } 
                 const w = i.width * sc; const h = i.height * sc; 
-                const n = new Konva.Image({ image: i, x: 250, y: 200, width: w, height: h, draggable: true, name: 'editable', face: currentView, type: 'image', id: 'obj-'+Date.now(), src: ev.target.result }); 
+                
+                const tempCanvas = document.createElement('canvas');
+                tempCanvas.width = w; tempCanvas.height = h;
+                const ctx = tempCanvas.getContext('2d');
+                ctx.drawImage(i, 0, 0, w, h);
+                const compressedSrc = tempCanvas.toDataURL('image/png');
+
+                const n = new Konva.Image({ image: i, x: 250, y: 200, width: w, height: h, draggable: true, name: 'editable', face: currentView, type: 'image', id: 'obj-'+Date.now() }); 
+                n.setAttr('src', compressedSrc);
                 n.offsetX(w / 2); setupEvents(n); designLayer.add(n); select(n); syncArtes(); saveHistory(); 
             };
             i.src = ev.target.result; 
@@ -1085,7 +1099,7 @@
                 const oldOp = selectedNode.opacity();
                 selectedNode.opacity(0.3); designLayer.draw();
                 setTimeout(() => { selectedNode.opacity(oldOp); designLayer.draw(); }, 150);
-                window.showToast("Arte Copiada!");
+                showToast("Arte Copiada!");
             }
         }
 
@@ -1114,7 +1128,7 @@
                 syncArtes();
                 saveHistory();
                 updateVisibility();
-                window.showToast("Arte Colada em: " + currentView.toUpperCase());
+                showToast("Arte Colada em: " + currentView.toUpperCase());
             }
         }
 
@@ -1159,62 +1173,56 @@
     async function generateFinalPDF() {
         if(cart.length === 0) { showModal("Aviso", "Adicione modelos ao orçamento para gerar o PDF.", ()=>{}); return; }
         const btn = document.getElementById('btnGeneratePDF'); const old = btn.innerHTML; btn.innerHTML = `Compilando PDF...`; btn.disabled = true; 
-        const { jsPDF } = window.jspdf; const doc = new jsPDF();
         
+        if(!window.quoteUniqueCode) {
+            window.quoteUniqueCode = 'TW-' + Date.now().toString(36).toUpperCase();
+        }
+
+        const { jsPDF } = window.jspdf; const doc = new jsPDF();
         doc.setFillColor(15, 15, 15); doc.ellipse(100, -10, 150, 40, 'F'); doc.setFillColor(60, 60, 60); doc.ellipse(150, -5, 120, 30, 'F'); 
         doc.setTextColor(15, 15, 15); doc.setFont("helvetica", "bold"); doc.setFontSize(36); doc.text("PROPOSTA B2B", 20, 50); 
-        doc.setFontSize(9); doc.setTextColor(80); 
         
         const dateInput = document.getElementById('orcData').value; const dataFormatada = dateInput ? dateInput.split('-').reverse().join('/') : new Date().toLocaleDateString('pt-BR'); 
-        doc.text(`Data: ${dataFormatada}`, 140, 45); doc.text(`Validade: ${document.getElementById('orcValidade').value || '10 dias'}`, 140, 50); 
+        
+        doc.setFontSize(9); doc.setTextColor(80); 
+        doc.text(`Data: ${dataFormatada}`, 140, 40);
+        doc.text(`Validade: ${document.getElementById('orcValidade').value || '10 dias'}`, 140, 45); 
+        doc.text(`CÓDIGO: ${window.quoteUniqueCode}`, 140, 50);
+
         doc.setFontSize(9); doc.setTextColor(0); 
-        
-        const fields = [ 
-            { l: "Cliente / Razão:", v: document.getElementById('cliNome').value }, 
-            { l: "CNPJ / CPF:", v: document.getElementById('cliCnpj').value }, 
-            { l: "Endereço:", v: `${document.getElementById('cliEnd').value} ${document.getElementById('cliCidade').value ? '- ' + document.getElementById('cliCidade').value : ''}` }, 
-            { l: "Contato:", v: `${document.getElementById('cliTel').value} ${document.getElementById('cliEmail').value ? '| ' + document.getElementById('cliEmail').value : ''}` }, 
-            { l: "Consultor Comercial:", v: document.getElementById('vendNome').value } 
-        ]; 
-        
+        const fields = [ { l: "Cliente / Razão:", v: document.getElementById('cliNome').value }, { l: "CNPJ / CPF:", v: document.getElementById('cliCnpj').value }, { l: "Endereço:", v: `${document.getElementById('cliEnd').value} ${document.getElementById('cliCidade').value ? '- ' + document.getElementById('cliCidade').value : ''}` }, { l: "Contato:", v: `${document.getElementById('cliTel').value} ${document.getElementById('cliEmail').value ? '| ' + document.getElementById('cliEmail').value : ''}` }, { l: "Consultor Comercial:", v: document.getElementById('vendNome').value } ]; 
         let curY = 65; fields.forEach(f => { doc.setFont("helvetica", "bold"); doc.text(f.l, 20, curY); doc.setFont("helvetica", "normal"); doc.text(f.v || "______________________________________________________", 55, curY); curY += 7; });
         let sumTotal = 0; let tableData = cart.map(i => { sumTotal += i.totalNum; return [ `${i.model}\n(${i.tabName})`, i.fabric, i.qty, i.unitStr, i.totalStr ]; }); 
         const isPix = document.getElementById('condPagto').value === 'PIX'; const finalGlobal = isPix ? sumTotal * 0.95 : sumTotal; 
-        
         doc.autoTable({ startY: curY + 5, head: [['MODELO', 'TECIDO', 'QTD', 'UNITÁRIO', 'SUBTOTAL']], body: tableData, theme: 'grid', headStyles: { fillColor: [20, 20, 20] }, styles: { fontSize: 8, cellPadding: 3, halign: 'center' }, columnStyles: { 0: { halign: 'left' } } }); 
         const finalY = doc.lastAutoTable.finalY + 10; 
-        
         doc.setFont("helvetica", "bold"); doc.text("Condições Comerciais:", 20, finalY); doc.setFont("helvetica", "normal"); doc.text(`Pagamento: ${document.getElementById('condPagto').options[document.getElementById('condPagto').selectedIndex].text}`, 20, finalY + 6); doc.text(`Prazo Confecção: ${document.getElementById('orcPrazo').value || '--'}`, 20, finalY + 12); 
         doc.setFillColor(240); doc.rect(130, finalY - 5, 60, 15, 'F'); doc.setFont("helvetica", "bold"); doc.setFontSize(12); doc.text(`TOTAL: R$ ${finalGlobal.toFixed(2).replace('.',',')}`, 135, finalY + 5); 
         doc.setFontSize(8); doc.setTextColor(120); doc.setFont("helvetica", "normal"); doc.text("Gerado por TrendWear LayoutPro", 20, 280); doc.setFontSize(14); doc.setFont("helvetica", "bold"); doc.setTextColor(20); doc.text("TrendWear", 165, 280);
-        
         for(let i=0; i<cart.length; i++) { 
             doc.addPage(); const bgAnexo = cart[i].canvasBg || '#ffffff';
             doc.setFillColor(bgAnexo); doc.rect(0, 0, 210, 297, 'F');
             doc.setFillColor(20, 20, 20); doc.rect(0, 0, 210, 15, 'F'); 
             doc.setTextColor(255); doc.setFontSize(14); doc.text(`ANEXO DE PRODUÇÃO - ${cart[i].tabName}`, 20, 10); 
-            doc.addImage(cart[i].fImg, 'PNG', 15, 30, 85, 105); doc.addImage(cart[i].cImg, 'PNG', 110, 30, 85, 105); 
+            
+            const formatF = cart[i].fImg && cart[i].fImg.includes('image/jpeg') ? 'JPEG' : 'PNG';
+            const formatC = cart[i].cImg && cart[i].cImg.includes('image/jpeg') ? 'JPEG' : 'PNG';
+            
+            if(cart[i].fImg) doc.addImage(cart[i].fImg, formatF, 15, 30, 85, 105); 
+            if(cart[i].cImg) doc.addImage(cart[i].cImg, formatC, 110, 30, 85, 105); 
+            
             doc.setDrawColor(150); doc.line(40, 260, 170, 260); doc.setTextColor(80); doc.setFontSize(9); doc.setFont("helvetica", "normal"); 
             doc.text("Aprovação do Cliente (Assinatura)", 105, 265, { align: "center" }); 
         } 
-        doc.save(`TrendWear_Proposta_${document.getElementById('cliNome').value || 'B2B'}.pdf`); btn.innerHTML = old; btn.disabled = false; toggleCart();
-
-        if (window.salvarOrcamentoNoBanco) {
-            window.salvarOrcamentoNoBanco({
-                cliente: document.getElementById('cliNome').value || 'Não Informado',
-                cnpj: document.getElementById('cliCnpj').value || '',
-                cidade: document.getElementById('cliCidade').value || '',
-                valorTotal: finalGlobal,
-                formaPagamento: document.getElementById('condPagto').value,
-                itens: cart.map(i => ({ modelo: i.model, tecido: i.fabric, qtd: i.qty, subtotal: i.totalNum }))
-            });
+        doc.save(`TrendWear_Proposta_${document.getElementById('cliNome').value || 'B2B'}.pdf`); 
+        
+        btn.disabled = false; toggleCart();
+        
+        if(window.saveQuoteToFirebase) {
+            window.saveQuoteToFirebase(cart, finalGlobal, tabs);
+        } else {
+            btn.innerHTML = old;
         }
-    }
-
-    // NOVA FUNÇÃO DE IMAGEM APONTANDO PARA O REPOSITÓRIO GITHUB
-    function getDirectLink(id) { 
-        if(!id) return ''; 
-        return "https://raw.githubusercontent.com/smtrendwear-droid/TrendWear-LayoutPro/main/mockups/" + id; 
     }
 
     function preload() { 
@@ -1235,6 +1243,501 @@
         setTimeout(finishLoad, 4000);
     }
     window.onload = preload;
+</script>
+
+<div id="firebaseAuthOverlay" style="position: fixed; inset: 0; background: #0f172a; z-index: 999999; display: flex; flex-direction: column; align-items: center; justify-content: center; font-family: 'Montserrat', sans-serif;">
+    <div style="background: #1e293b; padding: 40px; border-radius: 16px; border: 1px solid #334155; width: 100%; max-width: 400px; text-align: center; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);">
+        <h2 style="color: #3b82f6; font-size: 24px; font-weight: 900; font-style: italic; text-transform: uppercase; margin-bottom: 24px;">Acesso Restrito</h2>
+        <input type="email" id="fbEmail" placeholder="E-mail de Acesso" style="width: 100%; padding: 12px; margin-bottom: 16px; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 8px; outline: none; box-sizing: border-box; font-family: 'Montserrat', sans-serif;">
+        <input type="password" id="fbPass" placeholder="Senha" style="width: 100%; padding: 12px; margin-bottom: 24px; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 8px; outline: none; box-sizing: border-box; font-family: 'Montserrat', sans-serif;">
+        <button id="fbLoginBtn" style="width: 100%; background: #3b82f6; color: white; padding: 14px; font-weight: 900; text-transform: uppercase; border-radius: 8px; border: none; cursor: pointer; transition: background 0.3s; font-family: 'Montserrat', sans-serif;">Entrar no Sistema</button>
+        <div id="fbErrorMsg" style="color: #ef4444; font-size: 12px; margin-top: 16px; font-weight: bold; min-height: 16px;"></div>
+    </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+  import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+  import { getFirestore, collection, addDoc, doc, updateDoc, getDocs, orderBy, query, serverTimestamp, deleteDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDorV0iFvETAYzmbDENcmPH5n4lA1M1JOQ",
+    authDomain: "layoutpro-3b1ca.firebaseapp.com",
+    projectId: "layoutpro-3b1ca",
+    storageBucket: "layoutpro-3b1ca.firebasestorage.app",
+    messagingSenderId: "902663626254",
+    appId: "1:902663626254:web:2d70c1b85e840dc788e65f",
+    measurementId: "G-Q0269SSXSF"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  const overlay = document.getElementById('firebaseAuthOverlay');
+  const emailInput = document.getElementById('fbEmail');
+  const passInput = document.getElementById('fbPass');
+  const loginBtn = document.getElementById('fbLoginBtn');
+  const errorMsg = document.getElementById('fbErrorMsg');
+
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      overlay.style.display = 'none';
+      if(window.loadHomeQuotes) window.loadHomeQuotes();
+    } else {
+      overlay.style.display = 'flex';
+      document.getElementById('homeQuotesWrapper').classList.add('hidden');
+    }
+  });
+
+  window.logoutApp = () => {
+      signOut(auth).then(() => {
+          showToast("Você saiu do sistema.");
+      });
+  };
+
+  loginBtn.addEventListener('click', () => {
+    const email = emailInput.value.trim();
+    const pass = passInput.value.trim();
+    if(!email || !pass) { errorMsg.innerText = "Preencha e-mail e senha."; return; }
+    loginBtn.innerText = "VERIFICANDO...";
+    
+    signInWithEmailAndPassword(auth, email, pass)
+      .then(() => { loginBtn.innerText = "ENTRAR NO SISTEMA"; errorMsg.innerText = ""; })
+      .catch((error) => {
+         loginBtn.innerText = "ENTRAR NO SISTEMA";
+         errorMsg.innerText = "Erro: E-mail ou senha incorretos ou não cadastrados.";
+         console.error("Erro Firebase:", error);
+      });
+  });
+
+  // Função para reduzir drastically o peso do Base64 da captura do cart pro Firebase.
+  const compressBase64 = (base64Str, quality = 0.5) => {
+      return new Promise(resolve => {
+          if(!base64Str) return resolve('');
+          const img = new Image();
+          img.crossOrigin = "Anonymous";
+          img.onload = () => {
+              const cvs = document.createElement('canvas');
+              cvs.width = img.width; cvs.height = img.height;
+              const ctx = cvs.getContext('2d');
+              ctx.fillStyle = '#ffffff'; 
+              ctx.fillRect(0,0,cvs.width,cvs.height);
+              ctx.drawImage(img, 0, 0);
+              resolve(cvs.toDataURL('image/jpeg', quality));
+          };
+          img.onerror = () => resolve('');
+          img.src = base64Str;
+      });
+  };
+
+  window.saveQuoteToFirebase = async (cartData, totalValue, appTabs) => {
+      const cliNome = document.getElementById('cliNome').value || 'B2B S/Nome';
+      const cliTel = document.getElementById('cliTel').value || '';
+      const orcData = document.getElementById('orcData').value || new Date().toLocaleDateString('pt-BR');
+      
+      const cartDetails = cartData.map(item => {
+          const tab = appTabs.find(t => t.name === item.tabName);
+          const artCount = tab ? tab.nodes.length : 0;
+          return { modelo: item.model, quantidade: item.qty, tecido: item.fabric, artes: artCount };
+      });
+
+      const compressedCartForDb = await Promise.all(cartData.map(async item => {
+          return { ...item, fImg: await compressBase64(item.fImg, 0.4), cImg: await compressBase64(item.cImg, 0.4) };
+      }));
+
+      const d = { 
+          version: '8.2', 
+          client: { 
+              vendNome: document.getElementById('vendNome').value, cliNome: document.getElementById('cliNome').value, cliTel: document.getElementById('cliTel').value, orcData: document.getElementById('orcData').value, condPagto: document.getElementById('condPagto').value, cliCnpj: document.getElementById('cliCnpj').value, cliEnd: document.getElementById('cliEnd').value, cliCidade: document.getElementById('cliCidade').value, cliEmail: document.getElementById('cliEmail').value, orcValidade: document.getElementById('orcValidade').value, orcPrazo: document.getElementById('orcPrazo').value 
+          }, 
+          cart: compressedCartForDb, 
+          tabs: appTabs 
+      };
+
+      const quoteData = {
+          cliente: cliNome,
+          codigo: window.quoteUniqueCode,
+          whatsapp: cliTel,
+          data: orcData,
+          qtdItens: cartData.reduce((acc, item) => acc + parseInt(item.qty), 0),
+          valorTotal: totalValue,
+          detalhes: cartDetails,
+          projectData: JSON.stringify(d),
+          timestamp: serverTimestamp()
+      };
+
+      try {
+          if (!window.currentQuoteDocId) {
+              const docRef = await addDoc(collection(db, "orcamentos"), quoteData);
+              window.currentQuoteDocId = docRef.id;
+              d.firebaseId = window.currentQuoteDocId;
+              d.quoteCode = window.quoteUniqueCode;
+              await updateDoc(docRef, { projectData: JSON.stringify(d) });
+              document.getElementById('btnGeneratePDF').innerText = "ATUALIZAR ORÇAMENTO";
+              showToast("Salvo no banco de dados!");
+          } else {
+              d.firebaseId = window.currentQuoteDocId;
+              d.quoteCode = window.quoteUniqueCode;
+              quoteData.projectData = JSON.stringify(d);
+              
+              const docRef = doc(db, "orcamentos", window.currentQuoteDocId);
+              await updateDoc(docRef, quoteData);
+              document.getElementById('btnGeneratePDF').innerText = "ATUALIZAR ORÇAMENTO";
+              showToast("Orçamento atualizado na base!");
+          }
+          window.loadHomeQuotes();
+      } catch (e) {
+          console.error("Erro ao salvar no banco: ", e);
+          document.getElementById('btnGeneratePDF').innerText = "GERAR PDF";
+      }
+  };
+
+  // MÓDULO CRM & DASHBOARD
+  window.openCRMDashboard = async () => {
+      document.getElementById('crmDashboardModal').classList.add('show');
+      await window.loadCRMData();
+  };
+
+  window.closeCRMDashboard = () => {
+      document.getElementById('crmDashboardModal').classList.remove('show');
+  };
+
+  window.loadCRMData = async () => {
+      const container = document.getElementById('crmListContainer');
+      container.innerHTML = '<div class="text-center text-slate-400 font-black tracking-widest text-[10px] uppercase mt-10">Calculando Métricas e Puxando Contatos...</div>';
+
+      try {
+          const q = query(collection(db, "orcamentos"), orderBy("timestamp", "desc"));
+          const snapshot = await getDocs(q);
+          
+          let totalAberto = 0; let totalFechado = 0;
+          let faturadoMes = 0; let aReceber = 0;
+          const currMonth = new Date().getMonth();
+          const currYear = new Date().getFullYear();
+
+          container.innerHTML = '';
+
+          if(snapshot.empty) {
+              container.innerHTML = '<div class="text-center text-slate-500 font-bold text-xs mt-10">Nenhum orçamento emitido ainda.</div>';
+          }
+
+          snapshot.forEach(docSnap => {
+              const data = docSnap.data();
+              const id = docSnap.id;
+              
+              const status = data.crmStatus || 'aberto';
+              const tp = data.touchpoints || [false, false, false, false, false];
+              const pe = data.pagoEntrada || false;
+              const pf = data.pagoFinal || false;
+              
+              let cData = {};
+              if(data.projectData) { try { cData = JSON.parse(data.projectData).client; } catch(e){} }
+
+              if(status === 'aberto') totalAberto++;
+              if(status === 'fechado') {
+                  totalFechado++;
+                  
+                  if(data.dataFechamento) {
+                      const fd = new Date(data.dataFechamento);
+                      if(fd.getMonth() === currMonth && fd.getFullYear() === currYear) faturadoMes += Number(data.valorTotal);
+                  } else { faturadoMes += Number(data.valorTotal); }
+
+                  const cond = cData.condPagto || '50_50';
+                  if(cond === '50_50') {
+                      if(!pe && !pf) aReceber += Number(data.valorTotal);
+                      else if(pe && !pf) aReceber += Number(data.valorTotal) / 2;
+                  } else {
+                      if(!pe) aReceber += Number(data.valorTotal);
+                  }
+              }
+
+              container.innerHTML += renderCRMCard(id, data, status, tp, pe, pf, cData);
+          });
+
+          document.getElementById('crmMesFaturado').innerText = `R$ ${faturadoMes.toFixed(2).replace('.',',')}`;
+          document.getElementById('crmAReceber').innerText = `R$ ${aReceber.toFixed(2).replace('.',',')}`;
+          const total = totalAberto + totalFechado;
+          const rate = total > 0 ? ((totalFechado / total) * 100).toFixed(1) : 0;
+          document.getElementById('crmConvRate').innerText = `${rate}%`;
+
+          const ctx = document.getElementById('crmPieChart').getContext('2d');
+          if(window.crmChartInstance) window.crmChartInstance.destroy();
+          window.crmChartInstance = new Chart(ctx, {
+              type: 'pie',
+              data: { labels: ['Fechados', 'Abertos/Perdidos'], datasets: [{ data: [totalFechado, totalAberto], backgroundColor: ['#10b981', '#64748b'], borderWidth: 0 }] },
+              options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+          });
+      } catch (e) {
+          console.error(e);
+          container.innerHTML = '<div class="text-red-500 font-bold text-center mt-10">Erro ao carregar módulo CRM.</div>';
+      }
+  };
+
+  function renderCRMCard(id, data, status, tp, pe, pf, cData) {
+      let prazoTxt = "Prazo não definido";
+      if (status === 'fechado' && data.dataFechamento && cData.orcPrazo) {
+          const match = cData.orcPrazo.match(/\d+/);
+          if (match) {
+              const dias = parseInt(match[0]);
+              const fechamento = new Date(data.dataFechamento);
+              const diffDays = Math.ceil(Math.abs(new Date() - fechamento) / (1000 * 60 * 60 * 24));
+              const restantes = dias - diffDays;
+              if (restantes > 0) prazoTxt = `⏳ Produção: ${restantes} dias restantes`;
+              else if (restantes === 0) prazoTxt = `⚠️ Produção: Entrega HOJE!`;
+              else prazoTxt = `🚨 Produção: Atrasado em ${Math.abs(restantes)} dias`;
+          }
+      }
+
+      let bColor = 'border-[var(--border-color)]';
+      if(status === 'fechado') bColor = 'border-emerald-500/50';
+      if(status === 'perdido') bColor = 'border-red-500/30';
+
+      return `
+      <div class="bg-[var(--bg-card)] p-5 rounded-2xl border ${bColor} shadow-lg mb-4">
+          <div class="flex justify-between items-start mb-4 cursor-pointer" onclick="document.getElementById('crm_det_${id}').classList.toggle('hidden')">
+              <div>
+                  <div class="text-indigo-400 font-black text-sm uppercase tracking-widest flex items-center gap-2">${data.cliente} <span class="text-[9px] bg-indigo-500/20 text-indigo-300 px-2 py-1 rounded font-bold transition">▼ GERENCIAR</span></div>
+                  <div class="text-[var(--text-main)] font-black text-lg mt-2">R$ ${Number(data.valorTotal).toFixed(2).replace('.',',')}</div>
+              </div>
+              <div class="text-right">
+                  <select onchange="event.stopPropagation(); window.updateCRMStatus('${id}', this.value)" onclick="event.stopPropagation()" class="bg-[var(--bg-input)] text-[var(--text-main)] text-[10px] font-black uppercase p-3 rounded-lg border border-[var(--border-color)] outline-none cursor-pointer transition hover:border-indigo-500">
+                      <option value="aberto" ${status==='aberto'?'selected':''}>⏳ Aberto / Negociando</option>
+                      <option value="fechado" ${status==='fechado'?'selected':''}>✅ Fechado (Ganho)</option>
+                      <option value="perdido" ${status==='perdido'?'selected':''}>❌ Perdido</option>
+                  </select>
+              </div>
+          </div>
+
+          <div id="crm_det_${id}" class="hidden flex flex-col gap-5 border-t border-[var(--border-color)] pt-4">
+              <div>
+                  <div class="text-[10px] text-[var(--text-muted)] font-bold uppercase tracking-widest mb-2">Itens do Pedido (${data.qtdItens} peças totais):</div>
+                  <div class="text-xs text-[var(--text-main)] font-bold bg-[var(--bg-input)] p-3 rounded-xl border border-[var(--border-color)]">
+                      ${data.detalhes ? data.detalhes.map(d => `<div class="mb-1">👕 ${d.quantidade}x ${d.modelo} (${d.tecido})</div>`).join('') : '<div class="italic text-slate-500">Sem itens detalhados</div>'}
+                  </div>
+              </div>
+
+              <div>
+                  <div class="text-[10px] text-[var(--text-muted)] font-bold uppercase tracking-widest mb-2">Monitoramento de Contato (Touch Points):</div>
+                  <div class="flex gap-2">
+                      ${[1,2,3,4,5].map(i => `
+                          <label class="flex-1 bg-[var(--bg-input)] border border-[var(--border-color)] rounded-lg p-3 flex items-center justify-center gap-2 text-[10px] font-black uppercase cursor-pointer hover:border-indigo-500 transition text-[var(--text-main)]">
+                              <input type="checkbox" onchange="window.updateCRMTouchpoint('${id}', ${i-1}, this.checked)" ${tp[i-1]?'checked':''}> T${i}
+                          </label>
+                      `).join('')}
+                  </div>
+              </div>
+
+              ${status === 'fechado' ? `
+              <div class="bg-emerald-900/10 border border-emerald-500/30 p-4 rounded-xl flex flex-col gap-3 mt-2">
+                  <div class="flex justify-between items-center mb-1">
+                      <div class="text-[10px] font-black uppercase text-emerald-500 tracking-widest">${prazoTxt}</div>
+                      <div class="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Contrato: ${cData.condPagto||'N/A'}</div>
+                  </div>
+                  <div class="flex gap-6">
+                      <label class="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-[var(--text-main)] cursor-pointer"><input type="checkbox" onchange="window.updateCRMPayment('${id}', 'pagoEntrada', this.checked)" ${pe?'checked':''}> Pagou Entrada</label>
+                      <label class="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-[var(--text-main)] cursor-pointer"><input type="checkbox" onchange="window.updateCRMPayment('${id}', 'pagoFinal', this.checked)" ${pf?'checked':''}> Pagou Final</label>
+                  </div>
+              </div>
+              ` : ''}
+          </div>
+      </div>
+      `;
+  }
+
+  window.updateCRMStatus = async (id, status) => {
+      try {
+          const updateObj = { crmStatus: status };
+          if(status === 'fechado') updateObj.dataFechamento = new Date().toISOString();
+          await updateDoc(doc(db, "orcamentos", id), updateObj);
+          window.loadCRMData();
+      } catch(e) { console.error(e); }
+  };
+
+  window.updateCRMTouchpoint = async (id, index, checked) => {
+      const ref = doc(db, "orcamentos", id);
+      const snap = await getDoc(ref);
+      let tp = snap.data().touchpoints || [false,false,false,false,false];
+      tp[index] = checked;
+      await updateDoc(ref, { touchpoints: tp });
+  };
+
+  window.updateCRMPayment = async (id, field, checked) => {
+      await updateDoc(doc(db, "orcamentos", id), { [field]: checked });
+      window.loadCRMData();
+  };
+
+  function renderQuoteCard(id, data) {
+      const numStr = data.whatsapp ? data.whatsapp.replace(/\D/g, '') : '';
+      const waLink = numStr ? `https://wa.me/55${numStr}` : '#';
+      let clientInfo = '';
+
+      if(data.projectData) {
+          try {
+              const parsed = JSON.parse(data.projectData);
+              const c = parsed.client;
+              if(c) {
+                  clientInfo = `
+                      <div class="mb-3 text-[10px] text-[var(--text-main)] grid grid-cols-2 gap-2">
+                          <div><span class="text-[var(--text-muted)]">Vendedor:</span> ${c.vendNome || 'N/A'}</div>
+                          <div><span class="text-[var(--text-muted)]">CNPJ/CPF:</span> ${c.cliCnpj || 'N/A'}</div>
+                          <div><span class="text-[var(--text-muted)]">Email:</span> ${c.cliEmail || 'N/A'}</div>
+                          <div class="col-span-2"><span class="text-[var(--text-muted)]">Endereço:</span> ${c.cliEnd || ''} ${c.cliCidade || ''}</div>
+                      </div>
+                  `;
+              }
+          } catch(e) {}
+      }
+      
+      let detailsList = '';
+      if(data.detalhes && data.detalhes.length > 0) {
+          detailsList = data.detalhes.map(d => `<div class="bg-[var(--bg-main)] p-3 rounded-lg mb-2 text-xs font-bold text-[var(--text-main)] border border-[var(--border-color)] shadow-sm">👕 ${d.quantidade}x ${d.modelo} <span class="text-[10px] text-blue-400">(${d.tecido})</span><br><span class="text-[10px] text-emerald-500">🎨 Contém ${d.artes} arte(s) aplicada(s)</span></div>`).join('');
+      } else {
+          detailsList = '<div class="text-xs text-[var(--text-muted)] italic">Nenhum detalhe de arte salvo neste orçamento.</div>';
+      }
+
+      const detalhesHtml = `<div class="mt-4 pt-4 border-t border-[var(--border-color)] hidden" id="detalhes_bank_${id}">
+          <div class="text-[var(--text-muted)] text-[10px] font-bold uppercase mb-3 tracking-widest">Dados do Cliente:</div>
+          ${clientInfo || '<div class="text-xs text-[var(--text-muted)] italic mb-4">Ficha do cliente não anexada.</div>'}
+          <div class="text-[var(--text-muted)] text-[10px] font-bold uppercase mb-3 tracking-widest mt-3 border-t border-[var(--border-color)] pt-3">Itens do Orçamento:</div>
+          ${detailsList}
+      </div>`;
+
+      return `
+          <div class="bg-[var(--bg-card)] hover:bg-[var(--bg-input)] p-5 rounded-2xl border border-[var(--border-color)] flex flex-col transition-all hover:border-blue-500 cursor-pointer shadow-lg mb-4" onclick="var el=document.getElementById('detalhes_bank_${id}'); if(el) el.classList.toggle('hidden');">
+              <div class="flex justify-between items-center">
+                  <div>
+                      <div class="text-blue-500 font-black text-sm uppercase tracking-widest mb-1 flex items-center gap-2">${data.cliente} <span class="text-[9px] bg-blue-500 text-white px-2 py-0.5 rounded ml-2 font-black shadow-sm">#${data.codigo || 'S/ CÓDIGO'}</span></div>
+                      <div class="text-[var(--text-muted)] text-xs font-bold mt-2">Data: ${data.data} | Total: ${data.qtdItens} peças</div>
+                      <div class="text-[var(--text-main)] font-black text-lg mt-2">R$ ${Number(data.valorTotal).toFixed(2).replace('.',',')}</div>
+                  </div>
+                  <div class="flex flex-col gap-2">
+                      <button onclick="event.stopPropagation(); window.editQuote('${id}')" class="bg-blue-600 text-white hover:bg-blue-500 px-5 py-2.5 rounded-lg font-black text-[10px] uppercase transition active:scale-95 flex items-center justify-center shadow-md">Editar</button>
+                      ${numStr ? `<a href="${waLink}" target="_blank" onclick="event.stopPropagation()" class="bg-green-600 text-white px-5 py-2.5 rounded-lg font-black text-[10px] uppercase hover:bg-green-500 transition shadow-md active:scale-95 flex items-center justify-center">WhatsApp</a>` : `<span class="bg-slate-800 text-slate-500 px-5 py-2.5 rounded-lg text-[10px] font-bold flex items-center justify-center border border-slate-700">Sem CTT</span>`}
+                      <button onclick="event.stopPropagation(); window.deleteQuote('${id}')" class="bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white border border-red-500/30 px-5 py-2.5 rounded-lg font-black text-[10px] uppercase transition active:scale-95 flex items-center justify-center">Deletar</button>
+                  </div>
+              </div>
+              ${detalhesHtml}
+          </div>
+      `;
+  }
+
+  window.editQuote = async (id) => {
+      try {
+          document.getElementById('loadingOverlay').style.opacity = '1';
+          document.getElementById('loadingOverlay').style.visibility = 'visible';
+          
+          const docRef = doc(db, "orcamentos", id);
+          const docSnap = await getDoc(docRef);
+          
+          if (docSnap.exists()) {
+              const data = docSnap.data();
+              if(data.projectData) {
+                  const d = JSON.parse(data.projectData);
+                  tabs = d.tabs; 
+                  cart = d.cart || [];
+                  if(d.client) { 
+                      document.getElementById('vendNome').value = d.client.vendNome || ''; 
+                      document.getElementById('cliNome').value = d.client.cliNome || ''; 
+                      document.getElementById('cliTel').value = d.client.cliTel || ''; 
+                      
+                      setLocalDataOrcamento();
+                      
+                      document.getElementById('condPagto').value = d.client.condPagto || '50_50'; 
+                      document.getElementById('cliCnpj').value = d.client.cliCnpj || ''; 
+                      document.getElementById('cliEnd').value = d.client.cliEnd || ''; 
+                      document.getElementById('cliCidade').value = d.client.cliCidade || ''; 
+                      document.getElementById('cliEmail').value = d.client.cliEmail || ''; 
+                      document.getElementById('orcValidade').value = d.client.orcValidade || '10 dias'; 
+                      document.getElementById('orcPrazo').value = d.client.orcPrazo || '15 dias úteis'; 
+                  }
+                  renderCart(); 
+                  
+                  window.currentQuoteDocId = id; 
+                  window.quoteUniqueCode = data.codigo || null;
+                  
+                  document.getElementById('btnGeneratePDF').innerText = 'ATUALIZAR ORÇAMENTO'; 
+                  switchTab(tabs[0].id); 
+                  startApp();
+                  closeQuotesDashboard();
+              } else {
+                  showToast("Orçamento antigo. Arquivo do Canva não encontrado.");
+              }
+          }
+      } catch(e) {
+          console.error(e);
+          showToast("Erro ao abrir edição.");
+      } finally {
+          document.getElementById('loadingOverlay').style.opacity = '0';
+          setTimeout(() => document.getElementById('loadingOverlay').style.visibility = 'hidden', 500);
+      }
+  };
+
+  window.deleteQuote = async (id) => {
+      if(confirm("Tem certeza que deseja DELETAR este orçamento permanentemente?")) {
+          try {
+              await deleteDoc(doc(db, "orcamentos", id));
+              showToast("Orçamento deletado.");
+              if(document.getElementById('quotesDashboardModal').classList.contains('show')) window.openQuotesDashboard();
+              window.loadHomeQuotes();
+              if(document.getElementById('crmDashboardModal').classList.contains('show')) window.loadCRMData();
+          } catch(e) {
+              console.error(e);
+              showToast("Erro ao deletar.");
+          }
+      }
+  };
+
+  window.loadHomeQuotes = async () => {
+      const wrapper = document.getElementById('homeQuotesWrapper');
+      const container = document.getElementById('homeQuotesListContainer');
+      wrapper.classList.remove('hidden');
+      container.innerHTML = '<div class="text-center text-slate-400 font-black tracking-widest text-[10px] uppercase mt-4">Carregando Banco...</div>';
+
+      try {
+          const q = query(collection(db, "orcamentos"), orderBy("timestamp", "desc"));
+          const querySnapshot = await getDocs(q);
+          container.innerHTML = '';
+          
+          if(querySnapshot.empty) {
+              container.innerHTML = '<div class="text-center text-slate-500 font-bold text-xs mt-4">Nenhum orçamento emitido ainda.</div>';
+              return;
+          }
+
+          querySnapshot.forEach((doc) => {
+              container.innerHTML += renderQuoteCard(doc.id, doc.data());
+          });
+      } catch (e) {
+          container.innerHTML = '<div class="text-center text-red-500 font-bold text-xs mt-4">Erro de conexão com o banco.</div>';
+      }
+  };
+
+  window.openQuotesDashboard = async () => {
+      const container = document.getElementById('quotesListContainer');
+      container.innerHTML = '<div class="text-center text-slate-400 font-black tracking-widest text-[10px] uppercase mt-10">Buscando na Nuvem...</div>';
+      document.getElementById('quotesDashboardModal').classList.add('show');
+
+      try {
+          const q = query(collection(db, "orcamentos"), orderBy("timestamp", "desc"));
+          const querySnapshot = await getDocs(q);
+          container.innerHTML = '';
+          
+          if(querySnapshot.empty) {
+              container.innerHTML = '<div class="text-center text-slate-500 font-bold text-xs mt-10">Nenhum orçamento emitido ainda.</div>';
+              return;
+          }
+
+          querySnapshot.forEach((doc) => {
+              container.innerHTML += renderQuoteCard(doc.id, doc.data());
+          });
+      } catch (e) {
+          container.innerHTML = '<div class="text-center text-red-500 font-bold text-xs p-10">Erro ao carregar o histórico de orçamentos.</div>';
+      }
+  };
+
+  window.closeQuotesDashboard = () => {
+      document.getElementById('quotesDashboardModal').classList.remove('show');
+  };
 </script>
 </body>
 </html>
