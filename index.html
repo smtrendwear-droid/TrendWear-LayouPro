@@ -1,27 +1,46 @@
 <!DOCTYPE html>
+
 <html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <title>TrendWear LayoutPro - Master Edition v8.2</title>
-    <script src="https://unpkg.com/konva@9.2.0/konva.min.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;700;900&display=swap" rel="stylesheet">
-    <style>
+<meta charset="utf-8"/>
+<title>TrendWear LayoutPro - Master Edition v7.24</title>
+<script src="https://unpkg.com/konva@9.2.0/konva.min.js"></script>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;700;900&amp;display=swap" rel="stylesheet"/>
+<style>
         /* VARIÁVEIS DE TEMA E TRANSIÇÕES */
-        :root {
-            --bg-main: #f1f5f9; --bg-sidebar: #0f172a; --bg-card: #1e293b; --bg-modal: #0f172a;
-            --text-main: #ffffff; --text-muted: #94a3b8; --border-color: #334155; --bg-input: #0f172a;
+        :root, body.light-mode {
+            --bg-main: #eef2f7;
+            --bg-sidebar: #ffffff;
+            --bg-card: #ffffff;
+            --bg-modal: #ffffff;
+            --bg-input: #f8fafc;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border-color: #d8e1ed;
+            --accent-blue: #2563eb;
+            --accent-blue-soft: rgba(37, 99, 235, 0.10);
+            --shadow-soft: 0 18px 45px rgba(15, 23, 42, 0.10);
         }
 
-        body.light-mode {
-            --bg-main: #e2e8f0; --bg-sidebar: #ffffff; --bg-card: #f8fafc; --bg-modal: #ffffff;
-            --text-main: #0f172a; --text-muted: #64748b; --border-color: #cbd5e1; --bg-input: #ffffff;
+        body.dark-mode {
+            --bg-main: #0b1120;
+            --bg-sidebar: #0f172a;
+            --bg-card: #1e293b;
+            --bg-modal: #0f172a;
+            --bg-input: #111827;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: #334155;
+            --accent-blue: #3b82f6;
+            --accent-blue-soft: rgba(59, 130, 246, 0.14);
+            --shadow-soft: 0 22px 60px rgba(0, 0, 0, 0.35);
         }
 
-        body { font-family: 'Montserrat', sans-serif; overflow: hidden; background: var(--bg-main); transition: background 0.4s ease; color: var(--text-main); }
+        body { font-family: 'Montserrat', sans-serif; overflow: hidden; background: var(--bg-main); color: var(--text-main); transition: background-color 0.35s ease, color 0.35s ease; -webkit-font-smoothing: antialiased; text-rendering: geometricPrecision; }
         
         .sidebar-dark { background-color: var(--bg-sidebar); color: var(--text-main); height: 100vh; z-index: 50; overflow-y: auto; transition: background 0.4s ease, border 0.4s ease; border-right: 1px solid var(--border-color); }
         .canvas-container { background: #fff; border-radius: 24px; position: relative; box-shadow: 0 30px 60px rgba(0,0,0,0.1); border: 12px solid #cbd5e1; overflow: hidden; transition: all 0.3s ease; }
@@ -94,8 +113,6 @@
         .crm-status-aberto { background: rgba(234,179,8,.14); color: #facc15; border-color: rgba(234,179,8,.42); }
         #crmStatusModal { z-index: 99998 !important; }
         #crmStatusModal.show { display: flex !important; opacity: 1 !important; }
-        #infinitePayModal { z-index: 99998 !important; }
-        #infinitePayModal.show { display: flex !important; opacity: 1 !important; }
 
         /* Página PCP / Controle de Produção */
         #pcpDashboardModal { align-items: stretch !important; justify-content: flex-start !important; background: var(--bg-main) !important; backdrop-filter: none !important; z-index: 710 !important; }
@@ -119,702 +136,756 @@
         .pcp-notif-badge { position: absolute; top: -7px; right: -7px; min-width: 19px; height: 19px; padding: 0 5px; border-radius: 999px; background: #ef4444; color: white; font-size: 10px; font-weight: 900; display: none; align-items: center; justify-content: center; border: 2px solid #0f172a; }
         #pcpTopNotificationsPopup { position: fixed; top: 84px; right: 28px; width: min(420px, calc(100vw - 32px)); max-height: 70vh; overflow: hidden; z-index: 99997; background: var(--bg-modal); border: 1px solid var(--border-color); border-radius: 18px; box-shadow: 0 25px 70px rgba(0,0,0,.45); color: var(--text-main); }
         #pcpTopNotificationsPopup.hidden { display: none; }
+
+
+        /* REFINO GERAL DE UI/TEMA - v7.24 */
+        button, input, select, textarea, .tab-btn, .settings-section, .layer-card, .crm-kpi-card, .pcp-panel-card, .pcp-tab-btn, .crm-filter-btn, .pcp-filter-btn {
+            transition: background-color .22s ease, color .22s ease, border-color .22s ease, box-shadow .22s ease, transform .18s ease, opacity .18s ease;
+        }
+        button:active { transform: scale(.97); }
+        button:disabled { opacity: .55; cursor: wait; transform: none !important; }
+        body.light-mode .sidebar-dark { box-shadow: 10px 0 35px rgba(15,23,42,.06); }
+        body.dark-mode .sidebar-dark { box-shadow: 10px 0 35px rgba(0,0,0,.22); }
+        body.light-mode .canvas-container { border-color: #cbd5e1; box-shadow: 0 24px 55px rgba(15,23,42,.12); }
+        body.dark-mode .canvas-container { border-color: #334155; box-shadow: 0 24px 70px rgba(0,0,0,.34); }
+        body.light-mode .price-display, body.light-mode .settings-section, body.light-mode .layer-card { box-shadow: 0 10px 25px rgba(15,23,42,.06); }
+        body.dark-mode .price-display, body.dark-mode .settings-section, body.dark-mode .layer-card { box-shadow: 0 14px 30px rgba(0,0,0,.18); }
+
+        /* Abas mais compactas e legíveis */
+        .tab-btn { min-height: 38px; padding: 10px 16px; border-radius: 12px 12px 0 0; letter-spacing: .08em; }
+        body.light-mode .tab-btn { background: #ffffff; color: #475569; border-color: #d8e1ed; }
+        body.dark-mode .tab-btn { background: #1e293b; color: #cbd5e1; border-color: #334155; }
+        .tab-btn:hover { transform: translateY(-1px); border-color: var(--accent-blue); color: var(--accent-blue); }
+        .tab-btn.active { background: var(--accent-blue) !important; color: #ffffff !important; border-color: var(--accent-blue) !important; box-shadow: 0 -8px 18px rgba(37,99,235,.18); }
+
+        /* Textos corrigidos por tema */
+        body.light-mode .text-slate-300, body.light-mode .text-slate-400 { color: #475569 !important; }
+        body.light-mode .text-slate-500 { color: #64748b !important; }
+        body.dark-mode .text-slate-500 { color: #94a3b8 !important; }
+        body.light-mode .set-label { color: #64748b; }
+        body.dark-mode .set-label { color: #94a3b8; }
+        body.light-mode .calc-input::placeholder { color: #94a3b8; }
+        body.dark-mode .calc-input::placeholder { color: #64748b; }
+
+        /* Home e botões superiores em modo claro */
+        body.light-mode #homeScreen { background: radial-gradient(circle at top, rgba(37,99,235,.08), transparent 35%), var(--bg-sidebar); }
+        body.dark-mode #homeScreen { background: radial-gradient(circle at top, rgba(59,130,246,.10), transparent 35%), var(--bg-sidebar); }
+        body.light-mode #homeScreen .bg-slate-800 { background: #f8fafc !important; border: 1px solid #d8e1ed; color: #334155 !important; }
+        body.dark-mode #homeScreen .bg-slate-800 { background: #1e293b !important; border: 1px solid #334155; }
+
+        /* Login acompanha tema escolhido */
+        body.light-mode #firebaseAuthOverlay { background: #eef2f7 !important; }
+        body.light-mode #fbLoginCard, body.light-mode #fbProfileCard { background: #ffffff !important; border-color: #d8e1ed !important; color: #0f172a !important; box-shadow: 0 24px 65px rgba(15,23,42,.12) !important; }
+        body.light-mode #fbEmail, body.light-mode #fbPass, body.light-mode #profileNome, body.light-mode #profileTelefone, body.light-mode #profileEmailContato { background: #f8fafc !important; border-color: #d8e1ed !important; color: #0f172a !important; }
+        body.light-mode #firebaseAuthOverlay p, body.light-mode #firebaseAuthOverlay label, body.light-mode #profileErrorMsg { color: #64748b !important; }
+
+        /* Transições entre telas/modais */
+        #homeScreen { will-change: opacity, visibility; }
+        .modal-overlay { transition: opacity .22s ease, backdrop-filter .22s ease; }
+        .modal-overlay > div { transition: transform .24s cubic-bezier(.16, 1, .3, 1), opacity .22s ease; }
+        .modal-overlay:not(.show) > div { transform: translateY(12px) scale(.985); opacity: .96; }
+        .modal-overlay.show > div { transform: translateY(0) scale(1); opacity: 1; }
+        #cartDrawer { will-change: transform; }
+        #crmDashboardModal .crm-page-shell, #pcpDashboardModal .pcp-page-shell { animation: dashboardFade .24s ease both; }
+        @keyframes dashboardFade { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Cards e painéis de listagem */
+        .crm-panel-card, .pcp-panel-card, .crm-kpi-card, .pcp-delivery-kpi { background: var(--bg-card); border-color: var(--border-color); color: var(--text-main); box-shadow: var(--shadow-soft); }
+        body.light-mode .crm-workspace, body.light-mode .pcp-workspace { background: linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%) !important; }
+        body.dark-mode .crm-workspace, body.dark-mode .pcp-workspace { background: radial-gradient(circle at top, rgba(59,130,246,.08), transparent 30%), #0b1120 !important; }
+
+        /* Barra de ferramentas do mockup mais integrada ao tema */
+        #mockupToolsPanel { box-shadow: var(--shadow-soft); }
+        body.light-mode #mockupToolsPanel { background: #ffffff !important; border-color: #d8e1ed !important; color: #0f172a !important; }
+        body.dark-mode #mockupToolsPanel { background: #1e293b !important; border-color: #334155 !important; color: #f8fafc !important; }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { transition: none !important; animation: none !important; }
+        }
+
     </style>
 </head>
-<body class="dark-mode">
-
-<div id="toastMsg" class="fixed bottom-10 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white px-6 py-3 rounded-full font-black text-[10px] uppercase tracking-widest shadow-2xl transition-all duration-300 opacity-0 translate-y-10 z-[9999] pointer-events-none">Aviso</div>
-
-<div id="pcpTopNotificationsPopup" class="hidden">
-    <div class="p-5 border-b border-[var(--border-color)] flex justify-between items-center bg-[var(--bg-modal)]">
-        <div>
-            <div class="text-amber-400 font-black text-sm uppercase italic tracking-widest">🔔 Notificações PCP</div>
-            <div class="text-[9px] text-[var(--text-muted)] font-bold uppercase tracking-widest mt-1">Prazos, atrasos e novos pedidos</div>
-        </div>
-        <button onclick="togglePCPTopNotifications(false)" class="text-[var(--text-muted)] hover:text-red-500 font-black text-xl transition">✕</button>
-    </div>
-    <div id="pcpTopNotificationsContent" class="p-4 space-y-3 overflow-y-auto" style="max-height: 52vh;"></div>
-    <div class="p-4 border-t border-[var(--border-color)] bg-[var(--bg-modal)] flex gap-3">
-        <button onclick="clearAllPCPNotifications(); refreshPCPTopNotifications();" class="flex-1 bg-red-500/10 text-red-500 border border-red-500/30 px-4 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition hover:bg-red-500 hover:text-white active:scale-95">Limpar tudo</button>
-        <button onclick="openPCPDashboard(); togglePCPTopNotifications(false);" class="flex-1 bg-teal-600 text-white px-4 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition hover:bg-teal-500 active:scale-95">Abrir PCP</button>
-    </div>
+<body class="light-mode">
+<script>try{const twTheme=localStorage.getItem("trendwear_theme")||"light";document.body.classList.remove("light-mode","dark-mode");document.body.classList.add(twTheme==="dark"?"dark-mode":"light-mode");}catch(e){}</script>
+<div class="fixed bottom-10 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white px-6 py-3 rounded-full font-black text-[10px] uppercase tracking-widest shadow-2xl transition-all duration-300 opacity-0 translate-y-10 z-[9999] pointer-events-none" id="toastMsg">Aviso</div>
+<div class="hidden" id="pcpTopNotificationsPopup">
+<div class="p-5 border-b border-[var(--border-color)] flex justify-between items-center bg-[var(--bg-modal)]">
+<div>
+<div class="text-amber-400 font-black text-sm uppercase italic tracking-widest">🔔 Notificações PCP</div>
+<div class="text-[9px] text-[var(--text-muted)] font-bold uppercase tracking-widest mt-1">Prazos, atrasos e novos pedidos</div>
 </div>
-
+<button class="text-[var(--text-muted)] hover:text-red-500 font-black text-xl transition" onclick="togglePCPTopNotifications(false)">✕</button>
+</div>
+<div class="p-4 space-y-3 overflow-y-auto" id="pcpTopNotificationsContent" style="max-height: 52vh;"></div>
+<div class="p-4 border-t border-[var(--border-color)] bg-[var(--bg-modal)] flex gap-3">
+<button class="flex-1 bg-red-500/10 text-red-500 border border-red-500/30 px-4 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition hover:bg-red-500 hover:text-white active:scale-95" onclick="clearAllPCPNotifications(); refreshPCPTopNotifications();">Limpar tudo</button>
+<button class="flex-1 bg-teal-600 text-white px-4 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition hover:bg-teal-500 active:scale-95" onclick="openPCPDashboard(); togglePCPTopNotifications(false);">Abrir PCP</button>
+</div>
+</div>
 <div id="loadingOverlay">
-    <div class="loader-circle"></div>
-    <div class="text-white font-black text-2xl mt-6 uppercase tracking-[0.4em] italic animate-pulse">TrendWear</div>
-    <div id="loadingOverlayText" class="text-slate-500 text-xs font-bold mt-2 tracking-widest">Iniciando Motor Gráfico...</div>
+<div class="loader-circle"></div>
+<div class="text-white font-black text-2xl mt-6 uppercase tracking-[0.4em] italic animate-pulse">TrendWear</div>
+<div class="text-slate-500 text-xs font-bold mt-2 tracking-widest" id="loadingOverlayText">Iniciando Motor Gráfico...</div>
 </div>
-
 <div id="homeScreen">
-    <div class="absolute top-8 right-8 flex gap-4">
-        <button onclick="toggleTheme()" class="text-slate-500 hover:text-blue-500 transition-all transform hover:scale-110 duration-300 bg-slate-800 p-3 rounded-full shadow-lg" title="Alternar Tema">
-            <span id="themeIconHome" class="text-xl">☀️</span>
-        </button>
-        <button onclick="openInboxDashboard()" class="relative text-sky-400 hover:text-white transition-all transform hover:scale-110 duration-300 bg-sky-500/20 hover:bg-sky-500 border border-sky-500/30 p-3 rounded-full shadow-lg flex items-center justify-center font-black text-xs" title="Solicitações do Site">
-            <span>📩 Site</span><span id="siteNotifBadgeHome" class="site-notif-badge">0</span>
-        </button>
-        <button onclick="openCRMDashboard()" class="text-indigo-400 hover:text-white transition-all transform hover:scale-110 duration-300 bg-indigo-500/20 hover:bg-indigo-500 border border-indigo-500/30 p-3 rounded-full shadow-lg flex items-center justify-center font-black text-xs" title="Painel CRM">
+<div class="absolute top-8 right-8 flex gap-4">
+<button class="text-slate-500 hover:text-blue-500 transition-all transform hover:scale-110 duration-300 bg-slate-800 p-3 rounded-full shadow-lg" onclick="toggleTheme()" title="Alternar Tema">
+<span class="text-xl" id="themeIconHome">☀️</span>
+</button>
+<button class="relative text-sky-400 hover:text-white transition-all transform hover:scale-110 duration-300 bg-sky-500/20 hover:bg-sky-500 border border-sky-500/30 p-3 rounded-full shadow-lg flex items-center justify-center font-black text-xs" onclick="openInboxDashboard()" title="Solicitações do Site">
+<span>📩 Site</span><span class="site-notif-badge" id="siteNotifBadgeHome">0</span>
+</button>
+<button class="text-indigo-400 hover:text-white transition-all transform hover:scale-110 duration-300 bg-indigo-500/20 hover:bg-indigo-500 border border-indigo-500/30 p-3 rounded-full shadow-lg flex items-center justify-center font-black text-xs" onclick="openCRMDashboard()" title="Painel CRM">
             📊 CRM
         </button>
-        <button onclick="openPCPDashboard()" class="text-teal-400 hover:text-white transition-all transform hover:scale-110 duration-300 bg-teal-500/20 hover:bg-teal-500 border border-teal-500/30 p-3 rounded-full shadow-lg flex items-center justify-center font-black text-xs" title="Painel PCP">
+<button class="text-teal-400 hover:text-white transition-all transform hover:scale-110 duration-300 bg-teal-500/20 hover:bg-teal-500 border border-teal-500/30 p-3 rounded-full shadow-lg flex items-center justify-center font-black text-xs" onclick="openPCPDashboard()" title="Painel PCP">
             🏭 PCP
         </button>
-        <button onclick="togglePCPTopNotifications()" class="relative text-amber-400 hover:text-white transition-all transform hover:scale-110 duration-300 bg-amber-500/20 hover:bg-amber-500 border border-amber-500/30 p-3 rounded-full shadow-lg flex items-center justify-center font-black text-xs" title="Notificações PCP">
-            🔔<span id="pcpNotifBadgeHome" class="pcp-notif-badge">0</span>
-        </button>
-        <button onclick="openSettings()" class="text-slate-500 hover:text-white transition-all transform hover:rotate-90 hover:scale-110 duration-300 bg-slate-800 p-3 rounded-full shadow-lg flex items-center justify-center" title="Configurações">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.09a2 2 0 0 1-1-1.74v-.51a2 2 0 0 1 1-1.72l.15-.1a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-        </button>
-        <button onclick="logoutApp()" class="text-red-500 hover:text-white transition-all transform hover:scale-110 duration-300 bg-red-500/10 hover:bg-red-500 border border-red-500/30 p-3 rounded-full shadow-lg flex items-center justify-center" title="Sair do Sistema">
-            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
-        </button>
-    </div>
-    <h1 class="text-[5.5rem] leading-none font-black italic tracking-tighter mb-4 text-[var(--text-main)] drop-shadow-2xl animate-slide-up"><span class="text-blue-500">TrendWear</span> LayoutPro</h1>
-    <p class="text-slate-500 font-bold tracking-[0.3em] uppercase mb-12 text-sm animate-slide-up">SaaS Architecture • v8.2 Master</p>
-    <div class="flex gap-6 animate-slide-up">
-        <button onclick="if(window.resetQuoteContextForNewProject){ window.resetQuoteContextForNewProject(); } else { window.currentQuoteDocId = null; window.quoteUniqueCode = null; } startApp()" class="bg-blue-600 text-white px-14 py-5 rounded-full font-black uppercase tracking-widest transition-all duration-300 shadow-xl transform hover:scale-105 active:scale-95 hover:bg-blue-500">Criar Novo</button>
-        <button onclick="document.getElementById('loadProjectInput').click()" class="bg-[var(--bg-card)] text-[var(--text-main)] border border-[var(--border-color)] px-14 py-5 rounded-full font-black uppercase tracking-widest transition-all duration-300 shadow-xl transform hover:scale-105 active:scale-95 hover:border-blue-500">Abrir Projeto</button>
-        <input type="file" id="loadProjectInput" class="hidden" accept=".twp" onchange="loadProjectFile(event)">
-    </div>
-
-    <div id="homeQuotesWrapper" class="w-full max-w-4xl mt-12 animate-slide-up bg-[var(--bg-card)] p-6 rounded-2xl border border-[var(--border-color)] shadow-xl flex flex-col hidden" style="max-height: 35vh;">
-        <h3 class="text-blue-500 font-black text-xs uppercase tracking-widest mb-4 italic flex items-center gap-2">☁️ Últimos Orçamentos Gerados</h3>
-        <div id="homeQuotesListContainer" class="overflow-y-auto pr-2 space-y-3 flex-1"></div>
-    </div>
+<button class="relative text-amber-400 hover:text-white transition-all transform hover:scale-110 duration-300 bg-amber-500/20 hover:bg-amber-500 border border-amber-500/30 p-3 rounded-full shadow-lg flex items-center justify-center font-black text-xs" onclick="togglePCPTopNotifications()" title="Notificações PCP">
+            🔔<span class="pcp-notif-badge" id="pcpNotifBadgeHome">0</span>
+</button>
+<button class="text-slate-500 hover:text-white transition-all transform hover:rotate-90 hover:scale-110 duration-300 bg-slate-800 p-3 rounded-full shadow-lg flex items-center justify-center" onclick="openSettings()" title="Configurações">
+<svg fill="none" height="24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.09a2 2 0 0 1-1-1.74v-.51a2 2 0 0 1 1-1.72l.15-.1a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+</button>
+<button class="text-red-500 hover:text-white transition-all transform hover:scale-110 duration-300 bg-red-500/10 hover:bg-red-500 border border-red-500/30 p-3 rounded-full shadow-lg flex items-center justify-center" onclick="logoutApp()" title="Sair do Sistema">
+<svg fill="none" height="22" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="22" xmlns="http://www.w3.org/2000/svg"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" x2="9" y1="12" y2="12"></line></svg>
+</button>
 </div>
-
-<div id="settingsModal" class="modal-overlay">
-    <div class="settings-content">
-        <div class="p-6 border-b border-[var(--border-color)] bg-[var(--bg-modal)] flex justify-between items-center shrink-0">
-            <h2 class="font-black italic uppercase tracking-widest text-lg text-[var(--text-main)]">⚙️ Administração Central</h2>
-            <button onclick="closeSettings()" class="text-[var(--text-muted)] hover:text-red-500 font-bold text-2xl transition hover:scale-110 active:scale-90">✕</button>
-        </div>
-        
-        <div class="flex-1 overflow-y-auto p-8 space-y-8 bg-[var(--bg-main)]">
-            <div class="settings-section shadow-xl">
-                <h3 class="text-blue-500 font-black text-[10px] uppercase tracking-[0.2em] mb-4 border-b border-[var(--border-color)] pb-3 italic">Matriz de Preços Cruzada (Modelo x Tecido)</h3>
-                <div class="overflow-x-auto overflow-y-auto max-h-[300px] rounded-xl border border-[var(--border-color)]">
-                    <table class="matrix-table" id="pricingMatrixTable"></table>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-12 gap-8">
-                <div class="col-span-4 settings-section flex flex-col shadow-lg">
-                    <h3 class="set-label !text-blue-500 mb-6">1. Materiais & Fios</h3>
-                    <div class="flex gap-2 mb-6">
-                        <input type="text" id="newFabricInput" placeholder="Ex: Suedine" class="calc-input !py-3">
-                        <button onclick="addFabric()" class="bg-blue-600 text-white font-black text-[10px] px-5 rounded uppercase transition hover:bg-blue-500 active:scale-95">Add</button>
-                    </div>
-                    <div id="fabricPillsList" class="flex flex-wrap gap-2 overflow-y-auto max-h-[150px] pr-2"></div>
-                </div>
-                
-                <div class="col-span-8 settings-section flex flex-col shadow-lg">
-                    <h3 class="set-label !text-blue-500 mb-6 flex justify-between items-center">
+<h1 class="text-[5.5rem] leading-none font-black italic tracking-tighter mb-4 text-[var(--text-main)] drop-shadow-2xl animate-slide-up"><span class="text-blue-500">TrendWear</span> LayoutPro</h1>
+<p class="text-slate-500 font-bold tracking-[0.3em] uppercase mb-12 text-sm animate-slide-up">SaaS Architecture • v8.2 Master</p>
+<div class="flex gap-6 animate-slide-up">
+<button class="bg-blue-600 text-white px-14 py-5 rounded-full font-black uppercase tracking-widest transition-all duration-300 shadow-xl transform hover:scale-105 active:scale-95 hover:bg-blue-500" onclick="if(window.resetQuoteContextForNewProject){ window.resetQuoteContextForNewProject(); } else { window.currentQuoteDocId = null; window.quoteUniqueCode = null; } startApp()">Criar Novo</button>
+<button class="bg-[var(--bg-card)] text-[var(--text-main)] border border-[var(--border-color)] px-14 py-5 rounded-full font-black uppercase tracking-widest transition-all duration-300 shadow-xl transform hover:scale-105 active:scale-95 hover:border-blue-500" onclick="document.getElementById('loadProjectInput').click()">Abrir Projeto</button>
+<input accept=".twp" class="hidden" id="loadProjectInput" onchange="loadProjectFile(event)" type="file"/>
+</div>
+<div class="w-full max-w-4xl mt-12 animate-slide-up bg-[var(--bg-card)] p-6 rounded-2xl border border-[var(--border-color)] shadow-xl flex flex-col hidden" id="homeQuotesWrapper" style="max-height: 35vh;">
+<h3 class="text-blue-500 font-black text-xs uppercase tracking-widest mb-4 italic flex items-center gap-2">☁️ Últimos Orçamentos Gerados</h3>
+<div class="overflow-y-auto pr-2 space-y-3 flex-1" id="homeQuotesListContainer"></div>
+</div>
+</div>
+<div class="modal-overlay" id="settingsModal">
+<div class="settings-content">
+<div class="p-6 border-b border-[var(--border-color)] bg-[var(--bg-modal)] flex justify-between items-center shrink-0">
+<h2 class="font-black italic uppercase tracking-widest text-lg text-[var(--text-main)]">⚙️ Administração Central</h2>
+<button class="text-[var(--text-muted)] hover:text-red-500 font-bold text-2xl transition hover:scale-110 active:scale-90" onclick="closeSettings()">✕</button>
+</div>
+<div class="flex-1 overflow-y-auto p-8 space-y-8 bg-[var(--bg-main)]">
+<div class="settings-section shadow-xl">
+<h3 class="text-blue-500 font-black text-[10px] uppercase tracking-[0.2em] mb-4 border-b border-[var(--border-color)] pb-3 italic">Matriz de Preços Cruzada (Modelo x Tecido)</h3>
+<div class="overflow-x-auto overflow-y-auto max-h-[300px] rounded-xl border border-[var(--border-color)]">
+<table class="matrix-table" id="pricingMatrixTable"></table>
+</div>
+</div>
+<div class="grid grid-cols-12 gap-8">
+<div class="col-span-4 settings-section flex flex-col shadow-lg">
+<h3 class="set-label !text-blue-500 mb-6">1. Materiais &amp; Fios</h3>
+<div class="flex gap-2 mb-6">
+<input class="calc-input !py-3" id="newFabricInput" placeholder="Ex: Suedine" type="text"/>
+<button class="bg-blue-600 text-white font-black text-[10px] px-5 rounded uppercase transition hover:bg-blue-500 active:scale-95" onclick="addFabric()">Add</button>
+</div>
+<div class="flex flex-wrap gap-2 overflow-y-auto max-h-[150px] pr-2" id="fabricPillsList"></div>
+</div>
+<div class="col-span-8 settings-section flex flex-col shadow-lg">
+<h3 class="set-label !text-blue-500 mb-6 flex justify-between items-center">
                         2. Catálogo Visual (Mockups)
-                        <button onclick="addCatalogRow()" class="bg-blue-600/20 text-blue-500 border border-blue-500/50 text-[9px] font-black px-4 py-2 rounded uppercase transition hover:bg-blue-600 hover:text-white active:scale-95">+ Modelo</button>
-                    </h3>
-                    <div id="catalogList" class="flex-1 overflow-y-auto pr-2 space-y-4 max-h-[250px]"></div>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-3 gap-8">
-                <div class="settings-section shadow-lg"><h3 class="set-label !text-purple-500 mb-6 border-b border-[var(--border-color)] pb-2">Tabela DTF (R$)</h3><div class="grid grid-cols-1 gap-4" id="configArtes"></div></div>
-                <div class="settings-section shadow-lg"><h3 class="set-label !text-yellow-500 mb-6 border-b border-[var(--border-color)] pb-2">Tabela Silk (R$)</h3><div class="space-y-4" id="configSilk"></div></div>
-                <div class="settings-section shadow-lg"><h3 class="set-label !text-emerald-500 mb-6 border-b border-[var(--border-color)] pb-2">Tabela Bordado (R$)</h3><div class="space-y-4" id="configBordado"></div></div>
-            </div>
-
-            <div class="settings-section shadow-xl">
-                <h3 class="text-teal-500 font-black text-[10px] uppercase tracking-[0.2em] mb-4 border-b border-[var(--border-color)] pb-3 italic">Parametrização de Tecidos / PCP</h3>
-                <p class="text-[10px] text-[var(--text-muted)] font-bold uppercase tracking-widest mb-4">Rendimento informado pelo fornecedor ÷ 1,83. Tubular multiplica por 4; linear multiplica por 3. O sistema calcula camisetas por KG, KG necessário e custo estimado.</p>
-                <div id="fabricParamList" class="grid grid-cols-1 gap-4"></div>
-            </div>
-        </div>
-        
-        <div class="p-6 border-t border-[var(--border-color)] bg-[var(--bg-modal)] flex justify-between items-center shrink-0">
-            <div class="flex gap-3">
-                <button onclick="exportConfig()" class="bg-[var(--bg-card)] border border-[var(--border-color)] px-5 py-3 rounded-lg font-bold text-[10px] uppercase text-[var(--text-main)] transition hover:border-blue-500 active:scale-95">⬇️ Exportar .TWC</button>
-                <button onclick="document.getElementById('importConfigInput').click()" class="bg-[var(--bg-card)] border border-[var(--border-color)] px-5 py-3 rounded-lg font-bold text-[10px] uppercase text-[var(--text-main)] transition hover:border-blue-500 active:scale-95">⬆️ Importar .TWC</button>
-                <input type="file" id="importConfigInput" class="hidden" accept=".twc" onchange="importConfig(event)">
-                <button onclick="verificarAtualizacao()" class="ml-4 bg-teal-900/30 text-teal-500 border border-teal-500/50 px-5 py-3 rounded-lg font-bold text-[10px] uppercase flex items-center gap-2 transition hover:bg-teal-600 hover:text-white active:scale-95">
-                    <span id="updateIcon">🔄</span> Update Web
+                        <button class="bg-blue-600/20 text-blue-500 border border-blue-500/50 text-[9px] font-black px-4 py-2 rounded uppercase transition hover:bg-blue-600 hover:text-white active:scale-95" onclick="addCatalogRow()">+ Modelo</button>
+</h3>
+<div class="flex-1 overflow-y-auto pr-2 space-y-4 max-h-[250px]" id="catalogList"></div>
+</div>
+</div>
+<div class="grid grid-cols-3 gap-8">
+<div class="settings-section shadow-lg"><h3 class="set-label !text-purple-500 mb-6 border-b border-[var(--border-color)] pb-2">Tabela DTF (R$)</h3><div class="grid grid-cols-1 gap-4" id="configArtes"></div></div>
+<div class="settings-section shadow-lg"><h3 class="set-label !text-yellow-500 mb-6 border-b border-[var(--border-color)] pb-2">Tabela Silk (R$)</h3><div class="space-y-4" id="configSilk"></div></div>
+<div class="settings-section shadow-lg"><h3 class="set-label !text-emerald-500 mb-6 border-b border-[var(--border-color)] pb-2">Tabela Bordado (R$)</h3><div class="space-y-4" id="configBordado"></div></div>
+</div>
+<div class="settings-section shadow-xl">
+<h3 class="text-teal-500 font-black text-[10px] uppercase tracking-[0.2em] mb-4 border-b border-[var(--border-color)] pb-3 italic">Parametrização de Tecidos / PCP</h3>
+<p class="text-[10px] text-[var(--text-muted)] font-bold uppercase tracking-widest mb-4">Rendimento informado pelo fornecedor ÷ 1,83. Tubular multiplica por 4; linear multiplica por 3. O sistema calcula camisetas por KG, KG necessário e custo estimado.</p>
+<div class="grid grid-cols-1 gap-4" id="fabricParamList"></div>
+</div>
+</div>
+<div class="p-6 border-t border-[var(--border-color)] bg-[var(--bg-modal)] flex justify-between items-center shrink-0">
+<div class="flex gap-3">
+<button class="bg-[var(--bg-card)] border border-[var(--border-color)] px-5 py-3 rounded-lg font-bold text-[10px] uppercase text-[var(--text-main)] transition hover:border-blue-500 active:scale-95" onclick="exportConfig()">⬇️ Exportar .TWC</button>
+<button class="bg-[var(--bg-card)] border border-[var(--border-color)] px-5 py-3 rounded-lg font-bold text-[10px] uppercase text-[var(--text-main)] transition hover:border-blue-500 active:scale-95" onclick="document.getElementById('importConfigInput').click()">⬆️ Importar .TWC</button>
+<input accept=".twc" class="hidden" id="importConfigInput" onchange="importConfig(event)" type="file"/>
+<button class="ml-4 bg-teal-900/30 text-teal-500 border border-teal-500/50 px-5 py-3 rounded-lg font-bold text-[10px] uppercase flex items-center gap-2 transition hover:bg-teal-600 hover:text-white active:scale-95" onclick="verificarAtualizacao()">
+<span id="updateIcon">🔄</span> Update Web
                 </button>
-            </div>
-            <div class="flex gap-4">
-                <button onclick="closeSettings()" class="bg-red-500/10 text-red-500 border border-red-500/50 px-8 py-3 rounded-lg font-bold text-xs uppercase transition hover:bg-red-500 hover:text-white active:scale-95">Cancelar</button>
-                <button onclick="saveSettings()" class="bg-blue-600 text-white px-12 py-3 rounded-lg font-black uppercase text-xs shadow-lg transition hover:bg-blue-500 active:scale-95">💾 Salvar Configurações</button>
-            </div>
-        </div>
-    </div>
 </div>
-
-<div id="customModal" class="modal-overlay z-[10000]">
-    <div class="bg-[var(--bg-modal)] border border-[var(--border-color)] p-10 rounded-2xl shadow-2xl max-w-sm w-full text-center">
-        <h3 id="modalTitle" class="text-blue-500 font-black text-xl mb-4 uppercase italic">Aviso</h3>
-        <p id="modalText" class="text-[var(--text-main)] text-sm mb-10 font-medium whitespace-pre-line leading-relaxed"></p>
-        <div class="flex gap-4">
-            <button onclick="closeModal()" class="flex-1 bg-[var(--bg-card)] border border-[var(--border-color)] text-[var(--text-main)] py-4 rounded-xl font-black uppercase text-[10px] transition hover:bg-red-500 hover:text-white active:scale-95">Cancelar</button>
-            <button id="modalConfirmBtn" class="flex-1 bg-blue-600 text-white py-4 rounded-xl font-black uppercase text-[10px] transition shadow-lg active:scale-95">Confirmar</button>
-        </div>
-    </div>
+<div class="flex gap-4">
+<button class="bg-red-500/10 text-red-500 border border-red-500/50 px-8 py-3 rounded-lg font-bold text-xs uppercase transition hover:bg-red-500 hover:text-white active:scale-95" onclick="closeSettings()">Cancelar</button>
+<button class="bg-blue-600 text-white px-12 py-3 rounded-lg font-black uppercase text-xs shadow-lg transition hover:bg-blue-500 active:scale-95" onclick="saveSettings()">💾 Salvar Configurações</button>
 </div>
-
-
-<div id="crmStatusModal" class="modal-overlay">
-    <div class="bg-[var(--bg-modal)] border border-[var(--border-color)] p-8 rounded-2xl shadow-2xl max-w-md w-full text-center">
-        <h3 class="text-indigo-400 font-black text-xl mb-2 uppercase italic">Alterar status do pedido</h3>
-        <p class="text-[var(--text-muted)] text-[10px] font-bold uppercase tracking-widest mb-6">Escolha o novo status e confirme</p>
-        <input type="hidden" id="crmStatusTargetId">
-        <input type="hidden" id="crmStatusSelectedValue">
-        <div class="space-y-3 text-left mb-8">
-            <button id="crmStatusOption_aberto" onclick="selectCRMStatusOption('aberto')" class="w-full crm-status-pill crm-status-aberto justify-center">🟡 Aberto / Negociando</button>
-            <button id="crmStatusOption_fechado" onclick="selectCRMStatusOption('fechado')" class="w-full crm-status-pill crm-status-fechado justify-center">🟢 Fechado</button>
-            <button id="crmStatusOption_perdido" onclick="selectCRMStatusOption('perdido')" class="w-full crm-status-pill crm-status-perdido justify-center">🔴 Perdido</button>
-        </div>
-        <div class="flex gap-4">
-            <button onclick="closeCRMStatusModal()" class="flex-1 bg-[var(--bg-card)] border border-[var(--border-color)] text-[var(--text-main)] py-4 rounded-xl font-black uppercase text-[10px] transition hover:bg-red-500 hover:text-white active:scale-95">Cancelar</button>
-            <button onclick="confirmCRMStatusChange()" class="flex-1 bg-indigo-600 text-white py-4 rounded-xl font-black uppercase text-[10px] transition shadow-lg hover:bg-indigo-500 active:scale-95">Confirmar</button>
-        </div>
-    </div>
 </div>
-
-
-<div id="sizeGridModal" class="modal-overlay z-[10006]">
-    <div class="bg-[var(--bg-modal)] border border-[var(--border-color)] p-6 rounded-2xl shadow-2xl max-w-5xl w-full flex flex-col max-h-[90vh]">
-        <div class="flex justify-between items-start gap-4 mb-5 shrink-0">
-            <div>
-                <h3 class="text-blue-500 font-black text-lg uppercase italic tracking-widest">📏 Grade de Tamanhos</h3>
-                <p class="text-[var(--text-muted)] text-[10px] font-bold mt-1 uppercase tracking-widest">Distribua a quantidade e aplique acréscimo/decrescimo unitário por tamanho.</p>
-            </div>
-            <button onclick="cancelSizeGridModal()" class="text-[var(--text-muted)] hover:text-red-500 font-bold text-2xl transition hover:rotate-90">✕</button>
-        </div>
-
-        <div class="bg-[var(--bg-input)] border border-[var(--border-color)] rounded-xl p-3 mb-4 flex flex-wrap justify-between gap-3 shrink-0">
-            <div class="text-[10px] font-black uppercase tracking-widest text-[var(--text-main)]">Total do orçamento: <span id="sizeGridLimitTotal" class="text-blue-500">0</span> peças</div>
-            <div class="text-[10px] font-black uppercase tracking-widest text-[var(--text-main)]">Grade preenchida: <span id="sizeGridUsedTotal" class="text-yellow-500">0</span> peças</div>
-            <div id="sizeGridLimitMsg" class="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">Dentro do limite</div>
-        </div>
-
-        <div class="overflow-y-auto border border-[var(--border-color)] rounded-xl">
-            <table class="w-full border-collapse text-left">
-                <thead class="sticky top-0 bg-[var(--bg-card)] z-10">
-                    <tr class="text-[9px] uppercase tracking-widest text-blue-500 font-black border-b border-[var(--border-color)]">
-                        <th class="p-3 w-[70px]">Tam.</th>
-                        <th class="p-3 w-[140px]">Esp.</th>
-                        <th class="p-3 w-[100px]">QT</th>
-                        <th class="p-3 w-[170px]">Acrésc./Decresc.</th>
-                        <th class="p-3">Observação</th>
-                    </tr>
-                </thead>
-                <tbody id="sizeGridModalRows" class="divide-y divide-[var(--border-color)]"></tbody>
-            </table>
-        </div>
-
-        <div class="flex justify-between items-center gap-3 mt-5 shrink-0">
-            <button onclick="clearSizeGridModal()" class="bg-red-500/10 text-red-500 border border-red-500/40 px-5 py-3 rounded-lg font-black text-[10px] uppercase tracking-widest hover:bg-red-500 hover:text-white transition active:scale-95">Limpar grade</button>
-            <div class="flex gap-3">
-                <button onclick="cancelSizeGridModal()" class="bg-[var(--bg-card)] border border-[var(--border-color)] text-[var(--text-main)] px-8 py-3 rounded-lg font-black text-[10px] uppercase tracking-widest hover:border-red-500 transition active:scale-95">Cancelar</button>
-                <button onclick="confirmSizeGridModal()" class="bg-blue-600 text-white px-10 py-3 rounded-lg font-black text-[10px] uppercase tracking-widest shadow-lg hover:bg-blue-500 transition active:scale-95">Confirmar</button>
-            </div>
-        </div>
-    </div>
 </div>
-
-
-<div id="cropImageModal" class="modal-overlay z-[10007]">
-    <div class="bg-[var(--bg-modal)] border border-[var(--border-color)] p-6 rounded-2xl shadow-2xl max-w-3xl w-full flex flex-col max-h-[92vh]">
-        <div class="flex justify-between items-start gap-4 mb-4 shrink-0">
-            <div>
-                <h3 class="text-blue-500 font-black text-lg uppercase italic tracking-widest">✂️ Recortar Imagem</h3>
-                <p class="text-[var(--text-muted)] text-[10px] font-bold mt-1 uppercase tracking-widest">Arraste para criar uma área, mova por dentro ou puxe os cantos para ajustar.</p>
-            </div>
-            <button onclick="closeCropImageModal()" class="text-[var(--text-muted)] hover:text-red-500 font-bold text-2xl transition hover:rotate-90">✕</button>
-        </div>
-
-        <div class="bg-slate-900 rounded-xl overflow-auto border border-[var(--border-color)] flex items-center justify-center p-4 shrink min-h-[260px]" style="background-image: repeating-conic-gradient(#1e293b 0% 25%, #0f172a 0% 50%) 50% / 20px 20px;">
-            <canvas id="cropPreviewCanvas" class="max-w-full h-auto cursor-crosshair shadow-lg rounded"></canvas>
-        </div>
-
-        <div class="mt-4 bg-[var(--bg-input)] border border-[var(--border-color)] rounded-xl p-3 flex flex-wrap justify-between items-center gap-3 shrink-0">
-            <div id="cropInfoText" class="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">Área: --</div>
-            <div class="flex gap-3">
-                <button onclick="resetCropImageArea()" class="bg-[var(--bg-card)] border border-[var(--border-color)] text-[var(--text-main)] px-5 py-3 rounded-lg font-black text-[10px] uppercase tracking-widest hover:border-blue-500 transition active:scale-95">Imagem inteira</button>
-                <button onclick="closeCropImageModal()" class="bg-red-500/10 text-red-500 border border-red-500/40 px-5 py-3 rounded-lg font-black text-[10px] uppercase tracking-widest hover:bg-red-500 hover:text-white transition active:scale-95">Cancelar</button>
-                <button onclick="applyImageCrop()" class="bg-blue-600 text-white px-8 py-3 rounded-lg font-black text-[10px] uppercase tracking-widest shadow-lg hover:bg-blue-500 transition active:scale-95">Aplicar recorte</button>
-            </div>
-        </div>
-    </div>
 </div>
-
-<div id="chromaModal" class="modal-overlay z-[10001]">
-    <div class="bg-[var(--bg-modal)] border border-[var(--border-color)] p-6 rounded-2xl shadow-2xl max-w-lg w-full">
-        <div class="flex justify-between items-center mb-4">
-            <h3 class="text-blue-500 font-black text-lg uppercase italic">Remover Fundo</h3>
-            <span class="bg-pink-500/20 text-pink-500 border border-pink-500/50 text-[9px] px-3 py-1 rounded font-black uppercase tracking-widest">Rosa = Será Apagado</span>
-        </div>
-        
-        <div class="flex flex-col gap-6">
-            <p id="chromaHint" class="text-[var(--text-muted)] text-[9px] font-bold uppercase tracking-widest bg-[var(--bg-input)] border border-[var(--border-color)] p-2 rounded text-center">Pode clicar em várias partes! (CTRL+Z desfaz clique)</p>
-            
-            <div class="relative bg-slate-800 rounded-xl overflow-hidden border border-[var(--border-color)] flex items-center justify-center p-4" style="background-image: repeating-conic-gradient(#1e293b 0% 25%, #0f172a 0% 50%) 50% / 20px 20px;">
-                <canvas id="chromaPreviewCanvas" class="max-w-full h-auto cursor-crosshair shadow-lg"></canvas>
-            </div>
-
-            <div class="space-y-4">
-                <div class="flex flex-col gap-2">
-                    <label class="set-label !mb-0">Modo do Próximo Clique</label>
-                    <div class="flex gap-2">
-                        <button id="modeGlobal" onclick="setChromaMode('global')" class="mode-btn active">Tudo (Global)</button>
-                        <button id="modeLocal" onclick="setChromaMode('local')" class="mode-btn">Conectado (Local)</button>
-                    </div>
-                </div>
-
-                <div>
-                    <div class="flex justify-between items-center mb-2">
-                        <label class="set-label !mb-0">Tolerância Geral (Refino Visual)</label>
-                        <span id="toleranceValue" class="text-xs font-bold text-blue-500">30</span>
-                    </div>
-                    <input type="range" id="chromaTolerance" min="0" max="200" value="30" class="w-full">
-                </div>
-            </div>
-
-            <div class="flex gap-3 mt-2">
-                <button onclick="closeChromaModal()" class="flex-1 bg-[var(--bg-card)] border border-[var(--border-color)] text-[var(--text-main)] py-4 rounded-lg font-black uppercase text-[10px] hover:bg-red-500 transition active:scale-95">Cancelar</button>
-                <button onclick="applyChromaKey()" class="flex-[2] bg-blue-600 text-white py-4 rounded-lg font-black uppercase text-[10px] tracking-widest shadow-lg hover:bg-blue-500 transition active:scale-95">✅ Confirmar Recorte</button>
-            </div>
-        </div>
-    </div>
+<div class="modal-overlay z-[10000]" id="customModal">
+<div class="bg-[var(--bg-modal)] border border-[var(--border-color)] p-10 rounded-2xl shadow-2xl max-w-sm w-full text-center">
+<h3 class="text-blue-500 font-black text-xl mb-4 uppercase italic" id="modalTitle">Aviso</h3>
+<p class="text-[var(--text-main)] text-sm mb-10 font-medium whitespace-pre-line leading-relaxed" id="modalText"></p>
+<div class="flex gap-4">
+<button class="flex-1 bg-[var(--bg-card)] border border-[var(--border-color)] text-[var(--text-main)] py-4 rounded-xl font-black uppercase text-[10px] transition hover:bg-red-500 hover:text-white active:scale-95" onclick="closeModal()">Cancelar</button>
+<button class="flex-1 bg-blue-600 text-white py-4 rounded-xl font-black uppercase text-[10px] transition shadow-lg active:scale-95" id="modalConfirmBtn">Confirmar</button>
 </div>
-
-<div id="quotesDashboardModal" class="modal-overlay z-[10002]">
-    <div class="bg-[var(--bg-modal)] border border-[var(--border-color)] p-8 rounded-2xl shadow-2xl max-w-2xl w-full flex flex-col max-h-[80vh]">
-        <div class="flex justify-between items-center mb-6 shrink-0">
-            <h3 class="text-blue-500 font-black text-xl uppercase italic tracking-widest flex items-center gap-3">☁️ Banco de Orçamentos</h3>
-            <button onclick="closeQuotesDashboard()" class="text-[var(--text-muted)] hover:text-red-500 font-bold text-2xl transition hover:rotate-90">✕</button>
-        </div>
-        <div id="quotesListContainer" class="flex-1 overflow-y-auto pr-2 space-y-3">
-            </div>
-    </div>
 </div>
-
-<div id="crmDashboardModal" class="modal-overlay">
-    <div class="crm-page-shell flex flex-col overflow-hidden">
-        <div class="px-8 py-5 border-b border-[var(--border-color)] bg-[var(--bg-sidebar)] flex items-center justify-between shrink-0 shadow-xl">
-            <div class="flex items-center gap-5">
-                <button onclick="closeCRMDashboard()" class="bg-[var(--bg-card)] border border-[var(--border-color)] text-[var(--text-main)] px-5 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition hover:border-indigo-500 active:scale-95">← Voltar ao menu</button>
-                <div>
-                    <h3 class="text-indigo-400 font-black text-2xl uppercase italic tracking-widest flex items-center gap-3">📊 Painel CRM & Vendas</h3>
-                    <div id="crmActiveFilterLabel" class="text-[10px] text-[var(--text-muted)] font-bold uppercase tracking-widest mt-1">Visão geral do período selecionado</div>
-                </div>
-            </div>
-            <div class="flex items-center gap-3">
-                <button onclick="setCRMMonthToCurrent()" class="crm-filter-btn">Este mês</button>
-                <select id="crmPeriodType" onchange="handleCRMPeriodChange()" class="calc-input !w-[170px] !mb-0 font-black !text-indigo-400">
-                    <option value="today">Hoje</option>
-                    <option value="7d">Últimos 7 dias</option>
-                    <option value="month" selected>Mês</option>
-                    <option value="year">Ano</option>
-                    <option value="custom">Personalizado</option>
-                </select>
-                <input type="month" id="crmMonthFilter" onchange="loadCRMData()" class="calc-input !w-[155px] !mb-0 font-black !text-indigo-400">
-                <input type="number" id="crmYearFilter" onchange="loadCRMData()" min="2020" max="2100" placeholder="Ano" class="calc-input !w-[105px] !mb-0 font-black !text-indigo-400 hidden">
-                <input type="date" id="crmStartDateFilter" onchange="loadCRMData()" class="calc-input !w-[145px] !mb-0 font-black !text-indigo-400 hidden">
-                <input type="date" id="crmEndDateFilter" onchange="loadCRMData()" class="calc-input !w-[145px] !mb-0 font-black !text-indigo-400 hidden">
-                <select id="crmStatusFilter" onchange="loadCRMData()" class="calc-input !w-[185px] !mb-0 font-black">
-                    <option value="all">Todos os status</option>
-                    <option value="aberto">Abertos / negociando</option>
-                    <option value="fechado">Fechados</option>
-                    <option value="perdido">Perdidos</option>
-                </select>
-                <input type="text" id="crmSearchFilter" oninput="loadCRMData()" placeholder="Buscar cliente/código" class="calc-input !w-[210px] !mb-0">
-                <button onclick="loadCRMData()" class="bg-indigo-600 text-white px-5 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition hover:bg-indigo-500 active:scale-95">Atualizar</button>
-            </div>
-        </div>
-
-        <div class="crm-workspace flex-1 overflow-y-auto p-8">
-            <div class="grid grid-cols-7 gap-4 mb-7">
-                <div class="crm-kpi-card flex items-center gap-4 col-span-2">
-                    <div class="w-24 h-24 relative shrink-0"><canvas id="crmPieChart"></canvas></div>
-                    <div>
-                        <div class="text-[10px] text-[var(--text-muted)] font-black uppercase tracking-widest">Conversão</div>
-                        <div class="text-3xl font-black text-indigo-400" id="crmConvRate">0%</div>
-                        <div class="text-[9px] text-[var(--text-muted)] font-bold uppercase tracking-widest mt-1">Fechados ÷ orçamentos</div>
-                    </div>
-                </div>
-                <div class="crm-kpi-card">
-                    <div class="text-[10px] text-[var(--text-muted)] font-black uppercase tracking-widest mb-2">Valor fechado contrato</div>
-                    <div class="text-2xl font-black text-emerald-500" id="crmMesFaturado">R$ 0,00</div>
-                    <div class="text-[9px] text-[var(--text-muted)] font-bold uppercase tracking-widest mt-2">Contratos fechados</div>
-                </div>
-                <div class="crm-kpi-card">
-                    <div class="text-[10px] text-[var(--text-muted)] font-black uppercase tracking-widest mb-2">Valor recebido</div>
-                    <div class="text-2xl font-black text-blue-400" id="crmValorRecebido">R$ 0,00</div>
-                    <div class="text-[9px] text-[var(--text-muted)] font-bold uppercase tracking-widest mt-2">Entradas/final pagos</div>
-                </div>
-                <div class="crm-kpi-card">
-                    <div class="text-[10px] text-[var(--text-muted)] font-black uppercase tracking-widest mb-2">Valor a receber</div>
-                    <div class="text-2xl font-black text-yellow-500" id="crmAReceber">R$ 0,00</div>
-                    <div class="text-[9px] text-[var(--text-muted)] font-bold uppercase tracking-widest mt-2">Pedidos fechados</div>
-                </div>
-                <div class="crm-kpi-card">
-                    <div class="text-[10px] text-[var(--text-muted)] font-black uppercase tracking-widest mb-2">Orçamentos</div>
-                    <div class="text-2xl font-black text-[var(--text-main)]" id="crmTotalOrcamentos">0</div>
-                    <div class="text-[9px] text-[var(--text-muted)] font-bold uppercase tracking-widest mt-2">No período</div>
-                </div>
-                <div class="crm-kpi-card">
-                    <div class="text-[10px] text-[var(--text-muted)] font-black uppercase tracking-widest mb-2">Fechados / Perdidos</div>
-                    <div class="text-2xl font-black"><span class="text-emerald-500" id="crmTotalFechados">0</span> <span class="text-[var(--text-muted)]">/</span> <span class="text-red-500" id="crmTotalPerdidos">0</span></div>
-                    <div class="text-[9px] text-[var(--text-muted)] font-bold uppercase tracking-widest mt-2">Resultado comercial</div>
-                </div>
-            </div>
-
-            <div class="crm-panel-card bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl shadow-xl overflow-hidden mb-7">
-                <div class="px-6 py-4 border-b border-[var(--border-color)] flex justify-between items-center">
-                    <div>
-                        <h4 class="text-[var(--text-main)] font-black uppercase italic tracking-widest text-sm">Valor fechado dia a dia</h4>
-                        <p class="text-[10px] text-[var(--text-muted)] font-bold uppercase tracking-widest mt-1">Medição do valor fechado de contratos no período selecionado</p>
-                    </div>
-                    <div id="crmRevenueChartTotal" class="text-emerald-400 font-black text-[10px] uppercase tracking-widest">R$ 0,00</div>
-                </div>
-                <div class="p-6 h-[285px]">
-                    <canvas id="crmRevenueChart"></canvas>
-                </div>
-            </div>
-
-            <div class="crm-panel-card bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl shadow-xl overflow-hidden">
-                <div class="px-6 py-4 border-b border-[var(--border-color)] flex justify-between items-center">
-                    <div>
-                        <h4 class="text-[var(--text-main)] font-black uppercase italic tracking-widest text-sm">Orçamentos do período</h4>
-                        <p class="text-[10px] text-[var(--text-muted)] font-bold uppercase tracking-widest mt-1">Controle de status, follow-up, pagamento e PDF</p>
-                    </div>
-                    <div id="crmResultCount" class="text-indigo-400 font-black text-[10px] uppercase tracking-widest">0 resultados</div>
-                </div>
-                <div id="crmListContainer" class="p-6 space-y-4 min-h-[260px]">
-                </div>
-            </div>
-        </div>
-    </div>
 </div>
-
-<div id="pcpDashboardModal" class="modal-overlay">
-    <div class="pcp-page-shell flex flex-col overflow-hidden">
-        <div class="px-8 py-5 border-b border-[var(--border-color)] bg-[var(--bg-sidebar)] flex items-center justify-between shrink-0 shadow-xl">
-            <div class="flex items-center gap-5">
-                <button onclick="closePCPDashboard()" class="bg-[var(--bg-card)] border border-[var(--border-color)] text-[var(--text-main)] px-5 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition hover:border-teal-500 active:scale-95">← Voltar ao menu</button>
-                <div>
-                    <h3 class="text-teal-400 font-black text-2xl uppercase italic tracking-widest flex items-center gap-3">🏭 PCP / Controle de Produção</h3>
-                    <div id="pcpHeaderLabel" class="text-[10px] text-[var(--text-muted)] font-bold uppercase tracking-widest mt-1">Pedidos fechados entram aqui após pagamento da entrada</div>
-                </div>
-            </div>
-            <div class="flex items-center gap-3">
-                <button id="pcpOrdersTabBtn" onclick="setPCPTab('orders')" class="pcp-tab-btn active">Pedidos em andamento</button>
-                <button id="pcpSuppliersTabBtn" onclick="setPCPTab('suppliers')" class="pcp-tab-btn">Cadastros</button>
-                <button onclick="loadPCPData()" class="bg-teal-600 text-white px-5 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition hover:bg-teal-500 active:scale-95">Atualizar</button>
-            </div>
-        </div>
-        <div class="pcp-workspace flex-1 overflow-y-auto p-8">
-            <div class="pcp-panel-card bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl shadow-xl overflow-hidden mb-7">
-                <div class="p-5 border-b border-[var(--border-color)] flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-                    <div>
-                        <h4 class="text-[var(--text-main)] font-black uppercase italic tracking-widest text-sm">Filtro de entregas</h4>
-                        <p class="text-[9px] text-[var(--text-muted)] font-bold uppercase tracking-widest mt-1">Veja o que precisa ser entregue por mês ou nos próximos 7 dias</p>
-                    </div>
-                    <div id="pcpDeliveryFilterBar" class="flex gap-2 overflow-x-auto pb-1"></div>
-                </div>
-                <div id="pcpDeliveryStats" class="p-5 grid grid-cols-2 md:grid-cols-4 gap-3"></div>
-            </div>
-
-            <div class="pcp-panel-card bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl shadow-xl overflow-hidden mb-7">
-                <div class="px-6 py-4 border-b border-[var(--border-color)] flex justify-between items-center gap-4">
-                    <div>
-                        <h4 class="text-[var(--text-main)] font-black uppercase italic tracking-widest text-sm">Barra de notificações</h4>
-                        <p class="text-[10px] text-[var(--text-muted)] font-bold uppercase tracking-widest mt-1">Novos pedidos, fases vencendo e atrasos de produção</p>
-                    </div>
-                    <button onclick="clearAllPCPNotifications()" class="bg-red-500/10 text-red-500 border border-red-500/30 px-4 py-2 rounded-lg font-black text-[10px] uppercase transition hover:bg-red-500 hover:text-white active:scale-95">Limpar notificações</button>
-                </div>
-                <div id="pcpNotificationsContainer" class="p-5 space-y-3 max-h-[220px] overflow-y-auto"></div>
-            </div>
-
-            <div id="pcpOrdersPanel" class="pcp-panel-card bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl shadow-xl overflow-hidden">
-                <div class="px-6 py-4 border-b border-[var(--border-color)] flex justify-between items-center">
-                    <div>
-                        <h4 class="text-[var(--text-main)] font-black uppercase italic tracking-widest text-sm">Pedidos em andamento</h4>
-                        <p class="text-[10px] text-[var(--text-muted)] font-bold uppercase tracking-widest mt-1">Ordenado pelo prazo final calculado em dias úteis</p>
-                    </div>
-                    <div id="pcpOrderCount" class="text-teal-400 font-black text-[10px] uppercase tracking-widest">0 pedidos</div>
-                </div>
-                <div id="pcpBulkMaterialPanel" class="hidden p-5 border-b border-[var(--border-color)] bg-teal-950/10"></div>
-                <div id="pcpOrdersContainer" class="p-6 space-y-4 min-h-[260px]"></div>
-            </div>
-
-            <div id="pcpSuppliersPanel" class="hidden grid grid-cols-2 gap-6">
-                <div class="pcp-panel-card bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl shadow-xl overflow-hidden">
-                    <div class="px-6 py-4 border-b border-[var(--border-color)]"><h4 class="text-[var(--text-main)] font-black uppercase italic tracking-widest text-sm">Fornecedores de matéria-prima</h4></div>
-                    <div class="p-6 space-y-4">
-                        <div class="grid grid-cols-3 gap-3">
-                            <input type="text" id="pcpMatSupplierName" placeholder="Nome do fornecedor" class="calc-input !mb-0">
-                            <input type="text" id="pcpMatSupplierRep" placeholder="Nome do representante" class="calc-input !mb-0">
-                            <input type="text" id="pcpMatSupplierContact" placeholder="WhatsApp completo. Ex: +55 31 99999-9999" class="calc-input !mb-0">
-                        </div>
-                        <button onclick="addPCPSupplier('material')" class="w-full bg-teal-600 text-white py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition hover:bg-teal-500 active:scale-95">Adicionar matéria-prima</button>
-                        <div id="pcpMaterialSuppliersList" class="space-y-3"></div>
-                    </div>
-                </div>
-                <div class="pcp-panel-card bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl shadow-xl overflow-hidden">
-                    <div class="px-6 py-4 border-b border-[var(--border-color)]"><h4 class="text-[var(--text-main)] font-black uppercase italic tracking-widest text-sm">Fornecedores de serviço</h4></div>
-                    <div class="p-6 space-y-4">
-                        <div class="grid grid-cols-3 gap-3">
-                            <input type="text" id="pcpServiceSupplierName" placeholder="Nome do prestador" class="calc-input !mb-0">
-                            <select id="pcpServiceSupplierType" class="calc-input !mb-0"><option value="DTF">DTF</option><option value="Silk">Silk</option><option value="Bordado">Bordado</option><option value="Costura">Costura</option><option value="Outro">Outro</option></select>
-                            <input type="text" id="pcpServiceSupplierContact" placeholder="WhatsApp completo. Ex: +55 31 99999-9999" class="calc-input !mb-0">
-                        </div>
-                        <button onclick="addPCPSupplier('service')" class="w-full bg-teal-600 text-white py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition hover:bg-teal-500 active:scale-95">Adicionar prestador</button>
-                        <div id="pcpServiceSuppliersList" class="space-y-3"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+<div class="modal-overlay" id="crmStatusModal">
+<div class="bg-[var(--bg-modal)] border border-[var(--border-color)] p-8 rounded-2xl shadow-2xl max-w-md w-full text-center">
+<h3 class="text-indigo-400 font-black text-xl mb-2 uppercase italic">Alterar status do pedido</h3>
+<p class="text-[var(--text-muted)] text-[10px] font-bold uppercase tracking-widest mb-6">Escolha o novo status e confirme</p>
+<input id="crmStatusTargetId" type="hidden"/>
+<input id="crmStatusSelectedValue" type="hidden"/>
+<div class="space-y-3 text-left mb-8">
+<button class="w-full crm-status-pill crm-status-aberto justify-center" id="crmStatusOption_aberto" onclick="selectCRMStatusOption('aberto')">🟡 Aberto / Negociando</button>
+<button class="w-full crm-status-pill crm-status-fechado justify-center" id="crmStatusOption_fechado" onclick="selectCRMStatusOption('fechado')">🟢 Fechado</button>
+<button class="w-full crm-status-pill crm-status-perdido justify-center" id="crmStatusOption_perdido" onclick="selectCRMStatusOption('perdido')">🔴 Perdido</button>
 </div>
-
-<div id="inboxDashboardModal" class="modal-overlay z-[10004]">
-    <div class="bg-[var(--bg-modal)] border border-[var(--border-color)] p-8 rounded-2xl shadow-2xl max-w-4xl w-full flex flex-col max-h-[85vh]">
-        <div class="flex justify-between items-center mb-6 shrink-0">
-            <h3 class="text-sky-400 font-black text-xl uppercase italic tracking-widest flex items-center gap-3">📩 Solicitações do Site</h3>
-            <button onclick="closeInboxDashboard()" class="text-[var(--text-muted)] hover:text-red-500 font-bold text-2xl transition hover:rotate-90">✕</button>
-        </div>
-        <div class="flex gap-2 mb-5 shrink-0 border-b border-[var(--border-color)]">
-            <button id="inboxOpenTabBtn" onclick="window.setInboxTab('open')" class="tab-btn active">Solicitações em aberto <span id="inboxOpenCount" class="ml-2 bg-red-500 text-white px-2 py-0.5 rounded-full">0</span></button>
-            <button id="inboxDoneTabBtn" onclick="window.setInboxTab('done')" class="tab-btn">Solicitações atendidas</button>
-        </div>
-        <div id="inboxListContainer" class="flex-1 overflow-y-auto pr-2 space-y-3">
-            </div>
-    </div>
+<div class="flex gap-4">
+<button class="flex-1 bg-[var(--bg-card)] border border-[var(--border-color)] text-[var(--text-main)] py-4 rounded-xl font-black uppercase text-[10px] transition hover:bg-red-500 hover:text-white active:scale-95" onclick="closeCRMStatusModal()">Cancelar</button>
+<button class="flex-1 bg-indigo-600 text-white py-4 rounded-xl font-black uppercase text-[10px] transition shadow-lg hover:bg-indigo-500 active:scale-95" onclick="confirmCRMStatusChange()">Confirmar</button>
 </div>
-
+</div>
+</div>
+<div class="modal-overlay z-[10006]" id="sizeGridModal">
+<div class="bg-[var(--bg-modal)] border border-[var(--border-color)] p-6 rounded-2xl shadow-2xl max-w-5xl w-full flex flex-col max-h-[90vh]">
+<div class="flex justify-between items-start gap-4 mb-5 shrink-0">
+<div>
+<h3 class="text-blue-500 font-black text-lg uppercase italic tracking-widest">📏 Grade de Tamanhos</h3>
+<p class="text-[var(--text-muted)] text-[10px] font-bold mt-1 uppercase tracking-widest">Distribua a quantidade e aplique acréscimo/decrescimo unitário por tamanho.</p>
+</div>
+<button class="text-[var(--text-muted)] hover:text-red-500 font-bold text-2xl transition hover:rotate-90" onclick="cancelSizeGridModal()">✕</button>
+</div>
+<div class="bg-[var(--bg-input)] border border-[var(--border-color)] rounded-xl p-3 mb-4 flex flex-wrap justify-between gap-3 shrink-0">
+<div class="text-[10px] font-black uppercase tracking-widest text-[var(--text-main)]">Total do orçamento: <span class="text-blue-500" id="sizeGridLimitTotal">0</span> peças</div>
+<div class="text-[10px] font-black uppercase tracking-widest text-[var(--text-main)]">Grade preenchida: <span class="text-yellow-500" id="sizeGridUsedTotal">0</span> peças</div>
+<div class="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]" id="sizeGridLimitMsg">Dentro do limite</div>
+</div>
+<div class="overflow-y-auto border border-[var(--border-color)] rounded-xl">
+<table class="w-full border-collapse text-left">
+<thead class="sticky top-0 bg-[var(--bg-card)] z-10">
+<tr class="text-[9px] uppercase tracking-widest text-blue-500 font-black border-b border-[var(--border-color)]">
+<th class="p-3 w-[70px]">Tam.</th>
+<th class="p-3 w-[140px]">Esp.</th>
+<th class="p-3 w-[100px]">QT</th>
+<th class="p-3 w-[170px]">Acrésc./Decresc.</th>
+<th class="p-3">Observação</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-[var(--border-color)]" id="sizeGridModalRows"></tbody>
+</table>
+</div>
+<div class="flex justify-between items-center gap-3 mt-5 shrink-0">
+<button class="bg-red-500/10 text-red-500 border border-red-500/40 px-5 py-3 rounded-lg font-black text-[10px] uppercase tracking-widest hover:bg-red-500 hover:text-white transition active:scale-95" onclick="clearSizeGridModal()">Limpar grade</button>
+<div class="flex gap-3">
+<button class="bg-[var(--bg-card)] border border-[var(--border-color)] text-[var(--text-main)] px-8 py-3 rounded-lg font-black text-[10px] uppercase tracking-widest hover:border-red-500 transition active:scale-95" onclick="cancelSizeGridModal()">Cancelar</button>
+<button class="bg-blue-600 text-white px-10 py-3 rounded-lg font-black text-[10px] uppercase tracking-widest shadow-lg hover:bg-blue-500 transition active:scale-95" onclick="confirmSizeGridModal()">Confirmar</button>
+</div>
+</div>
+</div>
+</div>
+<div class="modal-overlay z-[10007]" id="cropImageModal">
+<div class="bg-[var(--bg-modal)] border border-[var(--border-color)] p-6 rounded-2xl shadow-2xl max-w-3xl w-full flex flex-col max-h-[92vh]">
+<div class="flex justify-between items-start gap-4 mb-4 shrink-0">
+<div>
+<h3 class="text-blue-500 font-black text-lg uppercase italic tracking-widest">✂️ Recortar Imagem</h3>
+<p class="text-[var(--text-muted)] text-[10px] font-bold mt-1 uppercase tracking-widest">Arraste para criar uma área, mova por dentro ou puxe os cantos para ajustar.</p>
+</div>
+<button class="text-[var(--text-muted)] hover:text-red-500 font-bold text-2xl transition hover:rotate-90" onclick="closeCropImageModal()">✕</button>
+</div>
+<div class="bg-slate-900 rounded-xl overflow-auto border border-[var(--border-color)] flex items-center justify-center p-4 shrink min-h-[260px]" style="background-image: repeating-conic-gradient(#1e293b 0% 25%, #0f172a 0% 50%) 50% / 20px 20px;">
+<canvas class="max-w-full h-auto cursor-crosshair shadow-lg rounded" id="cropPreviewCanvas"></canvas>
+</div>
+<div class="mt-4 bg-[var(--bg-input)] border border-[var(--border-color)] rounded-xl p-3 flex flex-wrap justify-between items-center gap-3 shrink-0">
+<div class="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]" id="cropInfoText">Área: --</div>
+<div class="flex gap-3">
+<button class="bg-[var(--bg-card)] border border-[var(--border-color)] text-[var(--text-main)] px-5 py-3 rounded-lg font-black text-[10px] uppercase tracking-widest hover:border-blue-500 transition active:scale-95" onclick="resetCropImageArea()">Imagem inteira</button>
+<button class="bg-red-500/10 text-red-500 border border-red-500/40 px-5 py-3 rounded-lg font-black text-[10px] uppercase tracking-widest hover:bg-red-500 hover:text-white transition active:scale-95" onclick="closeCropImageModal()">Cancelar</button>
+<button class="bg-blue-600 text-white px-8 py-3 rounded-lg font-black text-[10px] uppercase tracking-widest shadow-lg hover:bg-blue-500 transition active:scale-95" onclick="applyImageCrop()">Aplicar recorte</button>
+</div>
+</div>
+</div>
+</div>
+<div class="modal-overlay z-[10008]" id="freeCropImageModal">
+<div class="bg-[var(--bg-modal)] border border-[var(--border-color)] p-6 rounded-2xl shadow-2xl max-w-3xl w-full flex flex-col max-h-[92vh]">
+<div class="flex justify-between items-start gap-4 mb-4 shrink-0">
+<div>
+<h3 class="text-amber-400 font-black text-lg uppercase italic tracking-widest">✂ Corte Livre</h3>
+<p class="text-[var(--text-muted)] text-[10px] font-bold mt-1 uppercase tracking-widest">Desenhe ao redor da área que deve permanecer. O restante ficará transparente.</p>
+</div>
+<button class="text-[var(--text-muted)] hover:text-red-500 font-bold text-2xl transition hover:rotate-90" onclick="closeFreeCropImageModal()">✕</button>
+</div>
+<div class="bg-slate-900 rounded-xl overflow-auto border border-[var(--border-color)] flex items-center justify-center p-4 shrink min-h-[260px]" style="background-image: repeating-conic-gradient(#1e293b 0% 25%, #0f172a 0% 50%) 50% / 20px 20px;">
+<canvas class="max-w-full h-auto cursor-crosshair shadow-lg rounded" id="freeCropPreviewCanvas"></canvas>
+</div>
+<div class="mt-4 bg-[var(--bg-input)] border border-[var(--border-color)] rounded-xl p-3 flex flex-wrap justify-between items-center gap-3 shrink-0">
+<div class="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]" id="freeCropInfoText">Desenhe a área de corte livre</div>
+<div class="flex gap-3">
+<button class="bg-[var(--bg-card)] border border-[var(--border-color)] text-[var(--text-main)] px-5 py-3 rounded-lg font-black text-[10px] uppercase tracking-widest hover:border-amber-500 transition active:scale-95" onclick="resetFreeCropPath()">Limpar desenho</button>
+<button class="bg-red-500/10 text-red-500 border border-red-500/40 px-5 py-3 rounded-lg font-black text-[10px] uppercase tracking-widest hover:bg-red-500 hover:text-white transition active:scale-95" onclick="closeFreeCropImageModal()">Cancelar</button>
+<button class="bg-amber-500 text-slate-950 px-8 py-3 rounded-lg font-black text-[10px] uppercase tracking-widest shadow-lg hover:bg-amber-400 transition active:scale-95" onclick="applyFreeImageCrop()">Aplicar corte livre</button>
+</div>
+</div>
+</div>
+</div>
+<div class="modal-overlay z-[10001]" id="chromaModal">
+<div class="bg-[var(--bg-modal)] border border-[var(--border-color)] p-6 rounded-2xl shadow-2xl max-w-lg w-full">
+<div class="flex justify-between items-center mb-4">
+<h3 class="text-blue-500 font-black text-lg uppercase italic">Remover Fundo</h3>
+<span class="bg-pink-500/20 text-pink-500 border border-pink-500/50 text-[9px] px-3 py-1 rounded font-black uppercase tracking-widest">Rosa = Será Apagado</span>
+</div>
+<div class="flex flex-col gap-6">
+<p class="text-[var(--text-muted)] text-[9px] font-bold uppercase tracking-widest bg-[var(--bg-input)] border border-[var(--border-color)] p-2 rounded text-center" id="chromaHint">Pode clicar em várias partes! (CTRL+Z desfaz clique)</p>
+<div class="relative bg-slate-800 rounded-xl overflow-hidden border border-[var(--border-color)] flex items-center justify-center p-4" style="background-image: repeating-conic-gradient(#1e293b 0% 25%, #0f172a 0% 50%) 50% / 20px 20px;">
+<canvas class="max-w-full h-auto cursor-crosshair shadow-lg" id="chromaPreviewCanvas"></canvas>
+</div>
+<div class="space-y-4">
+<div class="flex flex-col gap-2">
+<label class="set-label !mb-0">Modo do Próximo Clique</label>
+<div class="flex gap-2">
+<button class="mode-btn active" id="modeGlobal" onclick="setChromaMode('global')">Tudo (Global)</button>
+<button class="mode-btn" id="modeLocal" onclick="setChromaMode('local')">Conectado (Local)</button>
+</div>
+</div>
+<div>
+<div class="flex justify-between items-center mb-2">
+<label class="set-label !mb-0">Tolerância Geral (Refino Visual)</label>
+<span class="text-xs font-bold text-blue-500" id="toleranceValue">30</span>
+</div>
+<input class="w-full" id="chromaTolerance" max="200" min="0" type="range" value="30"/>
+</div>
+</div>
+<div class="flex gap-3 mt-2">
+<button class="flex-1 bg-[var(--bg-card)] border border-[var(--border-color)] text-[var(--text-main)] py-4 rounded-lg font-black uppercase text-[10px] hover:bg-red-500 transition active:scale-95" onclick="closeChromaModal()">Cancelar</button>
+<button class="flex-[2] bg-blue-600 text-white py-4 rounded-lg font-black uppercase text-[10px] tracking-widest shadow-lg hover:bg-blue-500 transition active:scale-95" onclick="applyChromaKey()">✅ Confirmar Recorte</button>
+</div>
+</div>
+</div>
+</div>
+<div class="modal-overlay z-[10002]" id="quotesDashboardModal">
+<div class="bg-[var(--bg-modal)] border border-[var(--border-color)] p-8 rounded-2xl shadow-2xl max-w-2xl w-full flex flex-col max-h-[80vh]">
+<div class="flex justify-between items-center mb-6 shrink-0">
+<h3 class="text-blue-500 font-black text-xl uppercase italic tracking-widest flex items-center gap-3">☁️ Banco de Orçamentos</h3>
+<button class="text-[var(--text-muted)] hover:text-red-500 font-bold text-2xl transition hover:rotate-90" onclick="closeQuotesDashboard()">✕</button>
+</div>
+<div class="flex-1 overflow-y-auto pr-2 space-y-3" id="quotesListContainer">
+</div>
+</div>
+</div>
+<div class="modal-overlay" id="crmDashboardModal">
+<div class="crm-page-shell flex flex-col overflow-hidden">
+<div class="px-8 py-5 border-b border-[var(--border-color)] bg-[var(--bg-sidebar)] flex items-center justify-between shrink-0 shadow-xl">
+<div class="flex items-center gap-5">
+<button class="bg-[var(--bg-card)] border border-[var(--border-color)] text-[var(--text-main)] px-5 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition hover:border-indigo-500 active:scale-95" onclick="closeCRMDashboard()">← Voltar ao menu</button>
+<div>
+<h3 class="text-indigo-400 font-black text-2xl uppercase italic tracking-widest flex items-center gap-3">📊 Painel CRM &amp; Vendas</h3>
+<div class="text-[10px] text-[var(--text-muted)] font-bold uppercase tracking-widest mt-1" id="crmActiveFilterLabel">Visão geral do período selecionado</div>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<button class="crm-filter-btn" onclick="setCRMMonthToCurrent()">Este mês</button>
+<select class="calc-input !w-[170px] !mb-0 font-black !text-indigo-400" id="crmPeriodType" onchange="handleCRMPeriodChange()">
+<option value="today">Hoje</option>
+<option value="7d">Últimos 7 dias</option>
+<option selected="" value="month">Mês</option>
+<option value="year">Ano</option>
+<option value="custom">Personalizado</option>
+</select>
+<input class="calc-input !w-[155px] !mb-0 font-black !text-indigo-400" id="crmMonthFilter" onchange="loadCRMData()" type="month"/>
+<input class="calc-input !w-[105px] !mb-0 font-black !text-indigo-400 hidden" id="crmYearFilter" max="2100" min="2020" onchange="loadCRMData()" placeholder="Ano" type="number"/>
+<input class="calc-input !w-[145px] !mb-0 font-black !text-indigo-400 hidden" id="crmStartDateFilter" onchange="loadCRMData()" type="date"/>
+<input class="calc-input !w-[145px] !mb-0 font-black !text-indigo-400 hidden" id="crmEndDateFilter" onchange="loadCRMData()" type="date"/>
+<select class="calc-input !w-[185px] !mb-0 font-black" id="crmStatusFilter" onchange="loadCRMData()">
+<option value="all">Todos os status</option>
+<option value="aberto">Abertos / negociando</option>
+<option value="fechado">Fechados</option>
+<option value="perdido">Perdidos</option>
+</select>
+<input class="calc-input !w-[210px] !mb-0" id="crmSearchFilter" oninput="loadCRMData()" placeholder="Buscar cliente/código" type="text"/>
+<button class="bg-indigo-600 text-white px-5 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition hover:bg-indigo-500 active:scale-95" onclick="loadCRMData()">Atualizar</button>
+</div>
+</div>
+<div class="crm-workspace flex-1 overflow-y-auto p-8">
+<div class="grid grid-cols-7 gap-4 mb-7">
+<div class="crm-kpi-card flex items-center gap-4 col-span-2">
+<div class="w-24 h-24 relative shrink-0"><canvas id="crmPieChart"></canvas></div>
+<div>
+<div class="text-[10px] text-[var(--text-muted)] font-black uppercase tracking-widest">Conversão</div>
+<div class="text-3xl font-black text-indigo-400" id="crmConvRate">0%</div>
+<div class="text-[9px] text-[var(--text-muted)] font-bold uppercase tracking-widest mt-1">Fechados ÷ orçamentos</div>
+</div>
+</div>
+<div class="crm-kpi-card">
+<div class="text-[10px] text-[var(--text-muted)] font-black uppercase tracking-widest mb-2">Valor fechado contrato</div>
+<div class="text-2xl font-black text-emerald-500" id="crmMesFaturado">R$ 0,00</div>
+<div class="text-[9px] text-[var(--text-muted)] font-bold uppercase tracking-widest mt-2">Contratos fechados</div>
+</div>
+<div class="crm-kpi-card">
+<div class="text-[10px] text-[var(--text-muted)] font-black uppercase tracking-widest mb-2">Valor recebido</div>
+<div class="text-2xl font-black text-blue-400" id="crmValorRecebido">R$ 0,00</div>
+<div class="text-[9px] text-[var(--text-muted)] font-bold uppercase tracking-widest mt-2">Entradas/final pagos</div>
+</div>
+<div class="crm-kpi-card">
+<div class="text-[10px] text-[var(--text-muted)] font-black uppercase tracking-widest mb-2">Valor a receber</div>
+<div class="text-2xl font-black text-yellow-500" id="crmAReceber">R$ 0,00</div>
+<div class="text-[9px] text-[var(--text-muted)] font-bold uppercase tracking-widest mt-2">Pedidos fechados</div>
+</div>
+<div class="crm-kpi-card">
+<div class="text-[10px] text-[var(--text-muted)] font-black uppercase tracking-widest mb-2">Orçamentos</div>
+<div class="text-2xl font-black text-[var(--text-main)]" id="crmTotalOrcamentos">0</div>
+<div class="text-[9px] text-[var(--text-muted)] font-bold uppercase tracking-widest mt-2">No período</div>
+</div>
+<div class="crm-kpi-card">
+<div class="text-[10px] text-[var(--text-muted)] font-black uppercase tracking-widest mb-2">Fechados / Perdidos</div>
+<div class="text-2xl font-black"><span class="text-emerald-500" id="crmTotalFechados">0</span> <span class="text-[var(--text-muted)]">/</span> <span class="text-red-500" id="crmTotalPerdidos">0</span></div>
+<div class="text-[9px] text-[var(--text-muted)] font-bold uppercase tracking-widest mt-2">Resultado comercial</div>
+</div>
+</div>
+<div class="crm-panel-card bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl shadow-xl overflow-hidden mb-7">
+<div class="px-6 py-4 border-b border-[var(--border-color)] flex justify-between items-center">
+<div>
+<h4 class="text-[var(--text-main)] font-black uppercase italic tracking-widest text-sm">Valor fechado dia a dia</h4>
+<p class="text-[10px] text-[var(--text-muted)] font-bold uppercase tracking-widest mt-1">Medição do valor fechado de contratos no período selecionado</p>
+</div>
+<div class="text-emerald-400 font-black text-[10px] uppercase tracking-widest" id="crmRevenueChartTotal">R$ 0,00</div>
+</div>
+<div class="p-6 h-[285px]">
+<canvas id="crmRevenueChart"></canvas>
+</div>
+</div>
+<div class="crm-panel-card bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl shadow-xl overflow-hidden">
+<div class="px-6 py-4 border-b border-[var(--border-color)] flex justify-between items-center">
+<div>
+<h4 class="text-[var(--text-main)] font-black uppercase italic tracking-widest text-sm">Orçamentos do período</h4>
+<p class="text-[10px] text-[var(--text-muted)] font-bold uppercase tracking-widest mt-1">Controle de status, follow-up, pagamento e PDF</p>
+</div>
+<div class="text-indigo-400 font-black text-[10px] uppercase tracking-widest" id="crmResultCount">0 resultados</div>
+</div>
+<div class="p-6 space-y-4 min-h-[260px]" id="crmListContainer">
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="modal-overlay" id="pcpDashboardModal">
+<div class="pcp-page-shell flex flex-col overflow-hidden">
+<div class="px-8 py-5 border-b border-[var(--border-color)] bg-[var(--bg-sidebar)] flex items-center justify-between shrink-0 shadow-xl">
+<div class="flex items-center gap-5">
+<button class="bg-[var(--bg-card)] border border-[var(--border-color)] text-[var(--text-main)] px-5 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition hover:border-teal-500 active:scale-95" onclick="closePCPDashboard()">← Voltar ao menu</button>
+<div>
+<h3 class="text-teal-400 font-black text-2xl uppercase italic tracking-widest flex items-center gap-3">🏭 PCP / Controle de Produção</h3>
+<div class="text-[10px] text-[var(--text-muted)] font-bold uppercase tracking-widest mt-1" id="pcpHeaderLabel">Pedidos fechados entram aqui após pagamento da entrada</div>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<button class="pcp-tab-btn active" id="pcpOrdersTabBtn" onclick="setPCPTab('orders')">Pedidos em andamento</button>
+<button class="pcp-tab-btn" id="pcpSuppliersTabBtn" onclick="setPCPTab('suppliers')">Cadastros</button>
+<button class="bg-teal-600 text-white px-5 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition hover:bg-teal-500 active:scale-95" onclick="loadPCPData()">Atualizar</button>
+</div>
+</div>
+<div class="pcp-workspace flex-1 overflow-y-auto p-8">
+<div class="pcp-panel-card bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl shadow-xl overflow-hidden mb-7">
+<div class="p-5 border-b border-[var(--border-color)] flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+<div>
+<h4 class="text-[var(--text-main)] font-black uppercase italic tracking-widest text-sm">Filtro de entregas</h4>
+<p class="text-[9px] text-[var(--text-muted)] font-bold uppercase tracking-widest mt-1">Veja o que precisa ser entregue por mês ou nos próximos 7 dias</p>
+</div>
+<div class="flex gap-2 overflow-x-auto pb-1" id="pcpDeliveryFilterBar"></div>
+</div>
+<div class="p-5 grid grid-cols-2 md:grid-cols-4 gap-3" id="pcpDeliveryStats"></div>
+</div>
+<div class="pcp-panel-card bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl shadow-xl overflow-hidden mb-7">
+<div class="px-6 py-4 border-b border-[var(--border-color)] flex justify-between items-center gap-4">
+<div>
+<h4 class="text-[var(--text-main)] font-black uppercase italic tracking-widest text-sm">Barra de notificações</h4>
+<p class="text-[10px] text-[var(--text-muted)] font-bold uppercase tracking-widest mt-1">Novos pedidos, fases vencendo e atrasos de produção</p>
+</div>
+<button class="bg-red-500/10 text-red-500 border border-red-500/30 px-4 py-2 rounded-lg font-black text-[10px] uppercase transition hover:bg-red-500 hover:text-white active:scale-95" onclick="clearAllPCPNotifications()">Limpar notificações</button>
+</div>
+<div class="p-5 space-y-3 max-h-[220px] overflow-y-auto" id="pcpNotificationsContainer"></div>
+</div>
+<div class="pcp-panel-card bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl shadow-xl overflow-hidden" id="pcpOrdersPanel">
+<div class="px-6 py-4 border-b border-[var(--border-color)] flex justify-between items-center">
+<div>
+<h4 class="text-[var(--text-main)] font-black uppercase italic tracking-widest text-sm">Pedidos em andamento</h4>
+<p class="text-[10px] text-[var(--text-muted)] font-bold uppercase tracking-widest mt-1">Ordenado pelo prazo final calculado em dias úteis</p>
+</div>
+<div class="text-teal-400 font-black text-[10px] uppercase tracking-widest" id="pcpOrderCount">0 pedidos</div>
+</div>
+<div class="hidden p-5 border-b border-[var(--border-color)] bg-teal-950/10" id="pcpBulkMaterialPanel"></div>
+<div class="p-6 space-y-4 min-h-[260px]" id="pcpOrdersContainer"></div>
+</div>
+<div class="hidden grid grid-cols-2 gap-6" id="pcpSuppliersPanel">
+<div class="pcp-panel-card bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl shadow-xl overflow-hidden">
+<div class="px-6 py-4 border-b border-[var(--border-color)]"><h4 class="text-[var(--text-main)] font-black uppercase italic tracking-widest text-sm">Fornecedores de matéria-prima</h4></div>
+<div class="p-6 space-y-4">
+<div class="grid grid-cols-3 gap-3">
+<input class="calc-input !mb-0" id="pcpMatSupplierName" placeholder="Nome do fornecedor" type="text"/>
+<input class="calc-input !mb-0" id="pcpMatSupplierRep" placeholder="Nome do representante" type="text"/>
+<input class="calc-input !mb-0" id="pcpMatSupplierContact" placeholder="WhatsApp completo. Ex: +55 31 99999-9999" type="text"/>
+</div>
+<button class="w-full bg-teal-600 text-white py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition hover:bg-teal-500 active:scale-95" onclick="addPCPSupplier('material')">Adicionar matéria-prima</button>
+<div class="space-y-3" id="pcpMaterialSuppliersList"></div>
+</div>
+</div>
+<div class="pcp-panel-card bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl shadow-xl overflow-hidden">
+<div class="px-6 py-4 border-b border-[var(--border-color)]"><h4 class="text-[var(--text-main)] font-black uppercase italic tracking-widest text-sm">Fornecedores de serviço</h4></div>
+<div class="p-6 space-y-4">
+<div class="grid grid-cols-3 gap-3">
+<input class="calc-input !mb-0" id="pcpServiceSupplierName" placeholder="Nome do prestador" type="text"/>
+<select class="calc-input !mb-0" id="pcpServiceSupplierType"><option value="DTF">DTF</option><option value="Silk">Silk</option><option value="Bordado">Bordado</option><option value="Costura">Costura</option><option value="Outro">Outro</option></select>
+<input class="calc-input !mb-0" id="pcpServiceSupplierContact" placeholder="WhatsApp completo. Ex: +55 31 99999-9999" type="text"/>
+</div>
+<button class="w-full bg-teal-600 text-white py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition hover:bg-teal-500 active:scale-95" onclick="addPCPSupplier('service')">Adicionar prestador</button>
+<div class="space-y-3" id="pcpServiceSuppliersList"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="modal-overlay z-[10004]" id="inboxDashboardModal">
+<div class="bg-[var(--bg-modal)] border border-[var(--border-color)] p-8 rounded-2xl shadow-2xl max-w-4xl w-full flex flex-col max-h-[85vh]">
+<div class="flex justify-between items-center mb-6 shrink-0">
+<h3 class="text-sky-400 font-black text-xl uppercase italic tracking-widest flex items-center gap-3">📩 Solicitações do Site</h3>
+<button class="text-[var(--text-muted)] hover:text-red-500 font-bold text-2xl transition hover:rotate-90" onclick="closeInboxDashboard()">✕</button>
+</div>
+<div class="flex gap-2 mb-5 shrink-0 border-b border-[var(--border-color)]">
+<button class="tab-btn active" id="inboxOpenTabBtn" onclick="window.setInboxTab('open')">Solicitações em aberto <span class="ml-2 bg-red-500 text-white px-2 py-0.5 rounded-full" id="inboxOpenCount">0</span></button>
+<button class="tab-btn" id="inboxDoneTabBtn" onclick="window.setInboxTab('done')">Solicitações atendidas</button>
+</div>
+<div class="flex-1 overflow-y-auto pr-2 space-y-3" id="inboxListContainer">
+</div>
+</div>
+</div>
 <div id="cartDrawer">
-    <div class="p-6 border-b border-[var(--border-color)] bg-[var(--bg-sidebar)] flex justify-between items-center shrink-0">
-        <h2 class="text-[var(--text-main)] font-black italic uppercase tracking-widest text-sm flex items-center gap-3"><span class="text-blue-500">🛒</span> Resumo B2B</h2>
-        <button onclick="toggleCart()" class="text-[var(--text-muted)] hover:text-red-500 font-bold text-2xl transition hover:rotate-90">✕</button>
-    </div>
-    <div class="flex-1 overflow-y-auto p-6 bg-[var(--bg-main)]">
-        <div class="p-5 bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl mb-6 shadow-xl">
-             <h3 class="text-[9px] font-black text-blue-500 uppercase tracking-widest mb-4 italic">📋 Dados B2B & Contrato</h3>
-             <div class="grid grid-cols-2 gap-3 mb-4">
-                <input type="text" id="vendNome" placeholder="Seu Nome (Vendedor)" class="calc-input col-span-2 !mb-0">
-                <input type="text" id="cliNome" placeholder="Nome do Cliente" class="calc-input !mb-0">
-                <input type="text" id="cliCnpj" placeholder="CNPJ/CPF" class="calc-input !mb-0">
-                <input type="text" id="cliEnd" placeholder="Endereço" class="calc-input col-span-2 !mb-0">
-                <input type="text" id="cliCidade" placeholder="Cidade-UF" class="calc-input !mb-0">
-                <input type="text" id="cliTel" placeholder="WhatsApp" class="calc-input !mb-0">
-                <input type="text" id="cliEmail" placeholder="E-mail" class="calc-input col-span-2 !mb-0">
-            </div>
-            <div class="grid grid-cols-2 gap-3 pt-4 border-t border-[var(--border-color)]">
-                <input type="date" id="orcData" class="calc-input !mb-0">
-                <input type="text" id="orcValidade" value="10 dias" class="calc-input !mb-0" title="Validade">
-                <input type="text" id="orcPrazo" value="15 dias úteis" class="calc-input !mb-0" title="Prazo">
-                <select id="condPagto" onchange="updateTotalCartOnly()" class="calc-input !mb-0">
-                    <option value="50_50">50% Entrada / 50% Término</option>
-                    <option value="6x">6X Sem Juros Cartão</option>
-                    <option value="PIX">Pagamento PIX (5% OFF)</option>
-                </select>
-            </div>
-        </div>
-        <div id="cartItemsContainer" class="space-y-4"></div>
-    </div>
-    <div class="p-8 border-t border-[var(--border-color)] bg-[var(--bg-sidebar)] shrink-0">
-        <div class="flex justify-between items-end mb-6 text-[var(--text-main)]">
-            <span class="text-xs font-black text-[var(--text-muted)] uppercase tracking-widest">Total Geral</span>
-            <span id="cartTotalDisplay" class="text-4xl font-black text-blue-500 tracking-tighter">R$ 0,00</span>
-        </div>
-        <div class="flex gap-3">
-            <button onclick="emptyCart()" class="w-1/3 bg-red-500/10 text-red-500 border border-red-500/30 py-4 rounded-xl text-[10px] font-black uppercase transition hover:bg-red-500 hover:text-white active:scale-95">Limpar</button>
-            <button id="btnGeneratePDF" onclick="generateFinalPDF()" class="w-2/3 bg-blue-600 text-white py-4 rounded-xl text-[11px] font-black uppercase tracking-widest shadow-lg transition hover:bg-blue-500 active:scale-95">Baixar PDF</button>
-        </div>
-        <button id="btnSaveQuoteDB" onclick="sendQuoteToDatabase()" class="w-full mt-3 bg-emerald-600 text-white py-4 rounded-xl text-[11px] font-black uppercase tracking-widest shadow-lg transition hover:bg-emerald-500 active:scale-95">Enviar para Banco</button>
-    </div>
+<div class="p-6 border-b border-[var(--border-color)] bg-[var(--bg-sidebar)] flex justify-between items-center shrink-0">
+<h2 class="text-[var(--text-main)] font-black italic uppercase tracking-widest text-sm flex items-center gap-3"><span class="text-blue-500">🛒</span> Resumo B2B</h2>
+<button class="text-[var(--text-muted)] hover:text-red-500 font-bold text-2xl transition hover:rotate-90" onclick="toggleCart()">✕</button>
+</div>
+<div class="flex-1 overflow-y-auto p-6 bg-[var(--bg-main)]">
+<div class="p-5 bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl mb-6 shadow-xl">
+<h3 class="text-[9px] font-black text-blue-500 uppercase tracking-widest mb-4 italic">📋 Dados B2B &amp; Contrato</h3>
+<div class="grid grid-cols-2 gap-3 mb-4">
+<input class="calc-input col-span-2 !mb-0" id="vendNome" placeholder="Seu Nome (Vendedor)" type="text"/>
+<input class="calc-input !mb-0" id="cliNome" placeholder="Nome do Cliente" type="text"/>
+<input class="calc-input !mb-0" id="cliCnpj" placeholder="CNPJ/CPF" type="text"/>
+<input class="calc-input col-span-2 !mb-0" id="cliEnd" placeholder="Endereço" type="text"/>
+<input class="calc-input !mb-0" id="cliCidade" placeholder="Cidade-UF" type="text"/>
+<input class="calc-input !mb-0" id="cliTel" placeholder="WhatsApp" type="text"/>
+<input class="calc-input col-span-2 !mb-0" id="cliEmail" placeholder="E-mail" type="text"/>
+</div>
+<div class="grid grid-cols-2 gap-3 pt-4 border-t border-[var(--border-color)]">
+<input class="calc-input !mb-0" id="orcData" type="date"/>
+<input class="calc-input !mb-0" id="orcValidade" title="Validade" type="text" value="10 dias"/>
+<input class="calc-input !mb-0" id="orcPrazo" title="Prazo" type="text" value="15 dias úteis"/>
+<select class="calc-input !mb-0" id="condPagto" onchange="updateTotalCartOnly()">
+<option value="50_50">50% Entrada / 50% Término</option>
+<option value="6x">6X Sem Juros Cartão</option>
+<option value="PIX">Pagamento PIX (5% OFF)</option>
+</select>
+</div>
+</div>
+<div class="space-y-4" id="cartItemsContainer"></div>
+</div>
+<div class="p-8 border-t border-[var(--border-color)] bg-[var(--bg-sidebar)] shrink-0">
+<div class="flex justify-between items-end mb-6 text-[var(--text-main)]">
+<span class="text-xs font-black text-[var(--text-muted)] uppercase tracking-widest">Total Geral</span>
+<span class="text-4xl font-black text-blue-500 tracking-tighter" id="cartTotalDisplay">R$ 0,00</span>
+</div>
+<div class="flex gap-3">
+<button class="w-1/3 bg-red-500/10 text-red-500 border border-red-500/30 py-4 rounded-xl text-[10px] font-black uppercase transition hover:bg-red-500 hover:text-white active:scale-95" onclick="emptyCart()">Limpar</button>
+<button class="w-2/3 bg-blue-600 text-white py-4 rounded-xl text-[11px] font-black uppercase tracking-widest shadow-lg transition hover:bg-blue-500 active:scale-95" id="btnGeneratePDF" onclick="generateFinalPDF()">Baixar PDF</button>
+</div>
+<button class="w-full mt-3 bg-emerald-600 text-white py-4 rounded-xl text-[11px] font-black uppercase tracking-widest shadow-lg transition hover:bg-emerald-500 active:scale-95" id="btnSaveQuoteDB" onclick="sendQuoteToDatabase()">Enviar para Banco</button>
+</div>
+</div>
+<div class="flex h-screen">
+<aside class="w-[320px] sidebar-dark p-6 flex flex-col gap-5 relative z-20">
+<div class="flex justify-between items-center mb-2">
+<h1 class="text-2xl font-black italic uppercase tracking-tighter text-blue-500">TrendWear</h1>
+</div>
+<section class="bg-[var(--bg-card)] p-5 rounded-xl border border-[var(--border-color)]">
+<label class="set-label">Estrutura (Modelo)</label>
+<select class="calc-input mb-4 font-bold text-blue-400" id="modelSelect" onchange="syncModel()"></select>
+<div class="flex items-center justify-between mb-4 bg-[var(--bg-input)] p-2 rounded-lg border border-[var(--border-color)]">
+<input class="w-8 h-8 p-0 border-none cursor-pointer bg-transparent rounded-full overflow-hidden" id="shirtColor" oninput="updateShirtColor()" type="color" value="#ffffff"/>
+<input class="w-32" id="brightnessSlider" max="1" min="-1" oninput="updateShirtColor()" step="0.05" type="range" value="0"/>
+</div>
+<label class="set-label !text-[8px]">Ajuste de Zoom</label>
+<input class="w-full" id="zoomSlider" max="4" min="0.5" oninput="applyZoom()" step="0.1" type="range" value="1"/>
+<label class="set-label !text-[8px] mt-4 border-t border-[var(--border-color)] pt-3">Cor de Fundo do Canva</label>
+<div class="flex items-center justify-between bg-[var(--bg-input)] p-2 rounded-lg border border-[var(--border-color)]">
+<input class="w-8 h-8 p-0 border-none cursor-pointer bg-transparent rounded-full overflow-hidden" id="canvasBgColor" oninput="updateCanvasBackground()" type="color" value="#ffffff"/>
+<button class="text-[9px] font-black text-red-500 bg-red-500/10 px-3 py-1 rounded hover:bg-red-500 hover:text-white transition active:scale-95" onclick="resetCanvasBg()">RESET</button>
+</div>
+</section>
+<section class="bg-[var(--bg-card)] p-5 rounded-xl border border-[var(--border-color)] flex flex-col gap-3">
+<button class="w-full bg-blue-600 text-white p-3 rounded-lg text-[10px] font-black uppercase tracking-widest transition hover:bg-blue-500 active:scale-95" onclick="document.getElementById('imageInput').click()">Carregar Logo</button>
+<input accept="image/png, image/jpeg, image/jpg" class="hidden" id="imageInput" multiple="" type="file"/>
+<div class="flex gap-2 mt-2">
+<input class="calc-input !mb-0 flex-1" id="newTextInput" placeholder="Digitar Frase..." type="text"/>
+<button class="bg-[var(--bg-input)] text-[var(--text-main)] border border-[var(--border-color)] px-4 rounded-lg text-[10px] font-black uppercase hover:border-blue-500 transition active:scale-95" onclick="createNewText()">Add</button>
+</div>
+</section>
+<div class="flex flex-col flex-1 min-h-0">
+<label class="set-label !mb-3">Camadas Ativas (Hierarquia)</label>
+<div class="flex-1 overflow-y-auto space-y-2 pr-1" id="layersList"></div>
+</div>
+<div class="mt-auto space-y-3 pt-4 border-t border-[var(--border-color)]">
+<button class="w-full bg-[var(--bg-card)] border border-[var(--border-color)] py-3 rounded-lg font-black text-[9px] uppercase tracking-widest transition hover:border-blue-500 active:scale-95 text-[var(--text-main)]" id="btnDownloadPreview" onclick="exportLayout()">⬇️ Baixar PNG Solo</button>
+<div class="grid grid-cols-2 gap-3">
+<button class="w-full bg-blue-600 py-3 rounded-lg font-black text-[9px] uppercase tracking-widest text-white shadow-lg active:scale-95 hover:bg-blue-500" onclick="saveProjectFile()">💾 Salvar .TWP</button>
+<button class="w-full bg-[var(--bg-card)] py-3 rounded-lg font-black text-[9px] uppercase tracking-widest border border-[var(--border-color)] text-[var(--text-main)] transition hover:border-blue-500 active:scale-95" onclick="document.getElementById('loadProjectInput_Editor').click()">📂 Abrir</button>
+</div>
+<button class="w-full bg-red-500/10 py-2 rounded-lg font-black text-[9px] uppercase tracking-widest text-red-500 border border-red-500/30 transition hover:bg-red-500 hover:text-white active:scale-95" onclick="closeProject()">Voltar para menu</button>
+<input accept=".twp" class="hidden" id="loadProjectInput_Editor" onchange="loadProjectFile(event)" type="file"/>
+</div>
+</aside>
+<main class="flex-1 flex flex-col relative overflow-hidden">
+<div class="bg-[var(--bg-card)] border-b border-[var(--border-color)] px-6 pt-4 pb-0 flex items-end justify-between shadow-sm z-10 relative">
+<div class="flex items-end overflow-x-auto pb-[-1px] space-x-1" id="tabsContainer"></div>
+<div class="flex items-center gap-3 pb-3 pl-4">
+<button class="text-[var(--text-muted)] hover:text-blue-500 text-lg transition" onclick="toggleTheme()" title="Alternar Tema"><span id="themeIconApp">☀️</span></button>
+<div class="w-px h-6 bg-[var(--border-color)] mx-2"></div>
+<button class="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest bg-[var(--bg-input)] border border-[var(--border-color)] px-4 py-2 rounded-lg transition hover:text-blue-500 hover:border-blue-500 active:scale-95" onclick="renameTab()">✎ Nome</button>
+<button class="text-[10px] font-black text-blue-500 uppercase tracking-widest bg-blue-500/10 border border-blue-500/30 px-4 py-2 rounded-lg transition hover:bg-blue-500 hover:text-white active:scale-95" onclick="addNewTab()">+ Nova Aba</button>
+<button class="text-[10px] font-black text-purple-400 uppercase tracking-widest bg-purple-500/10 border border-purple-500/30 px-4 py-2 rounded-lg transition hover:bg-purple-500 hover:text-white active:scale-95" onclick="duplicateCurrentTab()">⧉ Duplicar</button>
+<button class="text-[10px] font-black text-red-500 uppercase tracking-widest bg-red-500/10 border border-red-500/30 px-4 py-2 rounded-lg transition hover:bg-red-500 hover:text-white" onclick="clearCanvas()">Limpar</button>
+<button class="relative text-[10px] font-black text-sky-400 uppercase tracking-widest bg-sky-500/10 border border-sky-500/30 px-4 py-2 rounded-lg transition hover:bg-sky-500 hover:text-white active:scale-95 shadow-sm ml-2" onclick="openInboxDashboard()">📩 Site<span class="site-notif-badge" id="siteNotifBadgeApp">0</span></button>
+<button class="text-[10px] font-black text-teal-400 uppercase tracking-widest bg-teal-500/10 border border-teal-500/30 px-4 py-2 rounded-lg transition hover:bg-teal-500 hover:text-white active:scale-95 shadow-sm ml-2" onclick="openPCPDashboard()">🏭 PCP</button>
+<button class="relative text-[10px] font-black text-amber-400 uppercase tracking-widest bg-amber-500/10 border border-amber-500/30 px-4 py-2 rounded-lg transition hover:bg-amber-500 hover:text-white active:scale-95 shadow-sm" onclick="togglePCPTopNotifications()">🔔<span class="pcp-notif-badge" id="pcpNotifBadgeApp">0</span></button>
+<button class="text-[10px] font-black text-emerald-500 uppercase tracking-widest bg-emerald-500/10 border border-emerald-500/30 px-4 py-2 rounded-lg transition hover:bg-emerald-500 hover:text-white active:scale-95 shadow-sm ml-2" onclick="openQuotesDashboard()">☁️ Banco</button>
+<button class="bg-blue-600 text-white py-2.5 px-6 rounded-xl flex items-center gap-3 transition-all hover:bg-blue-500 active:scale-95 ml-2 shadow-lg" onclick="toggleCart()">
+<span class="text-lg">🛒</span><span class="text-[10px] font-black uppercase tracking-[0.2em]" id="cartCountBadge">Orc. (0)</span>
+</button>
+</div>
+</div>
+<div class="flex-1 flex flex-col items-center justify-center p-3 relative">
+<div class="absolute right-4 top-20 z-[120] w-[155px] bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl shadow-2xl p-2 text-[var(--text-main)] select-none" id="mockupToolsPanel" style="touch-action:none;">
+<div class="flex justify-between items-center mb-2 border-b border-[var(--border-color)] pb-1 cursor-move" id="mockupToolsDragHandle" title="Arraste para mover as ferramentas">
+<h3 class="text-blue-500 font-black text-[9px] uppercase tracking-widest italic">🧰 Tools</h3>
+<button class="text-[8px] font-black text-[var(--text-muted)] hover:text-blue-500 transition cursor-pointer" onclick="setMockupToolMode('select')">Selecionar</button>
+</div>
+<div class="grid grid-cols-2 gap-1 mb-2">
+<button class="bg-[var(--bg-input)] border border-[var(--border-color)] rounded-md py-1.5 text-[8px] font-black uppercase hover:border-blue-500 active:scale-95 transition" onclick="addMockupShape('square')">□ Quad</button>
+<button class="bg-[var(--bg-input)] border border-[var(--border-color)] rounded-md py-1.5 text-[8px] font-black uppercase hover:border-blue-500 active:scale-95 transition" onclick="addMockupShape('rect')">▭ Ret</button>
+<button class="bg-[var(--bg-input)] border border-[var(--border-color)] rounded-md py-1.5 text-[8px] font-black uppercase hover:border-blue-500 active:scale-95 transition" onclick="addMockupShape('circle')">○ Circ</button>
+<button class="bg-purple-500/10 text-purple-400 border border-purple-500/40 rounded-md py-1.5 text-[8px] font-black uppercase hover:bg-purple-500 hover:text-white active:scale-95 transition" id="freeDrawBtn" onclick="setMockupToolMode('freeDraw')">✎ Livre</button>
+<button class="bg-amber-500/10 text-amber-400 border border-amber-500/40 rounded-md py-1.5 text-[8px] font-black uppercase hover:bg-amber-500 hover:text-white active:scale-95 transition" id="polygonToolBtn" onclick="setMockupToolMode('polygon')">✂ Pontos</button>
+</div>
+<div class="space-y-2">
+<div class="grid grid-cols-2 gap-1">
+<div>
+<label class="set-label !text-[7px] !mb-0">Cor</label>
+<input class="w-full h-7 bg-transparent cursor-pointer rounded overflow-hidden" id="shapeFillColor" oninput="applyMockupShapeStyle()" type="color" value="#2563eb"/>
+</div>
+<div>
+<label class="set-label !text-[7px] !mb-0">Borda</label>
+<input class="w-full h-7 bg-transparent cursor-pointer rounded overflow-hidden" id="shapeStrokeColor" oninput="applyMockupShapeStyle()" type="color" value="#ffffff"/>
+</div>
+</div>
+<div>
+<div class="flex justify-between items-center"><label class="set-label !text-[7px] !mb-0">Opac.</label><span class="text-[8px] font-black text-blue-500" id="shapeOpacityLabel">70%</span></div>
+<input class="w-full" id="shapeOpacity" max="1" min="0.05" oninput="applyMockupShapeStyle()" step="0.05" type="range" value="0.7"/>
+</div>
+<div>
+<div class="flex justify-between items-center"><label class="set-label !text-[7px] !mb-0">Borda</label><span class="text-[8px] font-black text-blue-500" id="shapeStrokeWidthLabel">2</span></div>
+<input class="w-full" id="shapeStrokeWidth" max="20" min="0" oninput="applyMockupShapeStyle()" step="1" type="range" value="2"/>
+</div>
+<button class="w-full bg-red-500/10 text-red-500 border border-red-500/30 py-1.5 rounded-md text-[8px] font-black uppercase hover:bg-red-500 hover:text-white active:scale-95 transition" onclick="deleteElement()">Excluir</button>
+<p class="text-[7px] text-[var(--text-muted)] font-bold leading-relaxed uppercase tracking-widest">Shift mantém proporção. Pontos: clique para criar, Shift trava horizontal/vertical, Enter/duplo clique fecha, Esc cancela.</p>
+</div>
 </div>
 
-<div class="flex h-screen">
-    <aside class="w-[320px] sidebar-dark p-6 flex flex-col gap-5 relative z-20">
-        <div class="flex justify-between items-center mb-2">
-            <h1 class="text-2xl font-black italic uppercase tracking-tighter text-blue-500">TrendWear</h1>
-        </div>
-        
-        <section class="bg-[var(--bg-card)] p-5 rounded-xl border border-[var(--border-color)]">
-            <label class="set-label">Estrutura (Modelo)</label>
-            <select id="modelSelect" onchange="syncModel()" class="calc-input mb-4 font-bold text-blue-400"></select>
-            <div class="flex items-center justify-between mb-4 bg-[var(--bg-input)] p-2 rounded-lg border border-[var(--border-color)]">
-                <input type="color" id="shirtColor" value="#ffffff" oninput="updateShirtColor()" class="w-8 h-8 p-0 border-none cursor-pointer bg-transparent rounded-full overflow-hidden">
-                <input type="range" id="brightnessSlider" min="-1" max="1" step="0.05" value="0" oninput="updateShirtColor()" class="w-32">
-            </div>
-            <label class="set-label !text-[8px]">Ajuste de Zoom</label>
-            <input type="range" id="zoomSlider" min="0.5" max="4" step="0.1" value="1" oninput="applyZoom()" class="w-full">
-            
-            <label class="set-label !text-[8px] mt-4 border-t border-[var(--border-color)] pt-3">Cor de Fundo do Canva</label>
-            <div class="flex items-center justify-between bg-[var(--bg-input)] p-2 rounded-lg border border-[var(--border-color)]">
-                <input type="color" id="canvasBgColor" value="#ffffff" oninput="updateCanvasBackground()" class="w-8 h-8 p-0 border-none cursor-pointer bg-transparent rounded-full overflow-hidden">
-                <button onclick="resetCanvasBg()" class="text-[9px] font-black text-red-500 bg-red-500/10 px-3 py-1 rounded hover:bg-red-500 hover:text-white transition active:scale-95">RESET</button>
-            </div>
-        </section>
-
-        <section class="bg-[var(--bg-card)] p-5 rounded-xl border border-[var(--border-color)] flex flex-col gap-3">
-            <button onclick="document.getElementById('imageInput').click()" class="w-full bg-blue-600 text-white p-3 rounded-lg text-[10px] font-black uppercase tracking-widest transition hover:bg-blue-500 active:scale-95">Carregar Logo</button>
-            <input type="file" id="imageInput" class="hidden" accept="image/png, image/jpeg, image/jpg" multiple>
-            <div class="flex gap-2 mt-2">
-                <input type="text" id="newTextInput" placeholder="Digitar Frase..." class="calc-input !mb-0 flex-1">
-                <button onclick="createNewText()" class="bg-[var(--bg-input)] text-[var(--text-main)] border border-[var(--border-color)] px-4 rounded-lg text-[10px] font-black uppercase hover:border-blue-500 transition active:scale-95">Add</button>
-            </div>
-        </section>
-
-        <div class="flex flex-col flex-1 min-h-0">
-            <label class="set-label !mb-3">Camadas Ativas (Hierarquia)</label>
-            <div id="layersList" class="flex-1 overflow-y-auto space-y-2 pr-1"></div>
-        </div>
-        
-        <div class="mt-auto space-y-3 pt-4 border-t border-[var(--border-color)]">
-            <button id="btnDownloadPreview" onclick="exportLayout()" class="w-full bg-[var(--bg-card)] border border-[var(--border-color)] py-3 rounded-lg font-black text-[9px] uppercase tracking-widest transition hover:border-blue-500 active:scale-95 text-[var(--text-main)]">⬇️ Baixar PNG Solo</button>
-            <div class="grid grid-cols-2 gap-3">
-                <button onclick="saveProjectFile()" class="w-full bg-blue-600 py-3 rounded-lg font-black text-[9px] uppercase tracking-widest text-white shadow-lg active:scale-95 hover:bg-blue-500">💾 Salvar .TWP</button>
-                <button onclick="document.getElementById('loadProjectInput_Editor').click()" class="w-full bg-[var(--bg-card)] py-3 rounded-lg font-black text-[9px] uppercase tracking-widest border border-[var(--border-color)] text-[var(--text-main)] transition hover:border-blue-500 active:scale-95">📂 Abrir</button>
-            </div>
-            <button onclick="closeProject()" class="w-full bg-red-500/10 py-2 rounded-lg font-black text-[9px] uppercase tracking-widest text-red-500 border border-red-500/30 transition hover:bg-red-500 hover:text-white active:scale-95">Voltar para menu</button>
-            <input type="file" id="loadProjectInput_Editor" class="hidden" accept=".twp" onchange="loadProjectFile(event)">
-        </div>
-    </aside>
-
-    <main class="flex-1 flex flex-col relative overflow-hidden">
-        <div class="bg-[var(--bg-card)] border-b border-[var(--border-color)] px-6 pt-4 pb-0 flex items-end justify-between shadow-sm z-10 relative">
-            <div class="flex items-end overflow-x-auto pb-[-1px] space-x-1" id="tabsContainer"></div>
-            
-            <div class="flex items-center gap-3 pb-3 pl-4">
-                <button onclick="toggleTheme()" class="text-[var(--text-muted)] hover:text-blue-500 text-lg transition" title="Alternar Tema"><span id="themeIconApp">☀️</span></button>
-                <div class="w-px h-6 bg-[var(--border-color)] mx-2"></div>
-                
-                <button onclick="renameTab()" class="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest bg-[var(--bg-input)] border border-[var(--border-color)] px-4 py-2 rounded-lg transition hover:text-blue-500 hover:border-blue-500 active:scale-95">✎ Nome</button>
-                
-                <button onclick="addNewTab()" class="text-[10px] font-black text-blue-500 uppercase tracking-widest bg-blue-500/10 border border-blue-500/30 px-4 py-2 rounded-lg transition hover:bg-blue-500 hover:text-white active:scale-95">+ Nova Aba</button>
-                <button onclick="duplicateCurrentTab()" class="text-[10px] font-black text-purple-400 uppercase tracking-widest bg-purple-500/10 border border-purple-500/30 px-4 py-2 rounded-lg transition hover:bg-purple-500 hover:text-white active:scale-95">⧉ Duplicar</button>
-                <button onclick="clearCanvas()" class="text-[10px] font-black text-red-500 uppercase tracking-widest bg-red-500/10 border border-red-500/30 px-4 py-2 rounded-lg transition hover:bg-red-500 hover:text-white">Limpar</button>
-                
-                <button onclick="openInboxDashboard()" class="relative text-[10px] font-black text-sky-400 uppercase tracking-widest bg-sky-500/10 border border-sky-500/30 px-4 py-2 rounded-lg transition hover:bg-sky-500 hover:text-white active:scale-95 shadow-sm ml-2">📩 Site<span id="siteNotifBadgeApp" class="site-notif-badge">0</span></button>
-                <button onclick="openPCPDashboard()" class="text-[10px] font-black text-teal-400 uppercase tracking-widest bg-teal-500/10 border border-teal-500/30 px-4 py-2 rounded-lg transition hover:bg-teal-500 hover:text-white active:scale-95 shadow-sm ml-2">🏭 PCP</button>
-                <button onclick="togglePCPTopNotifications()" class="relative text-[10px] font-black text-amber-400 uppercase tracking-widest bg-amber-500/10 border border-amber-500/30 px-4 py-2 rounded-lg transition hover:bg-amber-500 hover:text-white active:scale-95 shadow-sm">🔔<span id="pcpNotifBadgeApp" class="pcp-notif-badge">0</span></button>
-                
-                <button onclick="openQuotesDashboard()" class="text-[10px] font-black text-emerald-500 uppercase tracking-widest bg-emerald-500/10 border border-emerald-500/30 px-4 py-2 rounded-lg transition hover:bg-emerald-500 hover:text-white active:scale-95 shadow-sm ml-2">☁️ Banco</button>
-
-                <button onclick="toggleCart()" class="bg-blue-600 text-white py-2.5 px-6 rounded-xl flex items-center gap-3 transition-all hover:bg-blue-500 active:scale-95 ml-2 shadow-lg">
-                    <span class="text-lg">🛒</span><span class="text-[10px] font-black uppercase tracking-[0.2em]" id="cartCountBadge">Orc. (0)</span>
-                </button>
-            </div>
-        </div>
-
-        <div class="flex-1 flex flex-col items-center justify-center p-10 relative">
-            <div id="editorToolbar" class="animate-slide-up bg-[var(--bg-card)] text-[var(--text-main)] border border-[var(--border-color)] rounded-xl shadow-2xl flex items-center gap-3 px-5 py-2 absolute top-6 z-[100]">
-                <button id="lockBtn" onclick="toggleLock()" class="border border-[var(--border-color)] bg-[var(--bg-input)] px-3 py-1.5 rounded-lg text-[10px] font-bold hover:border-blue-500 transition">🔓 Solto</button>
-                <div class="w-px h-6 bg-[var(--border-color)] mx-1"></div>
-                
-                <select id="fontSelect" onchange="updateProp('font', this.value)" class="text-[11px] font-bold bg-transparent border-none text-[var(--text-main)] outline-none cursor-pointer uppercase tracking-widest">
-                    <option value="Montserrat" class="text-black">Montserrat</option>
-                    <option value="Bebas Neue" class="text-black">Bebas Neue</option>
-                    <option value="Anton" class="text-black">Anton</option>
-                </select>
-                
-                <div class="relative w-7 h-7 rounded-full overflow-hidden border-2 border-[var(--border-color)] hover:border-blue-500 transition cursor-pointer ml-2">
-                    <input type="color" id="textColor" oninput="updateProp('color')" class="absolute -top-2 -left-2 w-12 h-12 cursor-pointer">
-                </div>
-                
-                <button onclick="updateProp('align', 'center')" class="w-8 h-8 rounded border border-[var(--border-color)] bg-[var(--bg-input)] font-bold hover:border-blue-500 transition flex items-center justify-center text-sm" title="Centralizar Texto">≡</button>
-                <button onclick="updateProp('bold')" class="w-8 h-8 rounded border border-[var(--border-color)] bg-[var(--bg-input)] font-black hover:border-blue-500 transition flex items-center justify-center text-sm" title="Negrito">B</button>
-                
-                <div class="w-px h-6 bg-[var(--border-color)] mx-1"></div>
-                <button onclick="deleteElement()" class="text-red-500 font-black text-[10px] uppercase tracking-widest transition hover:bg-red-500 hover:text-white border border-red-500/30 bg-red-500/10 px-4 py-1.5 rounded-lg">Excluir</button>
-            </div>
-            
-            <div class="relative mt-8 animate-fade-in">
-                <div id="canvas-parent" class="canvas-container shadow-2xl" style="background-color: #ffffff;"></div>
-                
-                <button onclick="resetZoomAndPan()" class="absolute top-4 right-4 bg-white/90 backdrop-blur text-blue-600 p-2 rounded-xl shadow-lg border border-slate-200 hover:bg-blue-50 hover:scale-110 transition-all z-[100] flex items-center justify-center" title="Centralizar Visualização">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4h4v2H6v2H4V4zm16 0h-4v2h2v2h2V4zM4 20h4v-2H6v-2H4v4zm16 0h-4v-2h2v-2h2v4zM9 9h6v6H9V9z"></path>
-                    </svg>
-                </button>
-
-                <div class="view-switcher">
-                    <button id="btnFrente" onclick="switchView('frente')" class="view-btn view-active">FRENTE</button>
-                    <button id="btnCostas" onclick="switchView('costas')" class="view-btn">COSTAS</button>
-                </div>
-            </div>
-        </div>
-
-        <div id="bottomOrderBar" class="bg-[var(--bg-sidebar)] border-t border-[var(--border-color)] px-6 py-3 flex items-center gap-6 z-10 shrink-0 hidden">
-            <div class="flex items-center gap-2">
-                <span class="text-xl">📦</span>
-                <div>
-                    <div class="text-[9px] text-[var(--text-muted)] font-black uppercase tracking-widest" id="botOrderContext">Cliente</div>
-                    <div class="text-[var(--text-main)] font-black text-xs uppercase" id="botOrderClient">CLIENTE</div>
-                </div>
-            </div>
-            <div class="w-px h-6 bg-[var(--border-color)]"></div>
-            <div>
-                <div class="text-[9px] text-[var(--text-muted)] font-black uppercase tracking-widest">Produto</div>
-                <div class="text-blue-500 font-black text-xs uppercase"><span id="botOrderModel">Modelo</span> (<span id="botOrderQty">0</span> un.)</div>
-            </div>
-            <div class="w-px h-6 bg-[var(--border-color)]"></div>
-            <div>
-                <div class="text-[9px] text-[var(--text-muted)] font-black uppercase tracking-widest">Local da Logo</div>
-                <div class="text-emerald-500 font-black text-xs uppercase" id="botOrderLogoLoc">-</div>
-            </div>
-            <div class="w-px h-6 bg-[var(--border-color)]"></div>
-            <div class="flex-1">
-                <div class="text-[9px] text-[var(--text-muted)] font-black uppercase tracking-widest">Observação do Cliente</div>
-                <div class="text-slate-300 font-medium text-[10px] truncate max-w-sm" id="botOrderObs">-</div>
-            </div>
-            <button onclick="document.getElementById('bottomOrderBar').classList.add('hidden')" class="text-[var(--text-muted)] hover:text-red-500 font-bold ml-2 transition">✕</button>
-        </div>
-
-    </main>
-
-    <aside class="w-[320px] sidebar-dark p-6 border-l border-slate-800 flex flex-col gap-5 relative z-20">
-        <h2 class="text-xs font-black text-blue-500 uppercase tracking-[0.2em] mb-2 border-b border-[var(--border-color)] pb-3">Calculadora da Aba</h2>
-        
-        <div class="flex flex-col flex-1 min-h-0">
-            <label class="set-label !mb-2 text-[var(--text-muted)]">Artes / Estampas (Face Atual)</label>
-            <div id="artList" class="flex-1 overflow-y-auto space-y-3 pr-1"></div>
-        </div>
-
-        <section class="pt-4 border-t border-[var(--border-color)]">
-            <label class="set-label !mb-2">Tecido Selecionado</label>
-            <select id="calcFabric" onchange="updateBudget()" class="calc-input mb-4 font-bold !text-blue-500"></select>
-            
-            <div class="grid grid-cols-2 gap-3">
-                <div class="flex flex-col"><label class="set-label !mb-2">QTD (Peças)</label><input type="number" id="calcQty" value="10" min="1" oninput="handleQuoteQtyChange()" class="calc-input text-center font-black"></div>
-                <div class="flex flex-col"><label class="set-label !mb-2">Desconto R$</label><input type="number" id="manualDiscount" value="0" step="0.01" oninput="updateBudget()" class="calc-input text-center font-black text-green-500" placeholder="0,00"></div>
-            </div>
-            <input type="hidden" id="unitAdjustment" value="0">
-
-            <div class="mt-3 border border-[var(--border-color)] rounded-xl overflow-hidden bg-[var(--bg-input)]">
-                <button type="button" onclick="openSizeGridModal()" class="w-full flex justify-between items-center gap-3 px-4 py-3 text-[10px] font-black uppercase tracking-widest text-[var(--text-main)] hover:text-blue-500 transition">
-                    <span>📏 Grade / tamanhos</span>
-                    <span id="sizeGridSummary" class="text-[8px] text-[var(--text-muted)] normal-case tracking-normal text-right leading-tight">Não preenchida</span>
-                </button>
-            </div>
-        </section>
-
-        <div class="price-display mt-2 relative">
-            <div class="flex justify-between items-center text-[10px] text-[var(--text-muted)] font-bold mb-2 uppercase tracking-widest"><span>Unitário:</span><span id="unitPriceDisplay" class="text-[var(--text-main)]">R$ 0,00</span></div>
-            <div class="border-t border-[var(--border-color)] mt-3 pt-3 flex flex-col gap-1">
-                <span class="font-black text-blue-500 text-[9px] uppercase tracking-[0.3em]">Total do Lote</span>
-                <span id="totalFinal" class="text-4xl font-black text-[var(--text-main)] tracking-tighter">R$ 0,00</span>
-            </div>
-        </div>
-        
-        <button id="btnAddCart" onclick="addToCart()" class="w-full bg-blue-600 text-white py-5 rounded-xl font-black text-[11px] uppercase tracking-widest shadow-lg transition-all hover:bg-blue-500 active:scale-95 flex items-center justify-center mt-2">
+<div class="animate-slide-up bg-[var(--bg-card)] text-[var(--text-main)] border border-[var(--border-color)] rounded-xl shadow-2xl flex items-center gap-3 px-5 py-2 absolute top-6 z-[100]" id="editorToolbar">
+<button class="border border-[var(--border-color)] bg-[var(--bg-input)] px-3 py-1.5 rounded-lg text-[10px] font-bold hover:border-blue-500 transition" id="lockBtn" onclick="toggleLock()">🔓 Solto</button>
+<div class="w-px h-6 bg-[var(--border-color)] mx-1"></div>
+<select class="text-[11px] font-bold bg-transparent border-none text-[var(--text-main)] outline-none cursor-pointer uppercase tracking-widest" id="fontSelect" onchange="updateProp('font', this.value)">
+<option class="text-black" value="Montserrat">Montserrat</option>
+<option class="text-black" value="Bebas Neue">Bebas Neue</option>
+<option class="text-black" value="Anton">Anton</option>
+</select>
+<div class="relative w-7 h-7 rounded-full overflow-hidden border-2 border-[var(--border-color)] hover:border-blue-500 transition cursor-pointer ml-2">
+<input class="absolute -top-2 -left-2 w-12 h-12 cursor-pointer" id="textColor" oninput="updateProp('color')" type="color"/>
+</div>
+<button class="w-8 h-8 rounded border border-[var(--border-color)] bg-[var(--bg-input)] font-bold hover:border-blue-500 transition flex items-center justify-center text-sm" onclick="updateProp('align', 'center')" title="Centralizar Texto">≡</button>
+<button class="w-8 h-8 rounded border border-[var(--border-color)] bg-[var(--bg-input)] font-black hover:border-blue-500 transition flex items-center justify-center text-sm" onclick="updateProp('bold')" title="Negrito">B</button>
+<div class="w-px h-6 bg-[var(--border-color)] mx-1"></div>
+<button class="text-red-500 font-black text-[10px] uppercase tracking-widest transition hover:bg-red-500 hover:text-white border border-red-500/30 bg-red-500/10 px-4 py-1.5 rounded-lg" onclick="deleteElement()">Excluir</button>
+</div>
+<div class="relative mt-0 animate-fade-in">
+<div class="canvas-container shadow-2xl" id="canvas-parent" style="background-color: #ffffff;"></div>
+<button class="absolute top-4 right-4 bg-white/90 backdrop-blur text-blue-600 p-2 rounded-xl shadow-lg border border-slate-200 hover:bg-blue-50 hover:scale-110 transition-all z-[100] flex items-center justify-center" onclick="resetZoomAndPan()" title="Centralizar Visualização">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<path d="M4 4h4v2H6v2H4V4zm16 0h-4v2h2v2h2V4zM4 20h4v-2H6v-2H4v4zm16 0h-4v-2h2v-2h2v4zM9 9h6v6H9V9z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</button>
+<div class="view-switcher">
+<button class="view-btn view-active" id="btnFrente" onclick="switchView('frente')">FRENTE</button>
+<button class="view-btn" id="btnCostas" onclick="switchView('costas')">COSTAS</button>
+</div>
+</div>
+</div>
+<div class="bg-[var(--bg-sidebar)] border-t border-[var(--border-color)] px-6 py-3 flex items-center gap-6 z-10 shrink-0 hidden" id="bottomOrderBar">
+<div class="flex items-center gap-2">
+<span class="text-xl">📦</span>
+<div>
+<div class="text-[9px] text-[var(--text-muted)] font-black uppercase tracking-widest" id="botOrderContext">Cliente</div>
+<div class="text-[var(--text-main)] font-black text-xs uppercase" id="botOrderClient">CLIENTE</div>
+</div>
+</div>
+<div class="w-px h-6 bg-[var(--border-color)]"></div>
+<div>
+<div class="text-[9px] text-[var(--text-muted)] font-black uppercase tracking-widest">Produto</div>
+<div class="text-blue-500 font-black text-xs uppercase"><span id="botOrderModel">Modelo</span> (<span id="botOrderQty">0</span> un.)</div>
+</div>
+<div class="w-px h-6 bg-[var(--border-color)]"></div>
+<div>
+<div class="text-[9px] text-[var(--text-muted)] font-black uppercase tracking-widest">Local da Logo</div>
+<div class="text-emerald-500 font-black text-xs uppercase" id="botOrderLogoLoc">-</div>
+</div>
+<div class="w-px h-6 bg-[var(--border-color)]"></div>
+<div class="flex-1">
+<div class="text-[9px] text-[var(--text-muted)] font-black uppercase tracking-widest">Observação do Cliente</div>
+<div class="text-slate-300 font-medium text-[10px] truncate max-w-sm" id="botOrderObs">-</div>
+</div>
+<button class="text-[var(--text-muted)] hover:text-red-500 font-bold ml-2 transition" onclick="document.getElementById('bottomOrderBar').classList.add('hidden')">✕</button>
+</div>
+</main>
+<aside class="w-[320px] sidebar-dark p-6 border-l border-slate-800 flex flex-col gap-5 relative z-20">
+<h2 class="text-xs font-black text-blue-500 uppercase tracking-[0.2em] mb-2 border-b border-[var(--border-color)] pb-3">Calculadora da Aba</h2>
+<div class="flex flex-col flex-1 min-h-0">
+<label class="set-label !mb-2 text-[var(--text-muted)]">Artes / Estampas (Face Atual)</label>
+<div class="flex-1 overflow-y-auto space-y-3 pr-1" id="artList"></div>
+</div>
+<section class="pt-4 border-t border-[var(--border-color)]">
+<label class="set-label !mb-2">Tecido Selecionado</label>
+<select class="calc-input mb-4 font-bold !text-blue-500" id="calcFabric" onchange="updateBudget()"></select>
+<div class="grid grid-cols-2 gap-3">
+<div class="flex flex-col"><label class="set-label !mb-2">QTD (Peças)</label><input class="calc-input text-center font-black" id="calcQty" min="1" oninput="handleQuoteQtyChange()" type="number" value="10"/></div>
+<div class="flex flex-col"><label class="set-label !mb-2">Desconto R$</label><input class="calc-input text-center font-black text-green-500" id="manualDiscount" oninput="updateBudget()" placeholder="0,00" step="0.01" type="number" value="0"/></div>
+</div>
+<input id="unitAdjustment" type="hidden" value="0"/>
+<div class="mt-3 border border-[var(--border-color)] rounded-xl overflow-hidden bg-[var(--bg-input)]">
+<button class="w-full flex justify-between items-center gap-3 px-4 py-3 text-[10px] font-black uppercase tracking-widest text-[var(--text-main)] hover:text-blue-500 transition" onclick="openSizeGridModal()" type="button">
+<span>📏 Grade / tamanhos</span>
+<span class="text-[8px] text-[var(--text-muted)] normal-case tracking-normal text-right leading-tight" id="sizeGridSummary">Não preenchida</span>
+</button>
+</div>
+</section>
+<div class="price-display mt-2 relative">
+<div class="flex justify-between items-center text-[10px] text-[var(--text-muted)] font-bold mb-2 uppercase tracking-widest"><span>Unitário:</span><span class="text-[var(--text-main)]" id="unitPriceDisplay">R$ 0,00</span></div>
+<div class="border-t border-[var(--border-color)] mt-3 pt-3 flex flex-col gap-1">
+<span class="font-black text-blue-500 text-[9px] uppercase tracking-[0.3em]">Total do Lote</span>
+<span class="text-4xl font-black text-[var(--text-main)] tracking-tighter" id="totalFinal">R$ 0,00</span>
+</div>
+</div>
+<button class="w-full bg-blue-600 text-white py-5 rounded-xl font-black text-[11px] uppercase tracking-widest shadow-lg transition-all hover:bg-blue-500 active:scale-95 flex items-center justify-center mt-2" id="btnAddCart" onclick="addToCart()">
             Add ao Orçamento
         </button>
-    </aside>
+</aside>
 </div>
-
 <script>
     const VERSAO_ATUAL = 8.2;
     const LINK_JSON_VERSAO = "https://raw.githubusercontent.com/smtrendwear-droid/layoutatt/main/attguide";
@@ -912,15 +983,38 @@
         if(el) { el.classList.toggle('hidden'); }
     };
 
-    let isLightMode = false;
-    function toggleTheme() {
-        isLightMode = !isLightMode;
-        if(isLightMode) { document.body.classList.add('light-mode'); document.body.classList.remove('dark-mode'); document.getElementById('themeIconHome').innerText = '🌙'; document.getElementById('themeIconApp').innerText = '🌙'; }
-        else { document.body.classList.remove('light-mode'); document.body.classList.add('dark-mode'); document.getElementById('themeIconHome').innerText = '☀️'; document.getElementById('themeIconApp').innerText = '☀️'; }
-        localStorage.setItem('trendwear_theme', isLightMode ? 'light' : 'dark');
-        if(shirtImageNode) updateShirtColor();
-        designLayer.find('.editable').filter(n => n.attrs.type === 'text').forEach(n => { if(n.fill() === '#fff' || n.fill() === '#000') { n.fill(isLightMode ? '#000' : '#fff'); } }); designLayer.draw();
+    let isLightMode = (localStorage.getItem('trendwear_theme') || 'light') !== 'dark';
+    function applyThemeMode(mode = 'light', persist = false) {
+        isLightMode = mode !== 'dark';
+        document.body.classList.toggle('light-mode', isLightMode);
+        document.body.classList.toggle('dark-mode', !isLightMode);
+
+        const homeIcon = document.getElementById('themeIconHome');
+        const appIcon = document.getElementById('themeIconApp');
+        if(homeIcon) homeIcon.innerText = isLightMode ? '🌙' : '☀️';
+        if(appIcon) appIcon.innerText = isLightMode ? '🌙' : '☀️';
+
+        if(persist || !localStorage.getItem('trendwear_theme')) {
+            localStorage.setItem('trendwear_theme', isLightMode ? 'light' : 'dark');
+        }
+
+        try { if(shirtImageNode && typeof updateShirtColor === 'function') updateShirtColor(); } catch(e) {}
+        try {
+            if(typeof designLayer !== 'undefined' && designLayer && designLayer.find) {
+                designLayer.find('.editable').filter(n => n.attrs.type === 'text').forEach(n => {
+                    const currentFill = (n.fill && n.fill()) || '';
+                    if(['#fff','#ffffff','#000','#000000'].includes(String(currentFill).toLowerCase())) {
+                        n.fill(isLightMode ? '#0f172a' : '#ffffff');
+                    }
+                });
+                designLayer.draw();
+            }
+        } catch(e) {}
     }
+    function toggleTheme() {
+        applyThemeMode(isLightMode ? 'dark' : 'light', true);
+    }
+    applyThemeMode(localStorage.getItem('trendwear_theme') || 'light', false);
 
     window.updateCanvasBackground = () => {
         const color = document.getElementById('canvasBgColor').value;
@@ -936,12 +1030,16 @@
         updateCanvasBackground();
     };
 
-    const stage = new Konva.Stage({ container: 'canvas-parent', width: 500, height: 600 });
+    const EDITOR_STAGE_W = 660;
+    const EDITOR_STAGE_H = 650;
+    const EDITOR_STAGE_CENTER_X = EDITOR_STAGE_W / 2;
+    const EDITOR_STAGE_CENTER_Y = EDITOR_STAGE_H / 2;
+    const stage = new Konva.Stage({ container: 'canvas-parent', width: EDITOR_STAGE_W, height: EDITOR_STAGE_H });
     const productLayer = new Konva.Layer(); const designLayer = new Konva.Layer(); const guideLayer = new Konva.Layer();
     stage.add(productLayer, designLayer, guideLayer);
     const tr = new Konva.Transformer({ padding: 5, rotateEnabled: true, anchorFill: '#3b82f6', borderStroke: '#3b82f6', enabledAnchors: ['top-left', 'top-right', 'bottom-left', 'bottom-right'], keepRatio: true }); 
     designLayer.add(tr);
-    const vLine = new Konva.Line({ points: [250, 0, 250, 600], stroke: '#3b82f6', strokeWidth: 1.5, dash: [6, 4], visible: false }); 
+    const vLine = new Konva.Line({ points: [EDITOR_STAGE_CENTER_X, 0, EDITOR_STAGE_CENTER_X, EDITOR_STAGE_H], stroke: '#3b82f6', strokeWidth: 1.5, dash: [6, 4], visible: false }); 
     guideLayer.add(vLine);
 
     stage.on('wheel', (e) => {
@@ -1807,24 +1905,40 @@
     }
 
     function setupEvents(n) {
-        n.on('dragmove', () => { const w = n.width()*n.scaleX(); const cX = n.x()+(n.offsetX()===0?w/2:0); if(n.attrs.lockedCenter||Math.abs(cX-250)<15){n.x(250-(n.offsetX()===0?w/2:0)); vLine.show();} else vLine.hide(); guideLayer.batchDraw(); });
+        n.on('dragmove', () => { const w = n.width()*n.scaleX(); const cX = n.x()+(n.offsetX()===0?w/2:0); const centerX = EDITOR_STAGE_CENTER_X; if(n.attrs.lockedCenter||Math.abs(cX-centerX)<15){n.x(centerX-(n.offsetX()===0?w/2:0)); vLine.points([centerX, 0, centerX, EDITOR_STAGE_H]); vLine.show();} else vLine.hide(); guideLayer.batchDraw(); });
         n.on('dragend transformend', () => { vLine.hide(); guideLayer.draw(); saveHistory(); updateBudget(); });
         n.on('click tap', (e) => { e.cancelBubble = true; select(n); });
         n.on('dblclick dbltap', () => { if(n.attrs.type === 'text') editTextInline(n); });
     }
     
-    function select(n) { selectedNode = n; tr.nodes([n]); document.getElementById('editorToolbar').style.display = 'flex'; renderLayers(); designLayer.draw(); }
+    function select(n) { 
+        selectedNode = n; 
+        const isShape = isMockupShapeNode(n);
+        if(typeof tr.keepRatio === 'function') tr.keepRatio(!isShape);
+        if(typeof tr.shiftBehavior === 'function') tr.shiftBehavior('default');
+        if(typeof tr.enabledAnchors === 'function') {
+            tr.enabledAnchors(isShape
+                ? ['top-left','top-center','top-right','middle-left','middle-right','bottom-left','bottom-center','bottom-right']
+                : ['top-left', 'top-right', 'bottom-left', 'bottom-right']
+            );
+        }
+        tr.nodes([n]); 
+        document.getElementById('editorToolbar').style.display = 'flex'; 
+        syncMockupPanelWithSelection(n);
+        renderLayers(); 
+        designLayer.draw(); 
+    }
     function deselect() { tr.nodes([]); selectedNode = null; document.getElementById('editorToolbar').style.display = 'none'; renderLayers(); designLayer.draw(); }
-    stage.on('click tap', (e) => { if (e.target === stage || e.target === shirtImageNode) deselect(); });
+    stage.on('click tap', (e) => { if(justFinishedFreeDraw || mockupToolMode === 'polygon') return; if (e.target === stage || e.target === shirtImageNode) deselect(); });
     
     function editTextInline(n) { tr.hide(); const sb = stage.container().getBoundingClientRect(); const trc = n.getClientRect(); const i = document.createElement('textarea'); i.className = 'inline-editor'; document.body.appendChild(i); i.value = n.text(); i.style.top = (sb.top + trc.y - 10) + 'px'; i.style.left = (sb.left + trc.x - 10) + 'px'; i.style.width = (trc.width + 40) + 'px'; i.style.fontSize = (n.fontSize() * stage.scaleX()) + 'px'; i.focus(); i.oninput = () => { n.text(i.value); n.offsetX(n.align()==='center'?n.width()/2:0); designLayer.batchDraw(); renderLayers(); saveCurrentTabState(); }; i.onblur = () => { document.body.removeChild(i); tr.show(); select(n); }; }
-    function toggleLock() { if(selectedNode) { selectedNode.setAttr('lockedCenter', !selectedNode.attrs.lockedCenter); if(selectedNode.attrs.lockedCenter) selectedNode.x(250 - (selectedNode.offsetX() === 0 ? (selectedNode.width()*selectedNode.scaleX())/2 : 0)); document.getElementById('lockBtn').innerText = selectedNode.attrs.lockedCenter ? '🔒 Travado' : '🔓 Solto'; designLayer.draw(); saveHistory(); } }
+    function toggleLock() { if(selectedNode) { selectedNode.setAttr('lockedCenter', !selectedNode.attrs.lockedCenter); const centerX = EDITOR_STAGE_CENTER_X; if(selectedNode.attrs.lockedCenter) selectedNode.x(centerX - (selectedNode.offsetX() === 0 ? (selectedNode.width()*selectedNode.scaleX())/2 : 0)); vLine.points([centerX, 0, centerX, EDITOR_STAGE_H]); document.getElementById('lockBtn').innerText = selectedNode.attrs.lockedCenter ? '🔒 Travado' : '🔓 Solto'; designLayer.draw(); saveHistory(); } }
     
     function syncModel() { changeProduct(); updateBudget(); saveCurrentTabState(); }
     
     function syncArtes() {
         const c = document.getElementById('artList'); c.innerHTML = '';
-        designLayer.find('.editable').forEach((obj, i) => {
+        designLayer.find('.editable').filter(obj => !obj.attrs.isMockupShape).forEach((obj, i) => {
             if (!obj.attrs.orcSize) obj.attrs.orcSize = Object.keys(CONFIG.artes)[0];
             let opt = ''; Object.keys(CONFIG.artes).forEach(k => { opt += `<option value="${k}" ${obj.attrs.orcSize===k?'selected':''}>${k}</option>`; });
             const d = document.createElement('div'); d.className = 'bg-[var(--bg-input)] p-4 rounded-xl border border-[var(--border-color)] shadow-md transition hover:border-blue-500';
@@ -1838,6 +1952,7 @@
     function getCurrentProductionTechniques() {
         const flags = { dtf: false, bordado: false, silk: false };
         designLayer.find('.editable').forEach(obj => {
+            if(obj.attrs.isMockupShape || obj.attrs.noCharge) return;
             if(obj.attrs.isBordado) flags.bordado = true;
             else if(obj.attrs.isSilk) flags.silk = true;
             else flags.dtf = true;
@@ -1875,8 +1990,8 @@
     function changeProduct() { 
         const m = document.getElementById('modelSelect').value; if (!m || !CONFIG.catalogo[m]) return; const id = currentView === 'frente' ? CONFIG.catalogo[m].fId : CONFIG.catalogo[m].cId;
         Konva.Image.fromURL(getDirectLink(id), (img) => { 
-            productLayer.destroyChildren(); const sc = Math.min(500/img.width(), 600/img.height()); 
-            img.setAttrs({ width: img.width()*sc, height: img.height()*sc, x: (500-img.width()*sc)/2, y: (600-img.height()*sc)/2, crossOrigin: 'Anonymous' }); 
+            productLayer.destroyChildren(); const sc = Math.min(EDITOR_STAGE_W/img.width(), EDITOR_STAGE_H/img.height()) * 1.08; 
+            img.setAttrs({ width: img.width()*sc, height: img.height()*sc, x: (EDITOR_STAGE_W-img.width()*sc)/2, y: (EDITOR_STAGE_H-img.height()*sc)/2, crossOrigin: 'Anonymous' }); 
             img.filters([Konva.Filters.RGB, Konva.Filters.HSV]); img.cache(); shirtImageNode=img; productLayer.add(img); updateShirtColor(); updateVisibility(); 
         }); 
     }
@@ -1894,7 +2009,7 @@
     function applyZoom() { 
         const z = parseFloat(document.getElementById('zoomSlider').value); 
         const oldScale = stage.scaleX();
-        const center = { x: 500 / 2, y: 600 / 2 };
+        const center = { x: EDITOR_STAGE_CENTER_X, y: EDITOR_STAGE_CENTER_Y };
         const relatedTo = { x: (center.x - stage.x()) / oldScale, y: (center.y - stage.y()) / oldScale };
         stage.scale({ x: z, y: z });
         stage.position({ x: center.x - relatedTo.x * z, y: center.y - relatedTo.y * z });
@@ -1903,8 +2018,510 @@
 
     function switchView(v) { currentView=v; document.getElementById('btnFrente').className=v==='frente'?'view-btn view-active':'view-btn'; document.getElementById('btnCostas').className=v==='costas'?'view-btn view-active':'view-btn'; deselect(); changeProduct(); }
     
-    function createNewText() { const n = new Konva.Text({ text: document.getElementById('newTextInput').value || "TEXTO", x: 250, y: 150, fontSize: 40, fontFamily: 'Montserrat', fill: isLightMode?'#0f172a':'#ffffff', draggable: true, name: 'editable', align: 'center', face: currentView, id: 'obj-'+Date.now(), type: 'text' }); n.offsetX(n.width()/2); setupEvents(n); designLayer.add(n); select(n); document.getElementById('newTextInput').value = ''; syncArtes(); saveHistory(); }
+    function createNewText() { const n = new Konva.Text({ text: document.getElementById('newTextInput').value || "TEXTO", x: EDITOR_STAGE_CENTER_X, y: 170, fontSize: 40, fontFamily: 'Montserrat', fill: isLightMode?'#0f172a':'#ffffff', draggable: true, name: 'editable', align: 'center', face: currentView, id: 'obj-'+Date.now(), type: 'text' }); n.offsetX(n.width()/2); setupEvents(n); designLayer.add(n); select(n); document.getElementById('newTextInput').value = ''; syncArtes(); saveHistory(); }
     
+
+    let mockupToolMode = 'select';
+    let activeFreeDrawLine = null;
+    let justFinishedFreeDraw = false;
+
+    function getMockupShapeStyle() {
+        const fillEl = document.getElementById('shapeFillColor');
+        const strokeEl = document.getElementById('shapeStrokeColor');
+        const opacityEl = document.getElementById('shapeOpacity');
+        const strokeWidthEl = document.getElementById('shapeStrokeWidth');
+        return {
+            fill: fillEl ? fillEl.value : '#2563eb',
+            stroke: strokeEl ? strokeEl.value : '#ffffff',
+            opacity: opacityEl ? parseFloat(opacityEl.value) || 0.7 : 0.7,
+            strokeWidth: strokeWidthEl ? parseInt(strokeWidthEl.value) || 0 : 2
+        };
+    }
+
+    function isMockupShapeNode(n) {
+        return !!(n && (n.attrs.isMockupShape || n.attrs.type === 'shape' || n.attrs.type === 'freeDraw'));
+    }
+
+    function updateMockupToolLabels() {
+        const op = document.getElementById('shapeOpacity');
+        const opL = document.getElementById('shapeOpacityLabel');
+        const sw = document.getElementById('shapeStrokeWidth');
+        const swL = document.getElementById('shapeStrokeWidthLabel');
+        if(op && opL) opL.innerText = Math.round((parseFloat(op.value) || 0) * 100) + '%';
+        if(sw && swL) swL.innerText = sw.value || '0';
+    }
+
+    function syncMockupPanelWithSelection(n) {
+        updateMockupToolLabels();
+        if(!isMockupShapeNode(n)) return;
+        const fillEl = document.getElementById('shapeFillColor');
+        const strokeEl = document.getElementById('shapeStrokeColor');
+        const opacityEl = document.getElementById('shapeOpacity');
+        const strokeWidthEl = document.getElementById('shapeStrokeWidth');
+        if(fillEl && n.fill && n.fill()) fillEl.value = n.fill();
+        if(strokeEl && n.stroke && n.stroke()) strokeEl.value = n.stroke();
+        if(opacityEl && typeof n.opacity === 'function') opacityEl.value = n.opacity();
+        if(strokeWidthEl && typeof n.strokeWidth === 'function') strokeWidthEl.value = n.strokeWidth();
+        updateMockupToolLabels();
+    }
+
+    window.applyMockupShapeStyle = () => {
+        updateMockupToolLabels();
+        if(!isMockupShapeNode(selectedNode)) return;
+        const st = getMockupShapeStyle();
+        if(selectedNode.attrs.type === 'freeDraw') {
+            selectedNode.stroke(st.fill);
+            selectedNode.opacity(st.opacity);
+            selectedNode.strokeWidth(st.strokeWidth || 2);
+        } else {
+            selectedNode.fill(st.fill);
+            selectedNode.stroke(st.stroke);
+            selectedNode.opacity(st.opacity);
+            selectedNode.strokeWidth(st.strokeWidth);
+        }
+        designLayer.batchDraw();
+        saveCurrentTabState();
+    };
+
+    window.setMockupToolMode = (mode) => {
+        const nextMode = (mode === 'freeDraw' || mode === 'polygon') ? mode : 'select';
+        if(mockupToolMode === 'polygon' && nextMode !== 'polygon') cancelPolygonPointShape(false);
+        mockupToolMode = nextMode;
+        const freeBtn = document.getElementById('freeDrawBtn');
+        const polyBtn = document.getElementById('polygonToolBtn');
+        if(freeBtn) {
+            freeBtn.className = mockupToolMode === 'freeDraw'
+                ? 'bg-purple-600 text-white border border-purple-400 rounded-md py-1.5 text-[8px] font-black uppercase active:scale-95 transition ring-2 ring-purple-300/40'
+                : 'bg-purple-500/10 text-purple-400 border border-purple-500/40 rounded-md py-1.5 text-[8px] font-black uppercase hover:bg-purple-500 hover:text-white active:scale-95 transition';
+        }
+        if(polyBtn) {
+            polyBtn.className = mockupToolMode === 'polygon'
+                ? 'bg-amber-500 text-slate-950 border border-amber-300 rounded-md py-1.5 text-[8px] font-black uppercase active:scale-95 transition ring-2 ring-amber-300/40'
+                : 'bg-amber-500/10 text-amber-400 border border-amber-500/40 rounded-md py-1.5 text-[8px] font-black uppercase hover:bg-amber-500 hover:text-white active:scale-95 transition';
+        }
+        stage.container().style.cursor = (mockupToolMode === 'freeDraw' || mockupToolMode === 'polygon') ? 'crosshair' : 'default';
+        if(mockupToolMode === 'freeDraw') showToast('Desenho livre ativado.');
+        else if(mockupToolMode === 'polygon') showToast('Corte ponto a ponto ativado. Clique os pontos e pressione Enter para fechar.');
+        else showToast('Modo seleção ativado.');
+    };
+
+    window.addMockupShape = (kind) => {
+        const st = getMockupShapeStyle();
+        const baseAttrs = {
+            x: EDITOR_STAGE_CENTER_X,
+            y: EDITOR_STAGE_CENTER_Y,
+            draggable: true,
+            name: 'editable',
+            face: currentView,
+            id: 'obj-' + Date.now() + '_' + Math.floor(Math.random() * 99999),
+            type: 'shape',
+            isMockupShape: true,
+            shapeKind: kind,
+            noCharge: true,
+            fill: st.fill,
+            stroke: st.stroke,
+            strokeWidth: st.strokeWidth,
+            opacity: st.opacity
+        };
+        let n;
+        if(kind === 'circle') {
+            n = new Konva.Circle({ ...baseAttrs, radius: 60 });
+        } else if(kind === 'square') {
+            n = new Konva.Rect({ ...baseAttrs, width: 120, height: 120, cornerRadius: 0 });
+            n.offsetX(60); n.offsetY(60);
+        } else {
+            n = new Konva.Rect({ ...baseAttrs, width: 180, height: 100, cornerRadius: 0 });
+            n.offsetX(90); n.offsetY(50);
+        }
+        setupEvents(n);
+        designLayer.add(n);
+        select(n);
+        syncArtes();
+        saveHistory();
+        setMockupToolMode('select');
+        designLayer.batchDraw();
+    };
+
+    function getStagePointerPositionForDrawing() {
+        const p = stage.getPointerPosition();
+        if(!p) return null;
+        return { x: (p.x - stage.x()) / stage.scaleX(), y: (p.y - stage.y()) / stage.scaleY() };
+    }
+
+    function snapPolygonPointToAxis(point, evt = null) {
+        if(!point || !evt || !evt.shiftKey || polygonPointShapePoints.length === 0) return point;
+        const last = polygonPointShapePoints[polygonPointShapePoints.length - 1];
+        const dx = point.x - last.x;
+        const dy = point.y - last.y;
+        if(Math.abs(dx) >= Math.abs(dy)) {
+            return { x: point.x, y: last.y };
+        }
+        return { x: last.x, y: point.y };
+    }
+
+    let polygonPointShapePoints = [];
+    let polygonPointShapePreview = null;
+    let polygonPointShapeDots = [];
+
+    function resetPolygonPointShapePreview() {
+        if(polygonPointShapePreview) {
+            polygonPointShapePreview.destroy();
+            polygonPointShapePreview = null;
+        }
+        polygonPointShapeDots.forEach(dot => dot.destroy());
+        polygonPointShapeDots = [];
+        guideLayer.batchDraw();
+    }
+
+    function cancelPolygonPointShape(showMsg = true) {
+        polygonPointShapePoints = [];
+        resetPolygonPointShapePreview();
+        if(showMsg) showToast('Corte ponto a ponto cancelado.');
+    }
+
+    function updatePolygonPointShapePreview(mousePoint = null) {
+        resetPolygonPointShapePreview();
+        if(polygonPointShapePoints.length === 0) return;
+        const previewPoints = polygonPointShapePoints.slice();
+        if(mousePoint) previewPoints.push(mousePoint);
+        const flat = previewPoints.flatMap(p => [p.x, p.y]);
+        polygonPointShapePreview = new Konva.Line({
+            points: flat,
+            stroke: '#f59e0b',
+            strokeWidth: 1,
+            dash: [4, 4],
+            closed: false,
+            listening: false,
+            name: 'polygonPreview'
+        });
+        guideLayer.add(polygonPointShapePreview);
+        polygonPointShapeDots = polygonPointShapePoints.map((p, idx) => {
+            const dot = new Konva.Circle({
+                x: p.x,
+                y: p.y,
+                radius: idx === 0 ? 2.8 : 2.2,
+                fill: idx === 0 ? '#22c55e' : '#f59e0b',
+                stroke: '#ffffff',
+                strokeWidth: 0.6,
+                listening: false,
+                name: 'polygonPreview'
+            });
+            guideLayer.add(dot);
+            return dot;
+        });
+        guideLayer.batchDraw();
+    }
+
+    function finishPolygonPointShape() {
+        if(polygonPointShapePoints.length < 3) {
+            showToast('Crie pelo menos 3 pontos para fechar o corte.');
+            return;
+        }
+        const st = getMockupShapeStyle();
+        const n = new Konva.Line({
+            points: polygonPointShapePoints.flatMap(p => [p.x, p.y]),
+            closed: true,
+            fill: st.fill,
+            stroke: st.stroke,
+            strokeWidth: st.strokeWidth,
+            opacity: st.opacity,
+            draggable: true,
+            name: 'editable',
+            face: currentView,
+            id: 'obj-' + Date.now() + '_' + Math.floor(Math.random() * 99999),
+            type: 'shape',
+            shapeKind: 'polygon',
+            isMockupShape: true,
+            noCharge: true
+        });
+        polygonPointShapePoints = [];
+        resetPolygonPointShapePreview();
+        setupEvents(n);
+        designLayer.add(n);
+        select(n);
+        syncArtes();
+        saveHistory();
+        setMockupToolMode('select');
+        designLayer.batchDraw();
+        showToast('Forma ponto a ponto criada.');
+    }
+
+    function handlePolygonPointShapeClick(e) {
+        if(mockupToolMode !== 'polygon') return;
+        if(e.evt && e.evt.button === 1) return;
+        e.cancelBubble = true;
+        let p = getStagePointerPositionForDrawing();
+        if(!p) return;
+        p = snapPolygonPointToAxis(p, e.evt);
+        const first = polygonPointShapePoints[0];
+        if(first && polygonPointShapePoints.length >= 3 && Math.hypot(p.x - first.x, p.y - first.y) <= 8) {
+            finishPolygonPointShape();
+            return;
+        }
+        polygonPointShapePoints.push(p);
+        updatePolygonPointShapePreview();
+    }
+
+    stage.on('click tap', handlePolygonPointShapeClick);
+    stage.on('mousemove touchmove', (e) => {
+        if(mockupToolMode !== 'polygon' || polygonPointShapePoints.length === 0) return;
+        let p = getStagePointerPositionForDrawing();
+        if(!p) return;
+        p = snapPolygonPointToAxis(p, e.evt);
+        updatePolygonPointShapePreview(p);
+    });
+    stage.on('dblclick dbltap', (e) => {
+        if(mockupToolMode !== 'polygon') return;
+        e.cancelBubble = true;
+        finishPolygonPointShape();
+    });
+    window.addEventListener('keydown', (e) => {
+        if(mockupToolMode !== 'polygon') return;
+        if(e.key === 'Enter') { e.preventDefault(); finishPolygonPointShape(); }
+        if(e.key === 'Escape') { e.preventDefault(); setMockupToolMode('select'); }
+    });
+
+    stage.on('mousedown touchstart', (e) => {
+        if(mockupToolMode !== 'freeDraw') return;
+        if(e.evt && e.evt.button === 1) return;
+        e.cancelBubble = true;
+        const p = getStagePointerPositionForDrawing();
+        if(!p) return;
+        const st = getMockupShapeStyle();
+        activeFreeDrawLine = new Konva.Line({
+            points: [p.x, p.y],
+            stroke: st.fill,
+            strokeWidth: Math.max(1, st.strokeWidth || 3),
+            opacity: st.opacity,
+            lineCap: 'round',
+            lineJoin: 'round',
+            tension: 0.35,
+            draggable: true,
+            name: 'editable',
+            face: currentView,
+            id: 'obj-' + Date.now() + '_' + Math.floor(Math.random() * 99999),
+            type: 'freeDraw',
+            isMockupShape: true,
+            noCharge: true
+        });
+        designLayer.add(activeFreeDrawLine);
+    });
+
+    stage.on('mousemove touchmove', (e) => {
+        if(mockupToolMode !== 'freeDraw' || !activeFreeDrawLine) return;
+        e.cancelBubble = true;
+        const p = getStagePointerPositionForDrawing();
+        if(!p) return;
+        activeFreeDrawLine.points(activeFreeDrawLine.points().concat([p.x, p.y]));
+        designLayer.batchDraw();
+    });
+
+    stage.on('mouseup touchend', (e) => {
+        if(mockupToolMode !== 'freeDraw' || !activeFreeDrawLine) return;
+        e.cancelBubble = true;
+        const n = activeFreeDrawLine;
+        activeFreeDrawLine = null;
+        justFinishedFreeDraw = true;
+        setupEvents(n);
+        select(n);
+        syncArtes();
+        saveHistory();
+        setMockupToolMode('select');
+        setTimeout(() => { justFinishedFreeDraw = false; }, 50);
+    });
+
+    function initMockupToolsPanelDrag() {
+        const panel = document.getElementById('mockupToolsPanel');
+        const handle = document.getElementById('mockupToolsDragHandle');
+        const parent = panel ? panel.parentElement : null;
+        if(!panel || !handle || !parent || panel.dataset.dragReady === '1') return;
+        panel.dataset.dragReady = '1';
+        let dragging = false;
+        let offset = { x: 0, y: 0 };
+        const clamp = (val, min, max) => Math.max(min, Math.min(max, val));
+        handle.addEventListener('pointerdown', (e) => {
+            if(e.target && e.target.closest('button,input')) return;
+            dragging = true;
+            const pRect = panel.getBoundingClientRect();
+            offset = { x: e.clientX - pRect.left, y: e.clientY - pRect.top };
+            panel.style.right = 'auto';
+            panel.style.left = (pRect.left - parent.getBoundingClientRect().left) + 'px';
+            panel.style.top = (pRect.top - parent.getBoundingClientRect().top) + 'px';
+            handle.setPointerCapture(e.pointerId);
+            e.preventDefault();
+        });
+        handle.addEventListener('pointermove', (e) => {
+            if(!dragging) return;
+            const parentRect = parent.getBoundingClientRect();
+            const panelRect = panel.getBoundingClientRect();
+            const left = clamp(e.clientX - parentRect.left - offset.x, 0, Math.max(0, parentRect.width - panelRect.width));
+            const top = clamp(e.clientY - parentRect.top - offset.y, 0, Math.max(0, parentRect.height - panelRect.height));
+            panel.style.left = left + 'px';
+            panel.style.top = top + 'px';
+            panel.style.right = 'auto';
+        });
+        const stop = () => { dragging = false; };
+        handle.addEventListener('pointerup', stop);
+        handle.addEventListener('pointercancel', stop);
+    }
+
+    let freeCropTargetNode = null;
+    let freeCropImage = null;
+    let freeCropScale = 1;
+    let freeCropPath = [];
+    let freeCropDrawing = false;
+
+    function getFreeCropCanvas() { return document.getElementById('freeCropPreviewCanvas'); }
+    function getFreeCropSourceSize() {
+        if(!freeCropImage) return { w: 1, h: 1 };
+        return { w: freeCropImage.naturalWidth || freeCropImage.width || 1, h: freeCropImage.naturalHeight || freeCropImage.height || 1 };
+    }
+    function freeCropPointFromEvent(e) {
+        const canvas = getFreeCropCanvas();
+        const rect = canvas.getBoundingClientRect();
+        const clientX = e.touches && e.touches[0] ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches && e.touches[0] ? e.touches[0].clientY : e.clientY;
+        return { x: (clientX - rect.left) / freeCropScale, y: (clientY - rect.top) / freeCropScale };
+    }
+    function drawFreeCropPreview() {
+        const canvas = getFreeCropCanvas();
+        if(!canvas || !freeCropImage) return;
+        const ctx = canvas.getContext('2d');
+        const s = getFreeCropSourceSize();
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+        ctx.drawImage(freeCropImage, 0, 0, canvas.width, canvas.height);
+        if(freeCropPath.length > 1) {
+            ctx.save();
+            ctx.fillStyle = 'rgba(0,0,0,0.45)';
+            ctx.fillRect(0,0,canvas.width,canvas.height);
+            ctx.beginPath();
+            ctx.moveTo(freeCropPath[0].x * freeCropScale, freeCropPath[0].y * freeCropScale);
+            for(let i=1;i<freeCropPath.length;i++) ctx.lineTo(freeCropPath[i].x * freeCropScale, freeCropPath[i].y * freeCropScale);
+            if(freeCropPath.length > 2) ctx.closePath();
+            ctx.globalCompositeOperation = 'destination-out';
+            ctx.fill();
+            ctx.globalCompositeOperation = 'source-over';
+            ctx.strokeStyle = '#f59e0b';
+            ctx.lineWidth = 3;
+            ctx.setLineDash([8, 5]);
+            ctx.stroke();
+            ctx.restore();
+        }
+        const info = document.getElementById('freeCropInfoText');
+        if(info) info.innerText = freeCropPath.length > 2 ? `${freeCropPath.length} pontos desenhados • clique em aplicar` : 'Desenhe a área que deve permanecer';
+    }
+    function initFreeCropCanvasEvents() {
+        const canvas = getFreeCropCanvas();
+        if(!canvas || canvas.dataset.freeCropReady === '1') return;
+        canvas.dataset.freeCropReady = '1';
+        const start = (e) => {
+            if(!freeCropImage) return;
+            e.preventDefault();
+            freeCropDrawing = true;
+            freeCropPath = [freeCropPointFromEvent(e)];
+            drawFreeCropPreview();
+        };
+        const move = (e) => {
+            if(!freeCropDrawing || !freeCropImage) return;
+            e.preventDefault();
+            const p = freeCropPointFromEvent(e);
+            const last = freeCropPath[freeCropPath.length - 1];
+            if(!last || Math.hypot(p.x - last.x, p.y - last.y) > 3) {
+                freeCropPath.push(p);
+                drawFreeCropPreview();
+            }
+        };
+        const end = (e) => {
+            if(!freeCropDrawing) return;
+            e.preventDefault();
+            freeCropDrawing = false;
+            drawFreeCropPreview();
+        };
+        canvas.addEventListener('mousedown', start);
+        canvas.addEventListener('mousemove', move);
+        window.addEventListener('mouseup', end);
+        canvas.addEventListener('touchstart', start, { passive: false });
+        canvas.addEventListener('touchmove', move, { passive: false });
+        window.addEventListener('touchend', end, { passive: false });
+    }
+    window.openFreeCropFromSelected = () => {
+        if(!selectedNode || selectedNode.attrs.type !== 'image') {
+            showToast('Selecione uma imagem para usar corte livre.');
+            return;
+        }
+        openFreeCropImage(selectedNode.id());
+    };
+    window.openFreeCropImage = (nodeId) => {
+        const node = stage.findOne('#' + nodeId);
+        if(!node || node.attrs.type !== 'image') { showToast('Selecione uma imagem.'); return; }
+        const src = node.attrs.src || (node.image && node.image() ? node.image().src : '');
+        if(!src) { showToast('Esta imagem não possui origem para corte.'); return; }
+        freeCropTargetNode = node;
+        freeCropImage = new Image();
+        if(!String(src).startsWith('data:image')) freeCropImage.crossOrigin = 'Anonymous';
+        freeCropImage.onload = () => {
+            const s = getFreeCropSourceSize();
+            const maxW = 660, maxH = 430;
+            freeCropScale = Math.min(maxW / s.w, maxH / s.h, 1);
+            const canvas = getFreeCropCanvas();
+            canvas.width = Math.max(1, Math.round(s.w * freeCropScale));
+            canvas.height = Math.max(1, Math.round(s.h * freeCropScale));
+            freeCropPath = [];
+            initFreeCropCanvasEvents();
+            drawFreeCropPreview();
+            document.getElementById('freeCropImageModal').classList.add('show');
+        };
+        freeCropImage.onerror = () => showToast('Não foi possível abrir a imagem para corte livre.');
+        freeCropImage.src = src;
+    };
+    window.closeFreeCropImageModal = () => {
+        document.getElementById('freeCropImageModal').classList.remove('show');
+        freeCropDrawing = false;
+    };
+    window.resetFreeCropPath = () => {
+        freeCropPath = [];
+        drawFreeCropPreview();
+    };
+    window.applyFreeImageCrop = () => {
+        if(!freeCropTargetNode || !freeCropImage || freeCropPath.length < 3) {
+            showToast('Desenhe uma área antes de aplicar.');
+            return;
+        }
+        try {
+            const s = getFreeCropSourceSize();
+            const canvas = document.createElement('canvas');
+            canvas.width = s.w;
+            canvas.height = s.h;
+            const ctx = canvas.getContext('2d');
+            ctx.save();
+            ctx.beginPath();
+            ctx.moveTo(freeCropPath[0].x, freeCropPath[0].y);
+            for(let i=1;i<freeCropPath.length;i++) ctx.lineTo(freeCropPath[i].x, freeCropPath[i].y);
+            ctx.closePath();
+            ctx.clip();
+            ctx.drawImage(freeCropImage, 0, 0);
+            ctx.restore();
+            const dataUrl = canvas.toDataURL('image/png');
+            const nextImg = new Image();
+            nextImg.onload = () => {
+                freeCropTargetNode.image(nextImg);
+                freeCropTargetNode.setAttr('src', dataUrl);
+                closeFreeCropImageModal();
+                select(freeCropTargetNode);
+                syncArtes();
+                saveHistory();
+                updateBudget();
+                designLayer.batchDraw();
+                showToast('Corte livre aplicado.');
+            };
+            nextImg.src = dataUrl;
+        } catch(err) {
+            console.error(err);
+            showToast('Não foi possível aplicar o corte livre nesta imagem.');
+        }
+    };
+
+
     function getCanvasDropPosition(e, offsetIndex = 0) {
         const rect = stage.container().getBoundingClientRect();
         const pointer = { x: e.clientX - rect.left, y: e.clientY - rect.top };
@@ -1938,8 +2555,8 @@
                 }
                 const n = new Konva.Image({
                     image: img,
-                    x: Number.isFinite(opts.x) ? opts.x : 250,
-                    y: Number.isFinite(opts.y) ? opts.y : 200,
+                    x: Number.isFinite(opts.x) ? opts.x : EDITOR_STAGE_CENTER_X,
+                    y: Number.isFinite(opts.y) ? opts.y : (EDITOR_STAGE_CENTER_Y - 80),
                     width: w,
                     height: h,
                     draggable: true,
@@ -1976,7 +2593,7 @@
     document.getElementById('imageInput').addEventListener('change', (e) => {
         const files = Array.from(e.target.files || []).filter(f => f.type && f.type.startsWith('image/'));
         if(!files.length) return;
-        Promise.all(files.map((file, idx) => addImageFileToCanvas(file, { x: 250 + (idx * 24), y: 200 + (idx * 24) })))
+        Promise.all(files.map((file, idx) => addImageFileToCanvas(file, { x: EDITOR_STAGE_CENTER_X + (idx * 24), y: (EDITOR_STAGE_CENTER_Y - 80) + (idx * 24) })))
             .then(() => showToast(files.length > 1 ? `${files.length} imagens adicionadas.` : 'Imagem adicionada.'))
             .catch(err => { console.error(err); showToast('Não foi possível adicionar uma imagem.'); });
         e.target.value = '';
@@ -2018,9 +2635,19 @@
         });
     }
     setupCanvasImageDrop();
+    setTimeout(updateMockupToolLabels, 0);
 
     function deleteElement() { if(selectedNode) { selectedNode.destroy(); deselect(); syncArtes(); saveHistory(); } }
-    function updateProp(t, v) { if(!selectedNode) return; if(t==='font') selectedNode.fontFamily(v); if(t==='color') selectedNode.fill(document.getElementById('textColor').value); if(t==='bold') selectedNode.fontStyle(selectedNode.fontStyle()==='bold'?'normal':'bold'); if(t==='align') { const a = selectedNode.align()==='center'?'left':'center'; selectedNode.align(a); selectedNode.offsetX(a==='center'?selectedNode.width()/2:0); } designLayer.draw(); saveHistory(); }
+    function updateProp(t, v) { 
+        if(!selectedNode) return; 
+        const isText = selectedNode.attrs.type === 'text';
+        if(t==='font' && isText) selectedNode.fontFamily(v); 
+        if(t==='color') selectedNode.fill(document.getElementById('textColor').value); 
+        if(t==='bold' && isText) selectedNode.fontStyle(selectedNode.fontStyle()==='bold'?'normal':'bold'); 
+        if(t==='align' && isText) { const a = selectedNode.align()==='center'?'left':'center'; selectedNode.align(a); selectedNode.offsetX(a==='center'?selectedNode.width()/2:0); } 
+        designLayer.draw(); 
+        saveHistory(); 
+    }
     function updateVisibility() { designLayer.find('.editable').forEach(n => n.visible(n.attrs.face === currentView)); designLayer.draw(); }
     
     function getCurrentFaceNodesTopFirst() {
@@ -2263,6 +2890,18 @@
         }
     }
 
+    function getLayerLabel(n) {
+        if(!n || !n.attrs) return 'Camada';
+        if(n.attrs.type === 'text') return safeText(n.text ? n.text() : 'Texto');
+        if(n.attrs.type === 'image') return 'Arte Imagem';
+        if(n.attrs.type === 'freeDraw') return 'Desenho livre';
+        if(n.attrs.shapeKind === 'polygon') return 'Forma ponto a ponto';
+        if(n.attrs.shapeKind === 'circle') return 'Círculo';
+        if(n.attrs.shapeKind === 'square') return 'Quadrado';
+        if(n.attrs.shapeKind === 'rect') return 'Retângulo';
+        return 'Forma';
+    }
+
     function renderLayers() { 
         const l = document.getElementById('layersList'); l.innerHTML = ''; 
         const nodes = getCurrentFaceNodesTopFirst();
@@ -2288,7 +2927,7 @@
                 <span class="text-[12px] text-blue-500 font-black w-5 text-center">☰</span>
                 <div class="min-w-0">
                     <div class="text-[8px] text-[var(--text-muted)] font-black uppercase tracking-widest">${index === 0 ? 'Topo' : 'Camada'}</div>
-                    <span class="text-[10px] font-black uppercase tracking-widest truncate block max-w-[105px] text-[var(--text-main)]">${n.attrs.type==='text'?n.text():'Arte Imagem'}</span>
+                    <span class="text-[10px] font-black uppercase tracking-widest truncate block max-w-[105px] text-[var(--text-main)]">${getLayerLabel(n)}</span>
                 </div>
             </div><div class="flex gap-1">
                 ${isImg ? `<button onclick="event.stopPropagation(); openCropImage('${n.id()}')" class="bg-blue-600 text-white font-black text-[10px] px-2 hover:bg-blue-500 rounded transition py-1" title="Recortar/Cropar imagem">✂️</button><button onclick="event.stopPropagation(); openChromaKey('${n.id()}')" class="bg-teal-600 text-white font-black text-[10px] px-2 hover:bg-teal-500 rounded transition py-1" title="Remover Fundo">🪄</button>` : ''}
@@ -2432,8 +3071,8 @@
                 if(img.width > maxD || img.height > maxD) sc = Math.min(maxD / img.width, maxD / img.height);
                 const w = img.width * sc;
                 const h = img.height * sc;
-                const x = 250 + (index * 24);
-                const y = 200 + (index * 24);
+                const x = EDITOR_STAGE_CENTER_X + (index * 24);
+                const y = (EDITOR_STAGE_CENTER_Y - 80) + (index * 24);
                 let finalSrc = src;
                 try {
                     const tempCanvas = document.createElement('canvas');
@@ -2742,10 +3381,12 @@
     window.imageFormatFromSrc = imageFormatFromSrc;
 
     function preload() { 
+        if(typeof applyThemeMode === 'function') applyThemeMode(localStorage.getItem('trendwear_theme') || 'light', false);
         rebuildDynamicDropdowns();
         let total = Object.keys(CONFIG.catalogo).length * 2; let count = 0; let loaded = false;
         const finishLoad = () => {
             if(loaded) return; loaded = true;
+            if(typeof initMockupToolsPanelDrag === 'function') initMockupToolsPanelDrag();
             document.getElementById('loadingOverlay').style.opacity = '0'; 
             setTimeout(() => { document.getElementById('loadingOverlay').style.visibility = 'hidden'; if(tabs.length === 0) window.initTabs(); }, 500);
         };
@@ -2758,32 +3399,35 @@
         });
         setTimeout(finishLoad, 4000);
     }
+    window.addEventListener('error', (event) => {
+        console.error('[LayoutPro] Erro global:', event.message, event.error || event);
+    });
+    window.addEventListener('unhandledrejection', (event) => {
+        console.error('[LayoutPro] Promessa rejeitada:', event.reason);
+    });
     window.onload = preload;
 </script>
-
 <div id="firebaseAuthOverlay" style="position: fixed; inset: 0; background: #0f172a; z-index: 999999; display: flex; flex-direction: column; align-items: center; justify-content: center; font-family: 'Montserrat', sans-serif;">
-    <div id="fbLoginCard" style="background: #1e293b; padding: 40px; border-radius: 16px; border: 1px solid #334155; width: 100%; max-width: 400px; text-align: center; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);">
-        <h2 style="color: #3b82f6; font-size: 24px; font-weight: 900; font-style: italic; text-transform: uppercase; margin-bottom: 24px;">Acesso Restrito</h2>
-        <input type="email" id="fbEmail" placeholder="E-mail de Acesso" style="width: 100%; padding: 12px; margin-bottom: 16px; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 8px; outline: none; box-sizing: border-box; font-family: 'Montserrat', sans-serif;">
-        <input type="password" id="fbPass" placeholder="Senha" style="width: 100%; padding: 12px; margin-bottom: 24px; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 8px; outline: none; box-sizing: border-box; font-family: 'Montserrat', sans-serif;">
-        <button id="fbLoginBtn" style="width: 100%; background: #3b82f6; color: white; padding: 14px; font-weight: 900; text-transform: uppercase; border-radius: 8px; border: none; cursor: pointer; transition: background 0.3s; font-family: 'Montserrat', sans-serif;">Entrar no Sistema</button>
-        <div id="fbErrorMsg" style="color: #ef4444; font-size: 12px; margin-top: 16px; font-weight: bold; min-height: 16px;"></div>
-    </div>
-
-    <div id="fbProfileCard" style="display:none; background: #1e293b; padding: 32px; border-radius: 16px; border: 1px solid #334155; width: 100%; max-width: 430px; text-align: left; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);">
-        <h2 style="color: #3b82f6; font-size: 20px; font-weight: 900; font-style: italic; text-transform: uppercase; margin-bottom: 8px; text-align:center;">Cadastro do Usuário</h2>
-        <p style="color:#94a3b8; font-size:11px; font-weight:700; text-align:center; margin-bottom:22px; line-height:1.5;">Preencha uma vez para o LayoutPro puxar seus dados nos orçamentos.</p>
-        <label style="color:#94a3b8; font-size:10px; font-weight:900; text-transform:uppercase;">Nome</label>
-        <input type="text" id="profileNome" placeholder="Seu nome de vendedor" style="width: 100%; padding: 12px; margin: 6px 0 14px; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 8px; outline: none; box-sizing: border-box; font-family: 'Montserrat', sans-serif;">
-        <label style="color:#94a3b8; font-size:10px; font-weight:900; text-transform:uppercase;">Telefone de contato</label>
-        <input type="text" id="profileTelefone" placeholder="WhatsApp / telefone" style="width: 100%; padding: 12px; margin: 6px 0 14px; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 8px; outline: none; box-sizing: border-box; font-family: 'Montserrat', sans-serif;">
-        <label style="color:#94a3b8; font-size:10px; font-weight:900; text-transform:uppercase;">Email de contato</label>
-        <input type="email" id="profileEmailContato" placeholder="Email comercial" style="width: 100%; padding: 12px; margin: 6px 0 20px; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 8px; outline: none; box-sizing: border-box; font-family: 'Montserrat', sans-serif;">
-        <button id="profileSaveBtn" style="width: 100%; background: #3b82f6; color: white; padding: 14px; font-weight: 900; text-transform: uppercase; border-radius: 8px; border: none; cursor: pointer; transition: background 0.3s; font-family: 'Montserrat', sans-serif;">Salvar Cadastro</button>
-        <div id="profileErrorMsg" style="color: #ef4444; font-size: 12px; margin-top: 16px; font-weight: bold; min-height: 16px; text-align:center;"></div>
-    </div>
+<div id="fbLoginCard" style="background: #1e293b; padding: 40px; border-radius: 16px; border: 1px solid #334155; width: 100%; max-width: 400px; text-align: center; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);">
+<h2 style="color: #3b82f6; font-size: 24px; font-weight: 900; font-style: italic; text-transform: uppercase; margin-bottom: 24px;">Acesso Restrito</h2>
+<input id="fbEmail" placeholder="E-mail de Acesso" style="width: 100%; padding: 12px; margin-bottom: 16px; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 8px; outline: none; box-sizing: border-box; font-family: 'Montserrat', sans-serif;" type="email"/>
+<input id="fbPass" placeholder="Senha" style="width: 100%; padding: 12px; margin-bottom: 24px; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 8px; outline: none; box-sizing: border-box; font-family: 'Montserrat', sans-serif;" type="password"/>
+<button id="fbLoginBtn" style="width: 100%; background: #3b82f6; color: white; padding: 14px; font-weight: 900; text-transform: uppercase; border-radius: 8px; border: none; cursor: pointer; transition: background 0.3s; font-family: 'Montserrat', sans-serif;">Entrar no Sistema</button>
+<div id="fbErrorMsg" style="color: #ef4444; font-size: 12px; margin-top: 16px; font-weight: bold; min-height: 16px;"></div>
 </div>
-
+<div id="fbProfileCard" style="display:none; background: #1e293b; padding: 32px; border-radius: 16px; border: 1px solid #334155; width: 100%; max-width: 430px; text-align: left; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);">
+<h2 style="color: #3b82f6; font-size: 20px; font-weight: 900; font-style: italic; text-transform: uppercase; margin-bottom: 8px; text-align:center;">Cadastro do Usuário</h2>
+<p style="color:#94a3b8; font-size:11px; font-weight:700; text-align:center; margin-bottom:22px; line-height:1.5;">Preencha uma vez para o LayoutPro puxar seus dados nos orçamentos.</p>
+<label style="color:#94a3b8; font-size:10px; font-weight:900; text-transform:uppercase;">Nome</label>
+<input id="profileNome" placeholder="Seu nome de vendedor" style="width: 100%; padding: 12px; margin: 6px 0 14px; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 8px; outline: none; box-sizing: border-box; font-family: 'Montserrat', sans-serif;" type="text"/>
+<label style="color:#94a3b8; font-size:10px; font-weight:900; text-transform:uppercase;">Telefone de contato</label>
+<input id="profileTelefone" placeholder="WhatsApp / telefone" style="width: 100%; padding: 12px; margin: 6px 0 14px; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 8px; outline: none; box-sizing: border-box; font-family: 'Montserrat', sans-serif;" type="text"/>
+<label style="color:#94a3b8; font-size:10px; font-weight:900; text-transform:uppercase;">Email de contato</label>
+<input id="profileEmailContato" placeholder="Email comercial" style="width: 100%; padding: 12px; margin: 6px 0 20px; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 8px; outline: none; box-sizing: border-box; font-family: 'Montserrat', sans-serif;" type="email"/>
+<button id="profileSaveBtn" style="width: 100%; background: #3b82f6; color: white; padding: 14px; font-weight: 900; text-transform: uppercase; border-radius: 8px; border: none; cursor: pointer; transition: background 0.3s; font-family: 'Montserrat', sans-serif;">Salvar Cadastro</button>
+<div id="profileErrorMsg" style="color: #ef4444; font-size: 12px; margin-top: 16px; font-weight: bold; min-height: 16px; text-align:center;"></div>
+</div>
+</div>
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
   import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
